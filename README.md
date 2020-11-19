@@ -12,4 +12,5 @@ an optional alternative internet server to ping if the ping to the first server 
 power disconnect and waiting time for connection resume is configurable and more.<br/><br/>
 For turning the power off and on, it is neccessary to have a two relay board wired to two GPIO pins. The pin
 numbers are also configurable.<br/><br/>
-There is also an implementation of a web (HTML) site that is used for controlloing and configuring the software.
+There is also an implementation of a web (HTML) site that is used for controlloing and configuring the software.<br /><br />
+The files in the SD directory should be (tree) copied to an SD card and be placed in the Ethernet Shield 2.
