@@ -10,8 +10,9 @@ If internet connctivity does not return, it goes again through the recovery atte
 connectivity returns, or maximum recovery cycles exceeded.<br/><br/>
 There are quite a few configurable paramters to this software, like name of server on the internet to ping,
 an optional alternative internet server to ping if the ping to the first server failed. Also the time for 
-power disconnect and waiting time for connection resume is configurable and more.<br/><br/>
+power disconnect and waiting time for connection to resume is configurable and more.<br/><br/>
 For turning the power off and on, it is neccessary to have a two relay board wired to two GPIO pins. The pin
 numbers are also configurable.<br/><br/>
-There is also an implementation of a web (HTML) site that is used for controlloing and configuring the software.<br /><br />
+There is also an implementation of a web (HTML) site that is used for controlloing and configuring the software.
+The web site also has a page for reporting recoveries history.<br /><br />
 The files in the SD directory should be (tree) copied to an SD card and be placed in the Ethernet Shield 2.
