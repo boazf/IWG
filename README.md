@@ -16,7 +16,7 @@ numbers are also configurable.<br/><br/>
 There is also an implementation of a web (HTML) site that is used for controlloing and configuring the software.
 The web site also has a page for reporting recoveries history.<br /><br />
 The files in the SD directory should be (tree) copied to an SD card and be placed in the Ethernet Shield 2.<br/><br/>
-Edit the content of file config.txt. The content is pretty much self-explentory. The time server (TimeServer) is used
+Edit the content of file config.txt on the SD card. The content is pretty much self-explentory. The TimeServer parameter is used
 for getting the current GMT time using NTP protocol. The TimeZone paramter is used to set the local time. The value is
 in minutes and can also be negative. Then there are parameters for setting Ethernet. The code uses static IP address
 so the site address is always the same. Then you can also set the pin numbers for switching the router and modem power
