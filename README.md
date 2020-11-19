@@ -1,4 +1,4 @@
-Arduino Internet Recovery Box
+#Arduino Internet Recovery Box
 
 This project is intended to run on an Arduino MEGA2560 board with Ethernet Shield 2. 
 What it does is continuously ping a server on the internet and optionally a local address on the LAN. 
