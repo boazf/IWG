@@ -59,8 +59,8 @@
             <input class="btn btn-info" type="button" id="checkConnectionBtn" value="Check Connection" />
         </div>
         <div id="glassPane" style='visibility:%3       class="glassPane"></div>
-<br /><br /><br /><br />
-	<span id="spnMessage"></span>
+    <!-- <br /><br /><br /><br />
+	<span id="spnMessage"></span> -->
 
         <script type="text/javascript">
 
@@ -80,7 +80,7 @@
 
     var recoveryTimer = 0;
 
-SetLastRecoveryDisplay(%4   , %5  , %6  , %7  , %8     );
+SetLastRecoveryDisplay(%4     , %5  , %6  , %7  , %8     );
     var recoveryType = %9   ;
     SetConnectionStatus(recoveryType);
 
@@ -122,11 +122,11 @@ SetLastRecoveryDisplay(%4   , %5  , %6  , %7  , %8     );
     var source = new EventSource(appBase + 'api/sse/' + id);
 
     source.onopen = function (event) {
-        $("#spnMessage")[0].innerHTML += "Opened";
+        //$("#spnMessage")[0].innerHTML += "Opened";
     }
 
     source.onerror = function (event) {
-        $("#spnMessage")[0].innerHTML += " Closed";
+        //$("#spnMessage")[0].innerHTML += " Closed";
         //if (inactive) {
         //    window.location.href = appBase;
         //}
