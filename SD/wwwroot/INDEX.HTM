@@ -1,0 +1,329 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Control Page</title>
+
+    <link rel="stylesheet" href="/lib/bstrap/css/bstrap.css" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="icon" href="/images/ir.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/images/ir.ico" type="image/x-icon" />
+</head>
+<body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="/Index">Control</a></li>
+                    <li><a href="/Settings">Settings</a></li>
+                    <li><a href="/History">History</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <script src="/lib/jquery/jquery.js"></script>
+    <script src="/lib/jvalid/jvalid.js"></script>
+    <script src="/lib/juvalid/juvalid.js"></script>
+
+    <div class="container body-content">
+        <div id="auto-recovery-warning" class="row col-lg-12 alert alert-warning" style="display:%0    >
+            <span class="glyphicon glyphicon-alert" style="margin-right:10px"></span> Auto-recovery is disabled!
+        </div>
+        <div class="row col-lg-12">
+            <div class="toggleSwitch">
+                <input type="checkbox" id="router" %1       />
+                <div class="roundToggleSwitch"><span class="toggleSwitchText On">ON</span><span class="toggleSwitchText Off">OFF</span></div>
+                <label class="toggleSwitch" for="router" name="skills"><span class="toggleSwitchLabel">Router</span></label>
+            </div>
+        </div>
+        <div class="row col-lg-12">
+            <div class="toggleSwitch">
+                <input type="checkbox" id="modem" %2      />
+                <div class="roundToggleSwitch"><span class="toggleSwitchText On">ON</span><span class="toggleSwitchText Off">OFF</span></div>
+                <label class="toggleSwitch" for="modem" name="skills"><span class="toggleSwitchLabel">Modem</span></label>
+            </div>
+        </div>
+        <div class="row col-lg-12 alert" id="connection"></div>
+        <br />
+        <div class="row col-lg-12">
+            <input class="btn btn-info" type="button" id="checkConnectionBtn" value="Check Connection" />
+        </div>
+        <div id="glassPane" style='visibility:%3       class="glassPane"></div>
+<br /><br /><br /><br />
+	<span id="spnMessage"></span>
+
+        <script type="text/javascript">
+
+    const recoveryTypes = {
+        NONE: 0,
+        ROUTER: 1,
+        MODEM: 2,
+        TEST_CONNECTION: 3,
+        FAILED: 4,
+        HW_FAILURE: 5
+    };
+
+    const powerStates = {
+        OFF: 0,
+        ON: 1
+    }
+
+    var recoveryTimer = 0;
+
+SetLastRecoveryDisplay(%4   , %5  , %6  , %7  , %8     );
+    var recoveryType = %9   ;
+    SetConnectionStatus(recoveryType);
+
+    var id = GetId();
+
+    var appBase = %10                                                                                                                    ;
+
+    var autoPilot = false;
+
+    var inactive = true;
+
+    function GetId() {
+        var href = window.location.href;
+        return href.substr(href.lastIndexOf("/") + 1);
+    }
+
+    function StartRecoveryCycle(type) {
+        fetch(appBase + "api/recovery", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ recoveryType: type  })
+        });
+    }
+
+    $(document).ready(function () {
+        $("#router").click(function () {
+            StartRecoveryCycle(recoveryTypes.ROUTER);
+        })
+        $("#modem").click(function () {
+            StartRecoveryCycle(recoveryTypes.MODEM);
+        })
+        $("#checkConnectionBtn").click(function () {
+            StartRecoveryCycle(recoveryTypes.TEST_CONNECTION);
+        })
+    });
+
+    var source = new EventSource(appBase + 'api/sse/' + id);
+
+    source.onopen = function (event) {
+        $("#spnMessage")[0].innerHTML += "Opened";
+    }
+
+    source.onerror = function (event) {
+        $("#spnMessage")[0].innerHTML += " Closed";
+        //if (inactive) {
+        //    window.location.href = appBase;
+        //}
+    }
+
+    source.onmessage = function (event) {
+        inactive = false;
+        var state = JSON.parse(event.data);
+        SetConnectionStatus(state.recoveryType);
+        //$("#spnMessage").text("id=" + id + " " + event.data);
+        switch (state.recoveryType) {
+            case recoveryTypes.ROUTER:
+                if (recoveryType != recoveryTypes.ROUTER) {
+                    RecoveryAutoPilot();
+                }
+            case recoveryTypes.MODEM:
+            case recoveryTypes.TEST_CONNECTION:
+            case recoveryTypes.HW_FAILURE:
+                $("#glassPane").css("visibility", "visible");
+                break;
+            case recoveryTypes.NONE:
+            case recoveryTypes.FAILED:
+                $("#glassPane").css("visibility", "hidden");
+                break;
+        }
+        if (recoveryType == recoveryTypes.NONE && state.recoveryType == recoveryTypes.MODEM)
+            state.modemState = powerStates.OFF;
+        $("#modem")[0].checked = state.modemState == powerStates.ON;
+        if (!autoPilot)
+            $("#router")[0].checked = state.routerState == powerStates.ON;
+        $("#auto-recovery-warning").css('display', state.autoRecovery ? 'none' : 'block');
+        if (state.showLastRecovery) {
+            SetLastRecoveryDisplay(state.days, state.hours, state.minutes, state.seconds, true);
+        } else {
+            HideLastRecovery();
+        }
+        recoveryType = state.recoveryType;
+        fetch(appBase + "api/sse/" + id, {
+            method: "POST",
+        });
+    }
+
+    function HideLastRecovery() {
+        StopRecoveryTimer();
+    }
+
+    function StopRecoveryTimer() {
+        if (recoveryTimer != 0) {
+            clearInterval(recoveryTimer);
+        }
+    }
+
+    function ConnectionString(recoveryType) {
+        switch (recoveryType) {
+            case recoveryTypes.NONE:
+                return "Connected.";
+                break;
+            case recoveryTypes.ROUTER:
+                return "Disconnected - Waiting for router recovery.";
+                break;
+            case recoveryTypes.MODEM:
+                return "Disconnected - Waiting for modem recovery.";
+                break;
+            case recoveryTypes.TEST_CONNECTION:
+                return "Checking connectivity.";
+                break;
+            case recoveryTypes.FAILED:
+                return "Disconnected - Recovery failed!";
+            case recoveryTypes.HW_FAILURE:
+                return "Hardware Failure!"
+        }
+    }
+
+    function SetConnectionClass(recoveryType) {
+        switch (recoveryType) {
+            case recoveryTypes.NONE:
+                $("#connection").removeClass("alert-danger");
+                $("#connection").removeClass("alert-warning");
+                $("#connection").addClass("alert-success");
+                break;
+            case recoveryTypes.ROUTER:
+            case recoveryTypes.MODEM:
+            case recoveryTypes.FAILED:
+            case recoveryTypes.HW_FAILURE:
+                $("#connection").removeClass("alert-success");
+                $("#connection").removeClass("alert-warning");
+                $("#connection").addClass("alert-danger");
+                break;
+            case recoveryTypes.TEST_CONNECTION:
+                $("#connection").removeClass("alert-success");
+                $("#connection").removeClass("alert-danger");
+                $("#connection").addClass("alert-warning");
+                break;
+        }
+    }
+
+    function SetConnectionStatus(recoveryType) {
+        $("#connection")[0].innerHTML = ConnectionString(recoveryType);
+        SetConnectionClass(recoveryType);
+    }
+
+    function RecoveryAutoPilot() {
+        autoPilot = true;
+        $("#router")[0].checked = false;
+        HideLastRecovery();
+        SetConnectionStatus(recoveryTypes.ROUTER);
+        setTimeout(async function () {
+            $("#router")[0].checked = true;
+            await WaitForServerToBeAccessible(180000);
+            location.href = appBase + "index";
+            autoPilot = false;
+        }, 5 * 1000)
+    }
+
+    function PadZeroes(num, size) {
+        return num.toString().padStart(size, '0');
+    }
+
+    function SetLastRecoveryText(d, h, m, s) {
+        $('#connection')[0].innerHTML = ConnectionString(recoveryTypes.NONE) + " Time since last recovery: " + d + "." + PadZeroes(h, 2) + ":" + PadZeroes(m, 2) + ":" + PadZeroes(s, 2);
+    }
+
+    function SetLastRecoveryDisplay(d, h, m, s, show) {
+	if (!show)
+            return;
+        var days = d;
+        var hours = h;
+        var minutes = m;
+        var seconds = s;
+        StopRecoveryTimer();
+        SetLastRecoveryText(days, hours, minutes, seconds);
+        recoveryTimer = setInterval(function () {
+            if (++seconds == 60) {
+                seconds = 0;
+                if (++minutes == 60) {
+                    minutes = 0;
+                    if (++hours == 24) {
+                        hours = 0;
+                        days += 1;
+                    }
+                }
+            }
+            SetLastRecoveryText(days, hours, minutes, seconds);
+        }, 1000);
+    }
+
+    async function WaitForServerToBeAccessible(timeOut) {
+        var promise = new Promise((resolve, reject) => {
+            var successCount = 0;
+            var startTime = Date.now();
+            var timerId = setInterval(async function () {
+                var acc = await IsWebServerAccessible();
+                if (acc) {
+                    if (++successCount == 5) {
+                        clearInterval(timerId);
+                        resolve(true);
+                    }
+                } else {
+                    successCount = 0;
+                    if (Date.now() - startTime > timeOut) {
+                        clearInterval(timerId);
+                        resolve(false);
+                    }
+                }
+            }, 1000);
+        });
+
+        return await promise;
+    }
+
+    async function IsWebServerAccessible() {
+        promise = new Promise((resolve, reject) => {
+            var req = new XMLHttpRequest();
+
+            req.timeout = 5000; // it could happen that the request takes a very long time
+
+            req.onreadystatechange = function () {
+                if (req.readyState == 4) {
+                    resolve(200 <= req.status && req.status < 300);
+                }
+            }
+
+            req.ontimeout = function () {
+                resolve(false);
+            }
+
+            req.open("GET", appBase + "dummy", true);
+            req.setRequestHeader("Cache-Control", "no-cache")
+            req.send();
+        });
+
+        return await promise;
+    }
+        </script>
+
+    </div>
+
+    <script src="/lib/bstrap/js/bstrap.js"></script>
+</body>
+</html>

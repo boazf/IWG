@@ -1,0 +1,235 @@
+﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification\ 
+for details on configuring this project to bundle and minify static web assets. */
+body {
+    padding-top: 50px;
+    padding-bottom: 20px;
+}
+
+/* Wrapping element */
+/* Set some basic padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Carousel */
+.carousel-caption p {
+    font-size: 20px;
+    line-height: 1.4;
+}
+
+/* Make .svg files in the carousel display properly in older browsers */
+.carousel-inner .item img[src$=".svg"] {
+    width: 100%;
+}
+
+/* QR code generator */
+#qrCode {
+    margin: 15px;
+}
+
+/* Hide/rearrange for smaller screens */
+@media screen and (max-width: 767px) {
+    /* Hide captions */
+    .carousel-caption {
+        display: none;
+    }
+}
+
+.toggleSwitch {
+    position: relative;
+    display: block;
+    width: 50px;
+    height: 100px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+    .toggleSwitch input {
+        display: none;
+    }
+
+.roundToggleSwitch {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: #ff7070;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+    .roundToggleSwitch:after {
+        position: absolute;
+        content: "";
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: #fff;
+        top: 52px;
+        left: 2px;
+        transition: all 0.3s ease;
+    }
+
+input:checked + .roundToggleSwitch {
+    background: #5fcf80;
+}
+
+    input:checked + .roundToggleSwitch:after {
+        transform: translateY(-50px);
+    }
+
+.toggleSwitchLabel {
+    position: relative;
+    top: 30px;
+    margin-left: 55px;
+    font-size: 26px;
+    color: #222;
+    font-family: 'Roboto', sans-serif;
+}
+
+span.toggleSwitchText {
+    position: absolute;
+    font-size: 12px;
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+}
+
+span.toggleSwitchText.On {
+    top: 66px;
+    left: 16px;
+}
+
+span.toggleSwitchText.Off {
+    top: 17px;
+    left: 14px;
+}
+
+.glassPane {
+    z-index: 10;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    position: fixed;
+    opacity: 0.3;
+    background-color: rgb(0,0,0);
+}
+
+.connection-line {
+    color: white;
+}
+
+a.btn {
+    border-radius: .25rem;
+    border: 1px solid transparent;
+    padding: .5rem 1rem;
+    color: #fff;
+}
+
+a.btn:hover {
+    border-radius: .25rem;
+}
+
+.switch {
+    margin-top: 10px;
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+    .switch.small {
+        margin-top: 2px;
+        width: 30px;
+        height: 17px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+    .slider.small:before {
+        height: 13px;
+        width: 13px;
+        left: 2px;
+        bottom: 2px;
+    }
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+
+input:checked + .slider.small:before {
+    -webkit-transform: translateX(13px);
+    -ms-transform: translateX(13px);
+    transform: translateX(13px);
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round.small {
+    border-radius: 17px;
+}
+
+    .slider.round:before {
+        border-radius: 50%;
+    }
+
+span.sliderLabel {
+    position: relative;
+    top: -10px;
+    margin-left: 70px;
+    color: #222;
+    white-space: nowrap;
+}
+
+span.indented {
+    padding-left:10px;
+}
+
+span.attribute-name {
+    font-size:9px;
+}

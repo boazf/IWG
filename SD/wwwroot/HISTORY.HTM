@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>History</title>
+
+    <link rel="stylesheet" href="/lib/bstrap/css/bstrap.css" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="icon" href="/images/ir.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/images/ir.ico" type="image/x-icon" />
+</head>
+<body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="/Index">Control</a></li>
+                    <li><a href="/Settings">Settings</a></li>
+                    <li><a href="/History">History</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <script src="/lib/jquery/jquery.js"></script>
+    <script src="/lib/jvalid/jvalid.js"></script>
+    <script src="/lib/juvalid/juvalid.js"></script>
+
+    <div class="container body-content">
+        
+
+
+<h2>History</h2>
+
+<div class="row">
+%1
+</div>
+
+<script type="text/javascript">
+
+    const recoveryStatus = {
+        Failure: 2,
+        Success: 1,
+        OnGoing: 0
+    };
+
+    const recoverySource = {
+        autoRecovery: 1,
+        userInitiated: 0
+    };
+
+    $(document).ready(function () {
+%2
+    });
+
+    function setRecoveryStatus(index, status) {
+        var historyItem = $("#historyItem" + index);
+        var recoveryStatusElem = $("#recoveryStatus" + index)[0];
+        switch (status) {
+            case recoveryStatus.Failure:
+                historyItem.addClass("alert-danger");
+                recoveryStatusElem.innerHTML = "Failure";
+                break;
+            case recoveryStatus.Success:
+                historyItem.addClass("alert-success");
+                recoveryStatusElem.innerHTML = "Success";
+                break;
+            case recoveryStatus.OnGoing:
+                historyItem.addClass("alert-warning");
+                recoveryStatusElem.innerHTML = "On going";
+                break;
+        }
+    }
+
+    function setRecoverySource(index, source) {
+        var recoverySourceElem = $("#recoverySource" + index)[0];
+        switch (source) {
+            case recoverySource.autoRecovery:
+                recoverySourceElem.innerHTML = "Auto-Recovery";
+                break;
+            case recoverySource.userInitiated:
+                recoverySourceElem.innerHTML = "User Initiated Recovery";
+                break;
+        }
+    }
+</script>
+    </div>
+    <script src="/lib/bstrap/js/bstrap.js"></script>
+</body>
+</html>
