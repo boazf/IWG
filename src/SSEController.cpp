@@ -244,7 +244,6 @@ void SSEController::DeleteClient(ListNode<ClientInfo *> *&clientInfo)
     delete clientInfo->value;
     clientInfo->value = NULL;
     clientInfo = clients.Delete(clientInfo);
-    delay(100);
 }
 
 bool SSEController::IsValidId(const String &id)
