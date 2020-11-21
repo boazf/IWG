@@ -1,6 +1,8 @@
 #ifndef DefaultView_h
 #define DefaultView_h
 
+#include <DummyView.h>
+
 class DefaultView : public DummyView
 {
 public:

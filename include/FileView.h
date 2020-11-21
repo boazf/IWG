@@ -17,11 +17,6 @@ public:
     }
 
 private:
-    bool DoFill(int nFill, String &fill)
-    {
-        return false;
-    }
-
     const String mapper(const String _filePath)
     {
         String filePath(_filePath);

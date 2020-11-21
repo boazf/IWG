@@ -1,5 +1,5 @@
-#ifndef AtateMachine_h
-#define AtateMachine_h
+#ifndef StateMachine_h
+#define StateMachine_h
 
 #include <assert.h>
 
@@ -197,4 +197,4 @@ private:
 	void *m_param;
 };
 
-#endif // AtateMachine_h
+#endif // StateMachine_h

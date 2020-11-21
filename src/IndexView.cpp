@@ -1,11 +1,11 @@
 #include <Common.h>
 #include <IndexView.h>
 #include <AppConfig.h>
-#include <Relays.h>
 #include <RecoveryControl.h>
 #include <HistoryControl.h>
 #include <SSEController.h>
 #include <TimeUtil.h>
+#include <Config.h>
 
 IndexView::IndexView(const char *_viewName, const char *_viewFile) : 
     View(_viewName, _viewFile)
@@ -24,7 +24,7 @@ static ViewFiller fillers[] =
     /*  7 */ [](String &fill) { char buff[8]; sprintf(buff, "%ld", (t - historyControl.getLastRecovery()) % 60); fill = buff; },
     /*  8 */ [](String &fill) { fill = historyControl.getLastRecovery() == 0 ? "false" : "true"; },
     /*  9 */ [](String &fill) { fill = recoveryControl.GetRecoveryState(); },
-    /* 10 */ [](String &fill) { fill = "'http://192.168.0.75/'"; }
+    /* 10 */ [](String &fill) { fill = String("'http://") + Config::ip[0] + "." + Config::ip[1]+ "." + Config::ip[2] + "." + Config::ip[3] + "/'"; }
 };
 
 bool IndexView::DoFill(int nFill, String &fill)
