@@ -3,6 +3,7 @@
 
 #include <EEPROM.h>
 #include <time.h>
+#include <Common.h>
 
 #define HISTORY_EEPROM_START_ADDRESS 512
 

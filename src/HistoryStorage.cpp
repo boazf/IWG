@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include <HistoryStorage.h>
+#include <common.h>
 
 HistoryStorage::HistoryStorage()
 {
@@ -38,7 +39,7 @@ void HistoryStorage::init(int _maxRecords)
                 break;
         }
         time_t endTime = historyStorageItem.endTime();
-        if (lastRecovery < endTime)
+        if (endTime != UINT32_MAX && lastRecovery < endTime)
         {
             if (historyStorageItem.recoveryStatus() == RecoveryFailure)
                 lastRecovery = 0;
@@ -53,6 +54,12 @@ void HistoryStorage::init(int _maxRecords)
 #ifdef DEBUG_HISTORY
     Serial.print("startIndex=");
     Serial.println(startIndex);
+    tm tr;
+    char buff[64];
+    localtime_r(&lastRecovery, &tr);
+    strftime(buff, sizeof(buff), "%d/%m/%Y %T", &tr);
+    Serial.print("Last Recovery: ");
+    Serial.println(buff);
 #endif
 }
 

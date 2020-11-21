@@ -78,6 +78,30 @@ void SSEController::NotifyState()
 
     UpdateStateLastRecoveryTime();
 
+    String event("data:{");
+    event += "\"autoRecovery\": ";
+    event += state.autoRecovery ? "true" : "false";
+    event += ", \"modemState\": ";
+    event += state.modemState;
+    event += ", \"routerState\": ";
+    event += state.routerState;
+    event += ", \"recoveryType\": ";
+    event += state.recoveryType;
+    event += ", \"showLastRecovery\": ";
+    event += state.showLastRecovery ? "true" : "false";
+    event += ", \"days\": ";
+    event += state.days;
+    event += ", \"hours\": ";
+    event += state.hours;
+    event += ", \"minutes\": ";
+    event += state.minutes;
+    event += ", \"seconds\": ";
+    event += state.seconds;
+    event += "}\n";
+#ifdef DEBUG_HTTP_SERVER
+    Serial.println(event);
+#endif
+
     for (ListNode<ClientInfo *> *clientInfo = clients.head; clientInfo != NULL; clientInfo = clientInfo->next)
     {
         EthernetClient *client = clientInfo->value->client;
@@ -88,29 +112,6 @@ void SSEController::NotifyState()
         Serial.print(clientInfo->value->id);
         Serial.print(", socket=");
         Serial.println(client->getSocketNumber());
-#endif
-        String event("data:{");
-        event += "\"autoRecovery\": ";
-        event += state.autoRecovery ? "true" : "false";
-        event += ", \"modemState\": ";
-        event += state.modemState;
-        event += ", \"routerState\": ";
-        event += state.routerState;
-        event += ", \"recoveryType\": ";
-        event += state.recoveryType;
-        event += ", \"showLastRecovery\": ";
-        event += state.showLastRecovery ? "true" : "false";
-        event += ", \"days\": ";
-        event += state.days;
-        event += ", \"hours\": ";
-        event += state.hours;
-        event += ", \"minutes\": ";
-        event += state.minutes;
-        event += ", \"seconds\": ";
-        event += state.seconds;
-        event += "}\n";
-#ifdef DEBUG_HTTP_SERVER
-        Serial.println(event);
 #endif
         client->print("Content-Length: ");
         client->println(event.length());
