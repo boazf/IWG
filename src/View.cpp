@@ -2,6 +2,7 @@
 #include <SDUtil.h>
 #include <time.h>
 #include <Common.h>
+#include <Config.h>
 
 int View::viewHandler(byte *buff, int buffSize)
 {
@@ -161,7 +162,8 @@ bool View::getLastModifiedTime(String &lastModifiedTimeStr)
     tr.tm_year = FAT_YEAR(lastWriteDate) - 1900;
     tr.tm_mon = FAT_MONTH(lastWriteDate) - 1;
     tr.tm_mday = FAT_DAY(lastWriteDate);
-    if (mktime(&tr) == (time_t)-1)
+    time_t fileTime = mktime(&tr);
+    if (fileTime == (time_t)-1)
     {
 #ifdef DEBUG_HTTP_SERVER
         Serial.print(__func__);
@@ -169,9 +171,11 @@ bool View::getLastModifiedTime(String &lastModifiedTimeStr)
 #endif
         return false;
     }
+    fileTime = fileTime - Config::timeZone * 60; // Set to GMT
+    gmtime_r(&fileTime, &tr);
     char lastModifiedTime[64];
     // Last-Modified: Sun, 21 Jun 2020 14:33:06 GMT
-    strftime(lastModifiedTime, sizeof(lastModifiedTime), "%a, %d %h %Y %H:%M:%S GMT+3", &tr);
+    strftime(lastModifiedTime, sizeof(lastModifiedTime), "%a, %d %h %Y %H:%M:%S GMT", &tr);
     lastModifiedTimeStr = lastModifiedTime;
 
     return true;
