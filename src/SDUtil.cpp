@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <SD.h>
 #include <SDUtil.h>
-#include <assert.h>
 #include <TimeUtil.h>
 #include <Common.h>
 

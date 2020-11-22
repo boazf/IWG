@@ -15,7 +15,7 @@ public:
     static void AddController(Controller *controller);
 private:
     static EthernetServer server;
-    static void CheckForNewClient();
+    static void CheckForNewClients();
 };
 
 void InitHTTPServer();

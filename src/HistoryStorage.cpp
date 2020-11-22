@@ -147,9 +147,9 @@ void HistoryStorage::resize(int _maxRecords)
                 break;
         }
         maxRecords = _maxRecords;
-        startIndex = availableRecords < maxRecords ? availableRecords : 0;
-        
+        startIndex = availableRecords < maxRecords ? availableRecords : 0; 
     }
+    
     if (availableRecords > maxRecords)
     {
         availableRecords = maxRecords;

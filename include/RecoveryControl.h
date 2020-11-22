@@ -109,8 +109,9 @@ public:
 	SMParam(RecoveryControl *recoveryControl, time_t _lastRecovery, bool byUser = false) :
 		m_recoveryControl(recoveryControl),
 		m_byUser(byUser),
-		lastRecoverty(_lastRecovery),
+		lastRecovery(_lastRecovery),
 		lanConnected(false),
+		lastRecoveryType(RecoveryTypes::NoRecovery),
 		requestedRecovery(Message::M_Done),
 		updateConnState(false),
 		cycles(0),
@@ -122,7 +123,7 @@ public:
 
 	RecoveryControl *m_recoveryControl;
 	bool m_byUser;
-	time_t lastRecoverty;
+	time_t lastRecovery;
 	bool lanConnected;
 	RecoveryTypes lastRecoveryType;
 	Message requestedRecovery;
@@ -175,7 +176,7 @@ public:
 
 	time_t GetLastRecovery()
 	{
-		return m_param->lastRecoverty;
+		return m_param->lastRecovery;
 	}
 
 	bool GetAutoRecovery()

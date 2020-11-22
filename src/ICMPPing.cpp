@@ -121,7 +121,7 @@ bool ICMPPing::openSocket()
     if (_socket == MAX_SOCK_NUM)
     {
     	uint8_t chip, maxindex=MAX_SOCK_NUM;
-        chip = W5100.getChip();
+        chip = W5100Ex.getChip();
         if (!chip) 
             return false; // immediate error if no hardware detected
 #if MAX_SOCK_NUM > 4
@@ -132,7 +132,7 @@ bool ICMPPing::openSocket()
         SPI.beginTransaction(SPI_ETHERNET_SETTINGS);
         _socket = 0;
         for (; _socket < maxindex; _socket++) {
-            if (W5100.readSnSR(_socket) == SnSR::CLOSED)
+            if (W5100Ex.readSnSR(_socket) == SnSR::CLOSED)
                 break;
         }
         SPI.endTransaction();

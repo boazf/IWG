@@ -57,16 +57,14 @@ bool SSEController::Post(EthernetClient &client, String &id)
     client.println();
     client.flush();
 
-    ListNode<ClientInfo *> *clientInfo = clients.head;
-
-    while (clientInfo != NULL)
+    for (ListNode<ClientInfo *> *clientInfo = clients.head; clientInfo != NULL; clientInfo = clientInfo->next)
     {
         if (clientInfo->value->id == id)
         {
             clientInfo->value->timeToDie = t + SESSION_LENGTH;
             clientInfo->value->waitingResponce = false;
+            break;
         }
-        clientInfo = clientInfo->next;
     }
 
     return true;
@@ -205,7 +203,6 @@ void SSEController::Maintain()
                 clientInfo->value->socket = MAX_SOCK_NUM;
                 clientInfo->value->timeToDie = t + 5;
                 clientInfo->value->waitingResponce = true;
-                continue;
             }
             DeleteClient(clientInfo);
             continue;
@@ -216,16 +213,13 @@ void SSEController::Maintain()
 
 void SSEController::DeleteClient(SOCKET socket)
 {
-    ListNode<ClientInfo *> *clientInfo = clients.head;
-
-    while (clientInfo != NULL)
+    for (ListNode<ClientInfo *> *clientInfo = clients.head; clientInfo != NULL; clientInfo = clientInfo->next)
     {
         if (clientInfo->value->socket == socket)
         {
             DeleteClient(clientInfo);
             break;
         }
-        clientInfo = clientInfo->next;
     }
 }
 
@@ -250,14 +244,12 @@ void SSEController::DeleteClient(ListNode<ClientInfo *> *&clientInfo)
 bool SSEController::IsValidId(const String &id)
 {
     bool isValid = false;
-
-    ListNode<ClientInfo *> *clientInfo = clients.head;
-    while (clientInfo != NULL)
+    
+    for (ListNode<ClientInfo *> *clientInfo = clients.head; clientInfo != NULL; clientInfo = clientInfo->next)
     {
         isValid = clientInfo->value->id.equals(id);
         if (isValid)
             break;
-        clientInfo = clientInfo->next;
     }
 
     return isValid;

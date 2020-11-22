@@ -22,8 +22,8 @@ void InitRelays()
     if (Config::routerRelay != 0)
         routerRelay = Config::routerRelay;
 
-    pinMode(modemRelay, 7);
-    pinMode(routerRelay, 8);
+    pinMode(modemRelay, OUTPUT);
+    pinMode(routerRelay, OUTPUT);
     SetModemPowerState(POWER_ON);
     SetRouterPowerState(POWER_ON);
 }

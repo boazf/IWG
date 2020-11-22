@@ -412,13 +412,13 @@ Message RecoveryControl::UpdateRecoveryState(Message message, void *param)
 
 	if (message == Message::M_Connected)
 	{
-		if (smParam->lastRecoverty == UINT32_MAX)
-			smParam->lastRecoverty = t;
+		if (smParam->lastRecovery == UINT32_MAX)
+			smParam->lastRecovery = t;
 		smParam->m_recoveryControl->RaiseRecoveryStateChanged(RecoveryTypes::NoRecovery, smParam->m_byUser);
 	}
 	else
 	{
-		smParam->lastRecoverty = UINT32_MAX;
+		smParam->lastRecovery = UINT32_MAX;
 	}
 	
 	return message;
@@ -432,10 +432,11 @@ Message RecoveryControl::DecideRecoveryPath(Message message, void *param)
 	{
 		if (message != Message::M_Connected)
 		{
-			if (smParam->lanConnected || smParam->lastRecoverty == UINT32_MAX || t - smParam->lastRecoverty > 3600)
+			smParam->m_byUser = false;
+			if (!smParam->lanConnected || smParam->lastRecovery == UINT32_MAX || t - smParam->lastRecovery > 3600)
 				message = Message::M_DisconnectRouter;
 			else
-				message = smParam->lastRecoverty == RecoveryTypes::Modem ? Message::M_DisconnectRouter : Message::M_DisconnectModem;
+				message = smParam->lastRecoveryType == RecoveryTypes::Router ? Message::M_DisconnectModem : Message::M_DisconnectRouter;
 		}
 		if (smParam->updateConnState)
 		{
@@ -499,7 +500,7 @@ void RecoveryControl::OnEnterDisconnectRouter(void *param)
 {
 	SMParam *smParam = (SMParam *)param;
 	smParam->lastRecoveryType = RecoveryTypes::Router;
-	smParam->lastRecoverty = UINT32_MAX;
+	smParam->lastRecovery = UINT32_MAX;
 	smParam->m_recoveryControl->RaiseRecoveryStateChanged(RecoveryTypes::Router, smParam->m_byUser);
 	smParam->recoveryStart = t;
 	SetRouterPowerState(POWER_OFF);
@@ -544,7 +545,7 @@ void RecoveryControl::OnEnterDisconnectModem(void *param)
 {
 	SMParam *smParam = (SMParam *)param;
 	smParam->lastRecoveryType = RecoveryTypes::Modem;
-	smParam->lastRecoverty = UINT32_MAX;
+	smParam->lastRecovery = UINT32_MAX;
 	SetModemPowerState(POWER_OFF);
 	smParam->m_recoveryControl->RaiseRecoveryStateChanged(RecoveryTypes::Modem, smParam->m_byUser);
 	smParam->recoveryStart = t;

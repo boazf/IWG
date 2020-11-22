@@ -191,50 +191,6 @@ static bool HandleGetRequest(PClientContext context, String &resource)
         return false;
     }
 
-    CONTENT_TYPE type = view->getContentType();
-    char contentTypeHeader[80];
-    strcpy(contentTypeHeader, "Content-Type: ");
-    switch (type)
-    {
-    case CONTENT_TYPE::HTML:
-        strcat(contentTypeHeader, "text/html");
-        break;
-    case CONTENT_TYPE::ICON:
-        strcat(contentTypeHeader, "image/x-icon");
-        break;
-    case CONTENT_TYPE::JPEG:
-        strcat(contentTypeHeader, "image/x-jpeg");
-        break;
-    case CONTENT_TYPE::JAVASCRIPT:
-        strcat(contentTypeHeader, "application/javascript");
-        break;
-    case CONTENT_TYPE::CSS:
-        strcat(contentTypeHeader, "text/css");
-        break;
-    case CONTENT_TYPE::EOT:
-        strcat(contentTypeHeader, "application/vnd.ms-fontobject");
-        break;
-    case CONTENT_TYPE::SVG:
-        strcat(contentTypeHeader, "image/svg+xml");
-        break;
-    case CONTENT_TYPE::TTF:
-        strcat(contentTypeHeader, "font/ttf");
-        break;
-    case CONTENT_TYPE::WOFF:
-        strcat(contentTypeHeader, "font/woff");
-        break;
-    case CONTENT_TYPE::WOFF2:
-        strcat(contentTypeHeader, "font/woff2");
-        break;
-    case CONTENT_TYPE::CT_UNKNOWN:
-#ifdef DEBUG_HTTP_SERVER
-        Serial.println("Unknown extention");
-#endif
-        view->close();
-        return false;
-        break;
-    }
-
     if (!context->lastModified.equals(""))
     {
         String lastModifiedTime;
@@ -252,6 +208,49 @@ static bool HandleGetRequest(PClientContext context, String &resource)
             view->close();
             return true;
         }
+    }
+
+    CONTENT_TYPE type = view->getContentType();
+    String contentTypeHeader("Content-Type: ");
+    switch (type)
+    {
+    case CONTENT_TYPE::HTML:
+        contentTypeHeader += "text/html";
+        break;
+    case CONTENT_TYPE::ICON:
+        contentTypeHeader += "image/x-icon";
+        break;
+    case CONTENT_TYPE::JPEG:
+        contentTypeHeader += "image/x-jpeg";
+        break;
+    case CONTENT_TYPE::JAVASCRIPT:
+        contentTypeHeader += "application/javascript";
+        break;
+    case CONTENT_TYPE::CSS:
+        contentTypeHeader += "text/css";
+        break;
+    case CONTENT_TYPE::EOT:
+        contentTypeHeader += "application/vnd.ms-fontobject";
+        break;
+    case CONTENT_TYPE::SVG:
+        contentTypeHeader += "image/svg+xml";
+        break;
+    case CONTENT_TYPE::TTF:
+        contentTypeHeader += "font/ttf";
+        break;
+    case CONTENT_TYPE::WOFF:
+        contentTypeHeader += "font/woff";
+        break;
+    case CONTENT_TYPE::WOFF2:
+        contentTypeHeader += "font/woff2";
+        break;
+    case CONTENT_TYPE::CT_UNKNOWN:
+#ifdef DEBUG_HTTP_SERVER
+        Serial.println("Unknown extention");
+#endif
+        view->close();
+        return false;
+        break;
     }
 
     long size = view->getViewSize();
@@ -406,10 +405,10 @@ void HTTPServer::Init()
 
 LinkedList<PClientContext> clients;
 
-void HTTPServer::CheckForNewClient()
+void HTTPServer::CheckForNewClients()
 {
     EthernetClient client = server.accept();
-    if (client)
+    while (client)
     {
 #ifdef DEBUG_HTTP_SERVER
         Serial.print("New client, socket=");
@@ -417,13 +416,14 @@ void HTTPServer::CheckForNewClient()
 #endif
         PClientContext context = new ClientContext(client);
         clients.Insert(context);
+        client = server.accept();
     }
 }
 
 void HTTPServer::ServeClient()
 {
     // listen for incoming clients
-    CheckForNewClient();
+    CheckForNewClients();
 
     ListNode<PClientContext> *listNode = clients.head;
 
