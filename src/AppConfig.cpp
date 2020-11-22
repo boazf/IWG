@@ -3,20 +3,53 @@
 
 AppConfigStore AppConfig::store;
 
+#define DEFAUL_AUTO_RECOVERY true
+#define DEFAULT_CONNECTION_TEST_PERIOD 300
+#define DEFAULT_LAN_ADDRESS IPAddress(0,0,0,0)
+#define DEFAULT_LIMIT_CYCLES true
+#define DEFAULT_MAX_HISTORY 10
+#define DEFAULT_MODEM_DISCONNECT 5
+#define DEFAULT_MODEM_RECONNECT 210
+#define DEFAULT_ROUTER_DISCONNECT 5
+#define DEFAULT_RECOVERY_CYCLES 5
+#define DEFAULT_ROUTER_RECONNECT 180
+#define DEFAULT_SERVER1 "google.com"
+#define DEFAULT_SERVER2 "yahoo.com"
+
 void AppConfig::init()
 {
-    setAutoRecovery(internalGetAutoRecovery());
-    setConnectionTestPeriod(internalGetConnectionTestPeriod());
-    setLANAddr(internalGetLANAddr());
-    setLimitCycles(internalGetLimitCycles());
-    setMaxHistory(internalGetMaxHistory());
-    setMDisconnect(internalGetMDisconnect());
-    setMReconnect(internalGetMReconnect());
-    setRDisconnect(internalGetRDisconnect());
-    setRecoveryCycles(internalGetRecoveryCycles());
-    setRReconnect(internalGetRReconnect());
-    setServer1(internalGetServer1());
-    setServer2(internalGetServer2());
+    if (isInitialized())
+    {
+        setAutoRecovery(internalGetAutoRecovery());
+        setConnectionTestPeriod(internalGetConnectionTestPeriod());
+        setLANAddr(internalGetLANAddr());
+        setLimitCycles(internalGetLimitCycles());
+        setMaxHistory(internalGetMaxHistory());
+        setMDisconnect(internalGetMDisconnect());
+        setMReconnect(internalGetMReconnect());
+        setRDisconnect(internalGetRDisconnect());
+        setRecoveryCycles(internalGetRecoveryCycles());
+        setRReconnect(internalGetRReconnect());
+        setServer1(internalGetServer1());
+        setServer2(internalGetServer2());
+    }
+    else
+    {
+        setAutoRecovery(DEFAUL_AUTO_RECOVERY);
+        setConnectionTestPeriod(DEFAULT_CONNECTION_TEST_PERIOD);
+        setLANAddr(DEFAULT_LAN_ADDRESS);
+        setLimitCycles(DEFAULT_LIMIT_CYCLES);
+        setMaxHistory(DEFAULT_MAX_HISTORY);
+        setMDisconnect(DEFAULT_MODEM_DISCONNECT);
+        setMReconnect(DEFAULT_MODEM_RECONNECT);
+        setRDisconnect(DEFAULT_ROUTER_DISCONNECT);
+        setRecoveryCycles(DEFAULT_RECOVERY_CYCLES);
+        setRReconnect(DEFAULT_ROUTER_RECONNECT);
+        setServer1(DEFAULT_SERVER1);
+        setServer2(DEFAULT_SERVER2);
+        commit();
+        setInitialized(true);
+    }
 }
 
 int AppConfig::getMDisconnect()
@@ -353,6 +386,17 @@ void AppConfig::internalSetLANAddr(const IPAddress &value)
     }
 }
 
+bool AppConfig::isInitialized()
+{
+    bool value;
+    return getField<bool>(offsetof(AppConfigStore, initialized), value);
+}
+
+void AppConfig::setInitialized(bool isInitialized)
+{
+    putField<bool>(offsetof(AppConfigStore, initialized), isInitialized);
+}
+
 time_t AppConfig::internalGetConnectionTestPeriod()
 {
     time_t value;
@@ -363,6 +407,7 @@ void AppConfig::internalSetConnectionTestPeriod(time_t value)
 {
     putField<time_t>(offsetof(AppConfigStore, connectionTestPeriod), value);
 }
+
 bool AppConfig::internalGetAutoRecovery()
 {
     bool value;

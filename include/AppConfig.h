@@ -32,6 +32,7 @@ typedef struct AppConfigStore_
     time_t connectionTestPeriod;
     bool autoRecovery;
     int maxHistory;
+    bool initialized;
 } AppConfigStore;
 
 class AppConfig
@@ -73,6 +74,8 @@ private:
     static Observers<AppConfigChangedParam> appConfigChanged;
 
 private:
+    static bool isInitialized();
+    static void setInitialized(bool isInitialized);
     static int internalGetMDisconnect();
     static void internalSetMDisconnect(int value);
     static int internalGetRDisconnect();
