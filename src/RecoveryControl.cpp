@@ -8,6 +8,7 @@
 #include <AppConfig.h>
 #include <TimeUtil.h>
 #include <HistoryControl.h>
+#include <EthernetUtil.h>
 
 RecoveryControl::RecoveryControl() :
 	m_currentRecoveryState(RecoveryTypes::NoRecovery)
@@ -256,12 +257,20 @@ void RecoveryControl::PerformCycle()
 	m_pSM->HandleState();
 }
 
+enum CheckConnectivityStages
+{
+	CheckLAN,
+	CheckServer1,
+	CheckServer2,
+	ChecksCompleted
+};
+
 class CheckConnectivityStateParam
 {
 public:
 	CheckConnectivityStateParam() :
 		ping(MAX_SOCK_NUM, 1),
-		stage(0),
+		stage(CheckLAN),
 		status(Message::M_Disconnected)
 	{
 	}
@@ -269,29 +278,31 @@ public:
 public:
 	ICMPPing ping;
 	ICMPEchoReply pingResult;
-	int stage;
+	CheckConnectivityStages stage;
 	Message status;
 };
 
-static bool TryGetHostAddress(DNSClient &dns, IPAddress &address, String server)
+static bool TryGetHostAddress(IPAddress &address, String server)
 {
 	if (server.equals(""))
 		return false;
-	else
+
+	DNSClient dns;
+	dns.begin(Config::gateway);
+
+	if (dns.getHostByName(server.c_str(), address) != 1)
 	{
 #ifdef DEBUG_RECOVERY_CONTROL
-		Serial.print("About to ping ");
+		Serial.print("Failed to get host address for ");
 		Serial.println(server.c_str());
 #endif
-		if (dns.getHostByName(server.c_str(), address) != 1)
-		{
-#ifdef DEBUG_RECOVERY_CONTROL
-			Serial.print("Failed to get host address for ");
-			Serial.println(server.c_str());
-#endif
-			return false;
-		}
+		return false;
 	}
+
+#ifdef DEBUG_RECOVERY_CONTROL
+	Serial.print("About to ping ");
+	Serial.println(server.c_str());
+#endif
 
 	return true;
 }
@@ -306,44 +317,35 @@ void RecoveryControl::OnEnterCheckConnectivity(void *param)
 		smParam->stateParam = stateParam;
 	}
 
-	String server;
 	IPAddress address;
-	DNSClient dns;
 
-	dns.begin(Config::gateway);
-	if (stateParam->stage == 0)
-	{
-		server = AppConfig::getServer1();
-		if (!TryGetHostAddress(dns, address, server))
-			stateParam->stage = 1;
-	}
-
-	if (stateParam->stage == 1)
-	{
-		if (stateParam->status == Message::M_Disconnected)
-		{
-			server = AppConfig::getServer2();
-			if (!TryGetHostAddress(dns, address, server))
-				stateParam->stage = 3;
-		}
-		else
-		{
-			stateParam->stage = 2;
-		}
-	}	
-
-	if (stateParam->stage == 2)
+	if (stateParam->stage == CheckLAN)
 	{
 		address = AppConfig::getLANAddr();
-		if (address == IPAddress(0, 0, 0, 0))
+		if (IsZeroIPAddress(address))
 		{
-			stateParam->stage = 3;
+			stateParam->stage = CheckServer1;
 			smParam->lanConnected = true;
-			return;
 		}
 	}
 
-	if (stateParam->stage < 3)
+	String server;
+
+	if (stateParam->stage == CheckServer1)
+	{
+		server = AppConfig::getServer1();
+		if (!TryGetHostAddress(address, server))
+			stateParam->stage = CheckServer2;
+	}
+
+	if (stateParam->stage == CheckServer2)
+	{
+		server = AppConfig::getServer2();
+		if (!TryGetHostAddress(address, server))
+			stateParam->stage = ChecksCompleted;
+	}	
+
+	if (stateParam->stage != ChecksCompleted)
 	{
 #ifdef DEBUG_RECOVERY_CONTROL
 		Serial.print("Pinging address: ");
@@ -365,7 +367,7 @@ Message RecoveryControl::OnCheckConnectivity(void *param)
 	CheckConnectivityStateParam *stateParam = (CheckConnectivityStateParam *)smParam->stateParam;
 	Message status = Message::M_Disconnected;
 
-	if (stateParam->stage != 3)
+	if (stateParam->stage != ChecksCompleted)
 	{
 		if (!stateParam->ping.asyncComplete(stateParam->pingResult))
 			return Message::None;
@@ -379,22 +381,39 @@ Message RecoveryControl::OnCheckConnectivity(void *param)
 
 	stateParam->status = status;
 
-	if (stateParam->stage == 0)
+	switch (stateParam->stage)
 	{
-		stateParam->stage = 1;
-		return Message::M_Done;
-	}
-	else if (stateParam->stage == 1 && status == Message::M_Connected)
-	{
-		stateParam->stage = 2;
-		return Message::M_Done;
-	}
-	else if (stateParam->stage == 2)
-	{
+	case CheckLAN:
 		smParam->lanConnected = status == Message::M_Connected;
+		if (smParam->lanConnected)
+		{
+			stateParam->stage = CheckServer1;
+			status = Message::M_Done;
+		}
+		else
+		{
+			stateParam->stage = ChecksCompleted;
+		}
+		break;
+	case CheckServer1:
+		if (status == Message::M_Connected)
+		{
+			stateParam->stage = ChecksCompleted;
+		}
+		else
+		{
+			stateParam->stage = CheckServer2;
+			status = Message::M_Done;
+		}
+		break;
+	case CheckServer2:
+		stateParam->stage = ChecksCompleted;
+		break;
+	case ChecksCompleted:
+		break;
 	}
 
-	if (stateParam->stage >= 2 || status != Message::M_Connected)
+	if (stateParam->stage == ChecksCompleted)
 	{
 		delete stateParam;
 		smParam->stateParam = NULL;

@@ -4,9 +4,9 @@
 #include <EthernetUtil.h>
 #include <Config.h>
 
-bool IsZeroIPAddress(byte *ip)
+bool IsZeroIPAddress(const IPAddress &ip)
 {
-  return ip[0] == 0 && ip[1] == 0 && ip[2] == 0 && ip[3] == 0;
+  return ip == IPAddress(0, 0, 0, 0);
 }
 
 void InitEthernet()

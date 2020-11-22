@@ -1,6 +1,7 @@
 #include <Common.h>
 #include <SettingsView.h>
 #include <AppConfig.h>
+#include <EthernetUtil.h>
 
 SettingsView::SettingsView(const char *_viewName, const char *_viewFile) : 
     View(_viewName, _viewFile)
@@ -10,7 +11,12 @@ SettingsView::SettingsView(const char *_viewName, const char *_viewFile) :
 static ViewFiller fillers[] = 
 {
     /*  0 */ [](String &fill){ fill = AppConfig::getAutoRecovery() ?  "checked=\"checked\" />" : " />"; },
-    /*  1 */ [](String &fill){ IPAddress lanAddress = AppConfig::getLANAddr(); fill = String("\"") + lanAddress[0] + "." + lanAddress[1] + "." + lanAddress[2] + "." + lanAddress[3] + "\" />"; },
+    /*  1 */ [](String &fill)
+    { 
+        IPAddress lanAddress = AppConfig::getLANAddr(); 
+        fill = IsZeroIPAddress(lanAddress) ? "" : String(lanAddress[0]) + "." + lanAddress[1] + "." + lanAddress[2] + "." + lanAddress[3]; 
+        fill = "\"" + fill + "\" />";
+    },
     /*  2 */ [](String &fill){ fill = "\"" + AppConfig::getServer1() + "\" />"; },
     /*  3 */ [](String &fill){ fill = "\"" + AppConfig::getServer2() + "\" />"; },
     /*  4 */ [](String &fill){ fill = String("\"") + AppConfig::getRDisconnect() + "\" />"; },
@@ -40,8 +46,10 @@ bool parseBool(String &val)
 IPAddress parseIPAddress(String &val)
 {
     int b1, b2, b3, b4;
-
-    sscanf(val.c_str(), "%d.%d.%d.%d", &b1, &b2, &b3, &b4);
+    if (val.equals(""))
+        b1 = b2 = b3 = b4 = 0;
+    else
+        sscanf(val.c_str(), "%d.%d.%d.%d", &b1, &b2, &b3, &b4);
 
     return IPAddress(b1, b2, b3, b4);
 }
