@@ -55,7 +55,7 @@ public:
 
 	~SMState()
 	{
-		delete m_transitions;
+		delete[] m_transitions;
 		m_transitions = NULL;
 	}
 
@@ -155,6 +155,12 @@ public:
 		m_current = m_states;
 	}
 
+	~StateMachine()
+	{
+		delete[] m_states;
+		m_states = NULL;
+	}
+
 	void ApplyVerb(Verb verb)
 	{
 		m_nextVerb = verb;
@@ -182,8 +188,8 @@ public:
 		else
 		{
 			m_current->doEnter(m_param);
+			m_first = false;
 		}
-		m_first = false;
 		Verb newVerb = m_current->doState(m_param);
 		ApplyVerb(newVerb);
 	}

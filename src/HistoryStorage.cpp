@@ -7,6 +7,20 @@ HistoryStorage::HistoryStorage()
 {
 }
 
+#ifdef DEBUG_HISTORY
+void HistoryStorage::ReportIntializationResult()
+{
+    Serial.print("startIndex=");
+    Serial.println(startIndex);
+    tm tr;
+    char buff[64];
+    localtime_r(&lastRecovery, &tr);
+    strftime(buff, sizeof(buff), "%d/%m/%Y %T", &tr);
+    Serial.print("Last Recovery: ");
+    Serial.println(buff);
+}
+#endif
+
 void HistoryStorage::init(int _maxRecords)
 {
     maxRecords = _maxRecords;
@@ -14,9 +28,11 @@ void HistoryStorage::init(int _maxRecords)
     if (availableRecords < maxRecords)
     {
         startIndex = availableRecords;
+        HistoryStorageItem historyStorageItem;
+        historyStorageItem.get(startIndex - 1);
+        lastRecovery = historyStorageItem.endTime();
 #ifdef DEBUG_HISTORY
-        Serial.print("startIndex=");
-        Serial.println(startIndex);
+        ReportIntializationResult();
 #endif
         return;
     }
@@ -52,14 +68,7 @@ void HistoryStorage::init(int _maxRecords)
         lastRecovery = UINT32_MAX;
 
 #ifdef DEBUG_HISTORY
-    Serial.print("startIndex=");
-    Serial.println(startIndex);
-    tm tr;
-    char buff[64];
-    localtime_r(&lastRecovery, &tr);
-    strftime(buff, sizeof(buff), "%d/%m/%Y %T", &tr);
-    Serial.print("Last Recovery: ");
-    Serial.println(buff);
+        ReportIntializationResult();
 #endif
 }
 
@@ -149,7 +158,7 @@ void HistoryStorage::resize(int _maxRecords)
         maxRecords = _maxRecords;
         startIndex = availableRecords < maxRecords ? availableRecords : 0; 
     }
-    
+
     if (availableRecords > maxRecords)
     {
         availableRecords = maxRecords;

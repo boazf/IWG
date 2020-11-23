@@ -163,6 +163,9 @@ private:
 private:
     void putAvailableRecords();
     void getAvailableRecords();
+#ifdef DEBUG_HISTORY
+    void ReportIntializationResult();
+#endif
 };
 
 #endif // HistoryStorage_h
