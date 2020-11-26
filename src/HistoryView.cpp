@@ -130,6 +130,8 @@ bool HistoryView::open(byte *buff, int buffSize)
         return false;
     }
 
+    tempDir.close();
+    
     fillFile fillers[] = { fillAlerts, fillJS };
     for (int nBytes = file.read(buff, buffSize); nBytes; nBytes = file.read(buff, buffSize))
     {

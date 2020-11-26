@@ -336,7 +336,7 @@ static HTTP_REQ_TYPE RequestType(String &request)
 {
     if (strncmp(request.c_str(), "GET ", 4) == 0)
         return HTTP_REQ_TYPE::HTTP_GET;
-    else if (strncmp(request.c_str(), "POST ", 4) == 0)
+    else if (strncmp(request.c_str(), "POST ", 5) == 0)
         return HTTP_REQ_TYPE::HTTP_POST;
 
     return HTTP_REQ_TYPE::HTTP_UNKNOWN;

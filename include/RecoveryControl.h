@@ -140,6 +140,7 @@ class RecoveryControl
 {
 public:
 	RecoveryControl();
+	~RecoveryControl();
 	void Init();
 	void PerformCycle();
 
@@ -218,9 +219,6 @@ private:
 	static Message UpdateRecoveryState(Message message, void *param);
 	void RaiseRecoveryStateChanged(RecoveryTypes recoveryType, bool byUser);
 	static void AppConfigChanged(const AppConfigChangedParam &param, const void *context);
-
-private:
-	time_t t0;
 };
 
 extern RecoveryControl recoveryControl;

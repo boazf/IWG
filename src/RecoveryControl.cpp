@@ -227,6 +227,12 @@ void RecoveryControl::Init()
 	AppConfig::getAppConfigChanged().addObserver(AppConfigChanged, this);
 }
 
+RecoveryControl::~RecoveryControl()
+{
+	delete m_param;
+	delete m_pSM;
+}
+
 void RecoveryControl::AppConfigChanged(const AppConfigChangedParam &param, const void *context)
 {
 #ifdef DEBUG_RECOVERY_CONTROL
@@ -240,7 +246,7 @@ void RecoveryControl::AppConfigChanged(const AppConfigChangedParam &param, const
 		recoveryControl->StartRecoveryCycles(RecoveryTypes::ConnectivityCheck);
 
 	if (smParam->autoRecovery != autoRecovery)
-		recoveryControl->m_autoRecoveryStateChanged.callObservers(AutoRecoveryStateChangedParams(AppConfig::getAutoRecovery()));
+		recoveryControl->m_autoRecoveryStateChanged.callObservers(AutoRecoveryStateChangedParams(autoRecovery));
 
 	smParam->autoRecovery = autoRecovery;
 
@@ -612,13 +618,13 @@ void RecoveryControl::OnEnterHWError(void *param)
 {
 	SMParam *smParam = (SMParam *)param;
 	smParam->m_recoveryControl->RaiseRecoveryStateChanged(RecoveryTypes::HWFailure, false);
-	smParam->m_recoveryControl->t0 = time(NULL);
+	smParam->t0 = time(NULL);
 }
 
 Message RecoveryControl::OnHWError(void *param)
 {
 	SMParam *smParam = (SMParam *)param;
-	if (time(NULL) - smParam->m_recoveryControl->t0 >= 10)
+	if (time(NULL) - smParam->t0 >= 10)
 	    return Message::None;
 
     return Message::M_Done;

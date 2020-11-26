@@ -111,9 +111,6 @@ void SSEController::NotifyState()
         Serial.print(", socket=");
         Serial.println(client->getSocketNumber());
 #endif
-        client->print("Content-Length: ");
-        client->println(event.length());
-        client->println();
         client->print(event);
         client->println();
         client->flush();
@@ -204,8 +201,11 @@ void SSEController::Maintain()
                 clientInfo->value->timeToDie = t + 5;
                 clientInfo->value->waitingResponce = true;
             }
-            DeleteClient(clientInfo);
-            continue;
+            else
+            {
+                DeleteClient(clientInfo);
+                continue;
+            }
         }
         clientInfo = clientInfo->next;
     }

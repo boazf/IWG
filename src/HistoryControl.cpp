@@ -120,6 +120,11 @@ void HistoryControl::Init()
     storage.init(maxHistory);
 }
 
+HistoryControl::~HistoryControl()
+{
+    delete m_pSM;
+}
+
 void HistoryControl::PerformCycle()
 {
     m_pSM->HandleState();

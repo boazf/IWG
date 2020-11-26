@@ -31,6 +31,7 @@ class HistoryControl
 {
 public:
     HistoryControl();
+    ~HistoryControl();
 	void Init();
 	void PerformCycle();
     int Available();
