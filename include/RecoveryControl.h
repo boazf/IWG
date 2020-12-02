@@ -40,7 +40,6 @@ enum State
 	CheckConnectivityAfterRouterRecovery,
 	WaitAfterRouterRecovery,
 	CheckRouterRecoveryTimeout,
-	DecideRecoveryPath,
 	HWError
 };
 
@@ -51,7 +50,8 @@ enum RecoveryTypes
 	Modem,
 	ConnectivityCheck,
 	Failed,
-	HWFailure
+	HWFailure,
+	Disconnected
 };
 
 

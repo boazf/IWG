@@ -174,11 +174,11 @@ static bool HandleGetRequest(PClientContext context, String &resource)
     }
 
 #ifdef DEBUG_HTTP_SERVER
-    Serial.print("View: ");
+    Serial.print("View=");
     Serial.print(view->viewPath);
-    Serial.print(", id:=");
+    Serial.print(", id=");
     Serial.print(id);
-    Serial.print(", Path: ");
+    Serial.print(", Path=");
     Serial.println(view->viewFilePath);
 #endif
 

@@ -38,5 +38,5 @@ void loop() {
   DoHTTPService();
   recoveryControl.PerformCycle();
   historyControl.PerformCycle();
-  sseController.Maintain();  
+  //sseController.Maintain();  
 }

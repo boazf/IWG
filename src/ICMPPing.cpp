@@ -128,7 +128,6 @@ bool ICMPPing::openSocket()
         if (chip == 51) 
             maxindex = 4; // W5100 chip never supports more than 4 sockets
 #endif
-        //Serial.printf("W5000socket begin, protocol=%d, port=%d\n", protocol, port);
         SPI.beginTransaction(SPI_ETHERNET_SETTINGS);
         _socket = 0;
         for (; _socket < maxindex; _socket++) {

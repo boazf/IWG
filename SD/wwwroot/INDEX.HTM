@@ -5,12 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Control Page</title>
 
-    <link rel="stylesheet" href="/lib/bstrap/css/bstrap.css" />
-    <link rel="stylesheet" href="/css/site.css" />
+    <script type="text/javascript">
+        var loadError=false;
+        var appBase = %10                                                                                                                    ;
+    </script>
+    <link onerror="loadError=true" rel="stylesheet" href="/lib/bstrap/css/bstrap.css" />
+    <link onerror="loadError=true" rel="stylesheet" href="/css/site.css" />
     <link rel="icon" href="/images/ir.ico" type="image/x-icon" />
     <link rel="apple-touch-icon" href="/images/ir.ico" type="image/x-icon" />
 </head>
-<body>
+<body onload="checkLoadError()">
     <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="container">
             <div class="navbar-header">
@@ -31,7 +35,7 @@
         </div>
     </nav>
 
-    <script src="/lib/jquery/jqcombo.js"></script>
+    <script onerror="loadError=true" src="/lib/jquery/jqcombo.js"></script>
 
     <div class="container body-content">
         <div id="auto-recovery-warning" class="row col-lg-12 alert alert-warning" style="display:%0    >
@@ -61,6 +65,10 @@
 	<span id="spnMessage"></span> -->
 
         <script type="text/javascript">
+            function checkLoadError() {
+                if (loadError)
+                    location.replace(appBase + 'index');
+            }
 
     const recoveryTypes = {
         NONE: 0,
@@ -68,7 +76,8 @@
         MODEM: 2,
         TEST_CONNECTION: 3,
         FAILED: 4,
-        HW_FAILURE: 5
+        HW_FAILURE: 5,
+        DISCONNECTED: 6
     };
 
     const powerStates = {
@@ -78,13 +87,13 @@
 
     var recoveryTimer = 0;
 
-SetLastRecoveryDisplay(%4     , %5  , %6  , %7  , %8     );
+    SetLastRecoveryDisplay(%4     , %5  , %6  , %7  , %8     );
+
     var recoveryType = %9   ;
+
     SetConnectionStatus(recoveryType);
 
     var id = GetId();
-
-    var appBase = %10                                                                                                                    ;
 
     var autoPilot = false;
 
@@ -96,6 +105,7 @@ SetLastRecoveryDisplay(%4     , %5  , %6  , %7  , %8     );
     }
 
     function StartRecoveryCycle(type) {
+        $("#glassPane").css("visibility", "visible");
         fetch(appBase + "api/recovery", {
             method: "POST",
             headers: {
@@ -147,6 +157,7 @@ SetLastRecoveryDisplay(%4     , %5  , %6  , %7  , %8     );
                 break;
             case recoveryTypes.NONE:
             case recoveryTypes.FAILED:
+            case recoveryTypes.DISCONNECTED:
                 $("#glassPane").css("visibility", "hidden");
                 break;
         }
@@ -195,6 +206,8 @@ SetLastRecoveryDisplay(%4     , %5  , %6  , %7  , %8     );
                 return "Disconnected - Recovery failed!";
             case recoveryTypes.HW_FAILURE:
                 return "Hardware Failure!"
+            case recoveryTypes.DISCONNECTED:
+                return "Disconnected.";
         }
     }
 
@@ -209,6 +222,7 @@ SetLastRecoveryDisplay(%4     , %5  , %6  , %7  , %8     );
             case recoveryTypes.MODEM:
             case recoveryTypes.FAILED:
             case recoveryTypes.HW_FAILURE:
+            case recoveryTypes.DISCONNECTED:
                 $("#connection").removeClass("alert-success");
                 $("#connection").removeClass("alert-warning");
                 $("#connection").addClass("alert-danger");
@@ -322,6 +336,6 @@ SetLastRecoveryDisplay(%4     , %5  , %6  , %7  , %8     );
 
     </div>
 
-    <script src="/lib/bstrap/js/bstrap.js"></script>
+    <script onerror="loadError=true" src="/lib/bstrap/js/bstrap.js"></script>
 </body>
 </html>

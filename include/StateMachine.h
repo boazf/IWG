@@ -194,6 +194,11 @@ public:
 		ApplyVerb(newVerb);
 	}
 
+	SMState<Verb, StateName> *current()
+	{
+		return m_current;
+	}
+
 private:
 	SMState<Verb, StateName> *m_current;
 	Verb m_nextVerb;

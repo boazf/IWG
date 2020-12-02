@@ -6,12 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Settings</title>
 
-    <link rel="stylesheet" href="/lib/bstrap/css/bstrap.css" />
-    <link rel="stylesheet" href="/css/site.css" />
+    <script type="text/javascript">
+        var loadError=false;
+    </script>
+    <link onerror="loadError=true" rel="stylesheet" href="/lib/bstrap/css/bstrap.css" />
+    <link onerror="loadError=true" rel="stylesheet" href="/css/site.css" />
     <link rel="icon" href="/images/ir.ico" type="image/x-icon" />
     <link rel="apple-touch-icon" href="/images/ir.ico" type="image/x-icon" />
 </head>
-<body>
+<body onload="checkLoadError()">
     <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="container">
             <div class="navbar-header">
@@ -32,7 +35,7 @@
         </div>
     </nav>
 
-    <script src="/lib/jquery/jqcombo.js"></script>
+    <script onerror="loadError=true" src="/lib/jquery/jqcombo.js"></script>
 
     <div class="container body-content">
             <form method="post" class="pt-3" action="/Settings">
@@ -151,6 +154,10 @@
         </div>
     <input name="__RequestVerificationToken" type="hidden" value="CfDJ8NBvSMe0yQlKq92kcrI4pZ5DV-ogiZC2-nBJTWQ5_mrihCAcKbLVZ-rRvU78OWLH6JXMD5IgxezmXPXzMtdqAjTwcEYQV3RkqbiakfFCZ_YEt4T_fxpX5ASvgp6iQVlHPycaSVHLuBsbgn-hMhj6WLo" /><input name="EnableAutoRecovery" type="hidden" value="false"><input name="LimitRecoveryCycles" type="hidden" value="false" /></form>
     <script type="text/javascript">
+        function checkLoadError() {
+            if (loadError)
+                location.replace(appBase + 'index');
+        }
         $("#EnableAutoRecovery")[0].focus();
         $("#LimitRecoveryCycles")[0].checked = 'True' == %12        ;
         disableEnableDisconnectCycles();
@@ -175,7 +182,7 @@
 
     </div>
 
-    <script src="/lib/bstrap/js/bstrap.js"></script>
+    <script onerror="loadError=true" src="/lib/bstrap/js/bstrap.js"></script>
 
 </body>
 </html>

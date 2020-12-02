@@ -15,6 +15,7 @@ void HistoryControl::Init()
     recoveryControl.GetMaxHistoryRecordsChanged().addObserver(MaxHistoryChanged, this);
     Transition<H_Message, H_State> connectedTrans[] =
     {
+        { HM_RecoverySuccess, HS_Connected },
         { HM_CheckConnectivity, HS_CheckingConnectivity },
         { HM_ModemRecovery, HS_RecoveringModem },
         { HM_RouterRecovery, HS_RecoveringRouter },
@@ -154,6 +155,8 @@ void HistoryControl::RecoveryStateChanged(const RecoveryStateChangedParams &para
         break;
     case NoRecovery:
         historyControl->m_pSM->ApplyVerb(HM_RecoverySuccess);
+        break;
+    case Disconnected:
         break;
     }
 }

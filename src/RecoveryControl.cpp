@@ -19,6 +19,7 @@ void RecoveryControl::Init()
 {
 	Transition<Message, State> checkConnecticityTrans[] =
 	{
+		{Message::M_Disconnected, State::WaitWhileRecoveryFailure },
 		{ Message::M_Done, State::CheckConnectivity },
 		{ Message::M_Connected, State::WaitWhileConnected },
 		{ Message::M_DisconnectRouter, State::DisconnectRouter },
@@ -458,6 +459,13 @@ Message RecoveryControl::DecideRecoveryPath(Message message, void *param)
 		if (message != Message::M_Connected)
 		{
 			smParam->m_byUser = false;
+            if (!AppConfig::getAutoRecovery() && !smParam->updateConnState)
+            {
+                smParam->lastRecovery = UINT32_MAX;
+                smParam->m_recoveryControl->RaiseRecoveryStateChanged(RecoveryTypes::Disconnected, param);
+                return message;
+            }
+
 			if (!smParam->lanConnected || smParam->lastRecovery == UINT32_MAX || t - smParam->lastRecovery > 3600)
 				message = Message::M_DisconnectRouter;
 			else
@@ -505,12 +513,7 @@ Message RecoveryControl::OnWaitConnectionTestPeriod(void *param)
 		return requestedRecovery;
 	}
 
-	if (smParam->autoRecovery == false)
-		return Message::None;
-
-	time_t waitStartTime = smParam->t0;
-
-	return t - waitStartTime >= static_cast<time_t>(AppConfig::getConnectionTestPeriod()) ? Message::M_Done : Message::None;
+	return t - smParam->t0 >= static_cast<time_t>(AppConfig::getConnectionTestPeriod()) ? Message::M_Done : Message::None;
 }
 
 Message RecoveryControl::OnStartCheckConnectivity(void *param)
@@ -635,6 +638,7 @@ void RecoveryControl::StartRecoveryCycles(RecoveryTypes recoveryType)
 	if (m_param->requestedRecovery != Message::M_Done)
 		return;
 
+	m_param->cycles = 0;
 	switch(recoveryType)
 	{
 		case RecoveryTypes::Modem:
