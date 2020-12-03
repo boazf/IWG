@@ -65,15 +65,17 @@
                 <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="LANAddressForConnectionTesting" data-valmsg-replace="true"></span>
                 <div class="form-group row">
                     <label class="col-xs-9 col-sm-6 col-md-5 col-lg-4" for="ServerForConnectionTesting">Server Name for Connection Testing</label>
-                    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-4">
+                    <div class="btn-group col-xs-12 col-sm-6 col-md-6 col-lg-4">
                         <input class="form-control input-sm" autocorrect="off" autocapitalize="off" spellcheck="false" type="text" data-val="true" data-val-verifyservername="When Second Server Name is empty Server name is required" id="ServerForConnectionTesting" name="ServerForConnectionTesting" value=%2                                                                      
+                        <span id="serverclear" class="clearbtn glyphicon glyphicon-remove-circle"></span> 
                     </div>
                 </div>
                 <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="ServerForConnectionTesting" data-valmsg-replace="true"></span>
                 <div class="form-group row">
                     <label class="col-xs-9 col-sm-6 col-md-5 col-lg-4" for="Server2ForConnectionTesting">Second Server Name for Connection Testing</label>
-                    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-4">
+                    <div class="btn-group col-xs-12 col-sm-6 col-md-6 col-lg-4">
                         <input class="form-control input-sm" autocorrect="off" autocapitalize="off" spellcheck="false" type="text" data-val="true" data-val-verifyservername="When Server Name is empty Second Server Name is required" id="Server2ForConnectionTesting" name="Server2ForConnectionTesting" value=%3                                                                      
+                        <span id="server2clear" class="clearbtn glyphicon glyphicon-remove-circle"></span> 
                     </div>
                 </div>
                 <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="Server2ForConnectionTesting" data-valmsg-replace="true"></span>
@@ -158,6 +160,12 @@
             if (loadError)
                 location.replace(appBase + 'index');
         }
+        $("#serverclear").click(function(){
+            $("#ServerForConnectionTesting").val('');
+        });
+        $("#server2clear").click(function(){
+            $("#Server2ForConnectionTesting").val('');
+        });
         $("#EnableAutoRecovery")[0].focus();
         $("#LimitRecoveryCycles")[0].checked = 'True' == %12        ;
         disableEnableDisconnectCycles();
