@@ -18,6 +18,9 @@ AppConfigStore AppConfig::store;
 
 void AppConfig::init()
 {
+#ifdef ESP32
+    EEPROM.begin(1024);
+#endif
     if (isInitialized())
     {
         setAutoRecovery(internalGetAutoRecovery());
@@ -47,8 +50,8 @@ void AppConfig::init()
         setRReconnect(DEFAULT_ROUTER_RECONNECT);
         setServer1(DEFAULT_SERVER1);
         setServer2(DEFAULT_SERVER2);
-        commit();
         setInitialized(true);
+        commit();
     }
 }
 
@@ -254,6 +257,9 @@ void AppConfig::commit()
 
     if (dirty)
     {
+#ifdef ESP32
+        EEPROM.commit();
+#endif
         appConfigChanged.callObservers(AppConfigChangedParam());
     }
 }
@@ -304,7 +310,7 @@ void AppConfig::internalSetRReconnect(int value)
 
 bool AppConfig::internalGetLimitCycles()
 {
-    bool value;
+    bool value = false;
     return getField<bool>(offsetof(AppConfigStore, limitCycles), value);
 }
 
@@ -388,7 +394,7 @@ void AppConfig::internalSetLANAddr(const IPAddress &value)
 
 bool AppConfig::isInitialized()
 {
-    bool value;
+    bool value = false;
     return getField<bool>(offsetof(AppConfigStore, initialized), value);
 }
 
@@ -410,7 +416,7 @@ void AppConfig::internalSetConnectionTestPeriod(time_t value)
 
 bool AppConfig::internalGetAutoRecovery()
 {
-    bool value;
+    bool value = false;
     return getField<bool>(offsetof(AppConfigStore, autoRecovery), value);
 }
 

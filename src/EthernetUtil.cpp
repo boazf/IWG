@@ -1,8 +1,13 @@
 #include <Arduino.h>
+#ifdef ESP32
+#include <WiFi.h>
+#else
 #include <Ethernet.h>
+#endif
 #include <Common.h>
 #include <EthernetUtil.h>
 #include <Config.h>
+#include <TimeUtil.h>
 
 bool IsZeroIPAddress(const IPAddress &ip)
 {
@@ -11,8 +16,6 @@ bool IsZeroIPAddress(const IPAddress &ip)
 
 void InitEthernet()
 {
-  //IPAddress ip = { 192,168,0,75 };
-
   // You can use Ethernet.init(pin) to configure the CS pin
   //Ethernet.init(10);  // Most Arduino shields
   //Ethernet.init(5);   // MKR ETH shield
@@ -23,18 +26,46 @@ void InitEthernet()
 
   // start the Ethernet connection:
   if (!IsZeroIPAddress(Config::ip) && !IsZeroIPAddress(Config::gateway) && !IsZeroIPAddress(Config::mask))
+  {
+#ifdef ESP32
+    WiFi.mode(WIFI_MODE_STA);
+    WiFi.config(Config::ip, Config::gateway, Config::mask, Config::gateway);
+    WiFi.setAutoReconnect(true);
+#else
     Ethernet.begin(Config::mac, Config::ip, Config::gateway, Config::gateway, Config::mask);
+#endif
+  }
+#ifdef ESP32
+#ifdef DEBUG_ETHERNET
+  Serial.print("Connecting to: ");
+  Serial.print(Config::ssid);
+  Serial.print(' ');
+#endif
+  WiFi.begin(Config::ssid, Config::password);
+  while(WiFi.waitForConnectResult() != WL_CONNECTED)
+  {
+    delay(500);
+#ifdef DEBUG_ETHERNET
+    Serial.print('.');
+#endif      
+  }
+#ifdef DEBUG_ETHERNET
+    Serial.println(" conneted!");
+#endif      
+#else
   else
     Ethernet.begin(Config::mac);  
+#endif
 
 #ifdef DEBUG_ETHERNET
-  Serial.print("My IP address set setup: ");
+  Serial.print("My IP address: ");
   Serial.println(Ethernet.localIP());
 #endif
 }
 
 void MaintainEthernet()
 {
+#ifndef ESP32
 #ifdef DEBUG_ETHERNET
   int res = 
 #endif
@@ -71,7 +102,27 @@ void MaintainEthernet()
       //nothing happened
       break;
   }
+#endif // DEBUG_ETHERNET
+#else
+  if (WiFi.waitForConnectResult() != WL_CONNECTED)
+  {
+#ifdef DEBUG_ETHERNET
+    Serial.print("Network disconnected, trying to reconnect ");
 #endif
+    time_t t0 = t_now;
+    while(true)
+    {
+      WiFi.reconnect();
+      if (WiFi.waitForConnectResult() == WL_CONNECTED)
+        break;
+      if (t_now - t0 >=120)
+        break;
+      Serial.print('.');
+      delay(500);
+    }
+    Serial.println(WiFi.waitForConnectResult() == WL_CONNECTED ? " Connected" : " Failed");
+  }
+#endif // ESP32
 }
 
 

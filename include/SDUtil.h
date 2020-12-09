@@ -6,7 +6,11 @@
 
 void InitSD();
 
+#ifdef ESP32
+#define SdFile File
+#else
 extern Sd2Card card;
 extern SdVolume vol;
+#endif
 
 #endif // SDUtil_h

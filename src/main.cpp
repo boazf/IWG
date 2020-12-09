@@ -14,8 +14,14 @@
 #include <Relays.h>
 
 void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
   // Open serial communications and wait for port to open:
+#ifndef ESP32
   Serial.begin(9600);
+#else
+  Serial.begin(115200);
+#endif
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
@@ -26,10 +32,11 @@ void setup() {
   InitEthernet();
   InitTime();
   InitSFT();
-  InitViews();
   InitRelays();
   InitControllers();
+  InitViews();
   InitHTTPServer();
+  digitalWrite(LED_BUILTIN, HIGH);
 }
 
 void loop() {

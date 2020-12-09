@@ -4,7 +4,9 @@
 
 // Default MAC address
 // Newer Ethernet shields have a MAC address printed on a sticker on the shield
+#ifndef ESP32
 byte Config::mac[6] =  { 0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02 };
+#endif
 byte Config::ip[4] = { 0, 0, 0, 0 };
 byte Config::gateway[4] = { 0, 0, 0, 0, };
 byte Config::mask[4] = { 0, 0, 0, 0 };
@@ -13,6 +15,10 @@ const char *Config::timeServer = "time.nist.gov";
 const char *Config::configFileName = "config.txt";
 byte Config::modemRelay = 0;
 byte Config::routerRelay = 0;
+#ifdef ESP32
+const char *Config::ssid; // = "Your SSID";
+const char *Config::password; // = "Your password";
+#endif
 
 bool Config::ParseString(const String &configValue, void *str)
 {
@@ -66,7 +72,7 @@ bool Config::ParseByte(const String &configValue, void *parsedByte)
   return ParseByte(configValue, (byte *)parsedByte);
 }
 
-void Config::Init(SdVolume vol)
+void Config::Init()
 {
   struct ConfigLineParser
   {
@@ -79,19 +85,42 @@ void Config::Init(SdVolume vol)
   {
     { String("TimeServer"), ParseString, &timeServer},
     { String("TimeZone"), ParseLong, &timeZone },
+  #ifndef ESP32
     { String("MACAddress"), ParseMACAddress, mac },
+  #endif
     { String("IP"), ParseIPAddress, ip },
     { String("Gateway"), ParseIPAddress, gateway },
     { String("Subnet"), ParseIPAddress, mask },
     { String("ModemRelay"), ParseByte, &modemRelay },
     { String("RouterRelay"), ParseByte, &routerRelay} 
+  #ifdef ESP32
+    , { String("SSID"), ParseString, &ssid },
+    { String("Password"), ParseString, &password }
+  #endif
   };
 
-  SdFile config, root;
+  SdFile config;
+
+#ifdef ESP32
+  String configFilePath = String("/") + configFileName;
+#ifdef DEBUG_CONFIG
+  Serial.print("Config file: ");
+  Serial.println(configFilePath);
+#endif
+  config = SD.open(configFilePath);
+#else
+  SdFile root;
 
   root.openRoot(vol);
 
-  if (config.open(root, configFileName, O_READ) == 0)
+  config.open(root, configFileName, O_READ);
+#endif
+
+#ifdef ESP32
+  if (!config)
+#else
+  if (!config.isOpen())
+#endif
   {
 #ifdef DEBUG_CONFIG
     Serial.println("Failed to open configuration file");
@@ -161,7 +190,7 @@ void Config::Init(SdVolume vol)
     {
 #ifdef DEBUG_CONFIG
       Serial.print("Unrecognized configuration variable: ");
-      Serial.println(configLine.c_str());
+      Serial.println(configName);
 #endif
       continue;
     }
@@ -176,11 +205,13 @@ void Config::Init(SdVolume vol)
 
   } while (!eof);
 
+#ifndef ESP32
   root.close();
+#endif
   config.close();
 }
 
 void InitConfig()
 {
-    Config::Init(vol);
+    Config::Init();
 }

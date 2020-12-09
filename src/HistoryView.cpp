@@ -10,7 +10,7 @@ static bool fillAlerts(SdFile &file)
     if (historyControl.Available() == 0)
     {
         char noHistory[] = "<div class=\"alert alert-success\">There is no history yet.</div>\n";
-        file.write(noHistory, NELEMS(noHistory) - 1);
+        file.write((byte *)noHistory, NELEMS(noHistory) - 1);
         return true;
     }
 
@@ -19,63 +19,63 @@ static bool fillAlerts(SdFile &file)
         HistoryStorageItem hItem = historyControl.GetHistoryItem(i);
         {
             char str[] = "<div class=\"col-lg-3 col-md-4 col-sm-6 col-xs-12\">\n";
-            file.write(str, NELEMS(str) - 1);
+            file.write((byte *)str, NELEMS(str) - 1);
         }
         char buff[128];
         int len = sprintf(buff, "<div id=\"historyItem%d\" class=\"alert\">\n", i);
-        file.write(buff, len);
+        file.write((byte *)buff, len);
         len = sprintf(buff, "<h4 id=\"recoverySource%d\" class=\"alert-heading\"></h4>\n<hr />\n<p><span class=\"attribute-name\">\n", i);
-        file.write(buff, len);
-        if (hItem.endTime() != UINT32_MAX)
+        file.write((byte *)buff, len);
+        if (hItem.endTime() != INT32_MAX)
         {
             char str[] = "Start ";
-            file.write(str, NELEMS(str) - 1);
+            file.write((byte *)str, NELEMS(str) - 1);
         }
         {
             tm tr;
             time_t startTime = hItem.startTime();
-            gmtime_r(&startTime, &tr);
+            localtime_r(&startTime, &tr);
             char timeBuff[64];
             strftime(timeBuff, sizeof(buff), "%d/%m/%Y %T", &tr);
             len = sprintf(buff, "Time:</span><br /><span class=\"indented\">%s</span></p>\n<p ", timeBuff);
-            file.write(buff, len);
+            file.write((byte *)buff, len);
         }
-        if (hItem.endTime() == UINT32_MAX)
+        if (hItem.endTime() == INT32_MAX)
         {
             char str[] = "style=\"visibility:hidden\"";
-            file.write(str, NELEMS(str) - 1);
+            file.write((byte *)str, NELEMS(str) - 1);
         }
         {
             char str[] = "><span class=\"attribute-name\">End Time:</span><br /><span class=\"indented\">";
-            file.write(str, NELEMS(str) - 1);
+            file.write((byte *)str, NELEMS(str) - 1);
         }
         {
             tm tr;
             time_t startTime = hItem.endTime();
-            gmtime_r(&startTime, &tr);
+            localtime_r(&startTime, &tr);
             char timeBuff[64];
             len = strftime(timeBuff, sizeof(buff), "%d/%m/%Y %T", &tr);
-            file.write(timeBuff, len);
+            file.write((byte *)timeBuff, len);
         }
         {
             char str[] = "</span></p>\n<p ";
-            file.write(str, NELEMS(str) - 1);
+            file.write((byte *)str, NELEMS(str) - 1);
         }
         if (hItem.modemRecoveries() == 0 && hItem.routerRecoveries() == 0)
         {
             char str[] = "style=\"visibility:hidden\"";
-            file.write(str, NELEMS(str) - 1);
+            file.write((byte *)str, NELEMS(str) - 1);
         }
         {
             char str[] = "><span class=\"attribute-name\">Recoveries:</span><br />";
-            file.write(str, NELEMS(str) - 1);
+            file.write((byte *)str, NELEMS(str) - 1);
         }
         len = sprintf(buff, "<span class=\"indented\">Router: %d</span>", hItem.routerRecoveries());
-        file.write(buff, len);
+        file.write((byte *)buff, len);
         len = sprintf(buff, "<span class=\"indented\">Modem: %d</span>", hItem.modemRecoveries());
-        file.write(buff, len);
+        file.write((byte *)buff, len);
         len = sprintf(buff, "</p>\n<hr />\n<h4 id=\"recoveryStatus%d\"></h4>\n</div>\n</div>\n", i);
-        file.write(buff, len);
+        file.write((byte *)buff, len);
     }
 
     return true;
@@ -88,18 +88,24 @@ static bool fillJS(SdFile &file)
     {
         HistoryStorageItem hItem = historyControl.GetHistoryItem(i);
         int len = sprintf(buff, "setRecoverySource(%d, %d);\n", i, (int)hItem.recoverySource());
-        file.write(buff, len);
+        file.write((byte *)buff, len);
         len = sprintf(buff, "setRecoveryStatus(%d, %d);\n", i, (int)hItem.recoveryStatus());
-        file.write(buff, len);
+        file.write((byte *)buff, len);
     }
     return true;
 }
+
+#ifdef ESP32
+#define TEMP_HISTORY_FILE_DIR "/wwwroot/temp"
+#define TEMP_HISTORY_FILE_PATH TEMP_HISTORY_FILE_DIR "/history.htm"
+#endif
 
 bool HistoryView::open(byte *buff, int buffSize)
 {
     if (!View::open(buff, buffSize))
         return false;
 
+#ifndef ESP32
     SdFile dir;
 
     if (!openWWWROOT(dir))
@@ -120,18 +126,31 @@ bool HistoryView::open(byte *buff, int buffSize)
     }
 
     dir.close();
+#endif
+
     SdFile historyFile;
+#ifndef ESP32
     if (!historyFile.open(tempDir, "HISTORY.HTM", O_WRITE | O_READ | O_CREAT | O_TRUNC))
+#else
+    if (!SD.exists(TEMP_HISTORY_FILE_DIR))
+        SD.mkdir(TEMP_HISTORY_FILE_DIR);
+    historyFile = SD.open(TEMP_HISTORY_FILE_PATH, FILE_WRITE);
+    if (!historyFile)
+#endif
     {
 #ifdef DEBUG_HTTP_SERVER
         Serial.println("Failed to open HISTORY.HTM file");
-#endif            
+#endif
+#ifndef ESP32            
         tempDir.close();
+#endif
         return false;
     }
 
+#ifndef ESP32            
     tempDir.close();
-    
+#endif
+
     fillFile fillers[] = { fillAlerts, fillJS };
     for (int nBytes = file.read(buff, buffSize); nBytes; nBytes = file.read(buff, buffSize))
     {
@@ -152,8 +171,13 @@ bool HistoryView::open(byte *buff, int buffSize)
     }
 
     file.close();
+#ifndef ESP32
     file = historyFile;
     file.seekSet(0);
+#else
+    historyFile.close();
+    file = SD.open(TEMP_HISTORY_FILE_PATH, FILE_READ);
+#endif
 
     return true;
 }

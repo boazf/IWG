@@ -1,16 +1,18 @@
 #ifndef SSEController_h
 #define SSEController_h
 
+#include <Arduino.h>
 #include <Controller.h>
 #include <RecoveryControl.h>
 
 struct ClientInfo
 {
 public:
-    ClientInfo(const String &_id, EthernetClient &_client, SOCKET _socket, time_t _timeToDie) :
+    ClientInfo(const String &_id, EthernetClient &_client, IPAddress _remoteIP, word _remotePort, time_t _timeToDie) :
         id(_id),
         client(&_client),
-        socket(_socket),
+        remoteIP(_remoteIP),
+        remotePort(_remotePort),
         timeToDie(_timeToDie),
         waitingResponce(false)
     {
@@ -19,15 +21,16 @@ public:
     ClientInfo(const String &_id) :
         id(_id),
         client(NULL),
-        socket(MAX_SOCK_NUM),
-        timeToDie(UINT32_MAX),
+        remotePort(0),
+        timeToDie(INT32_MAX),
         waitingResponce(false)
     {
     }
 
     const String id;
     EthernetClient *client;
-    SOCKET socket;
+    IPAddress remoteIP;
+    word remotePort;
     time_t timeToDie;
     bool waitingResponce;
 };
@@ -43,7 +46,7 @@ public:
     bool Post(EthernetClient &client, String &resource);
     void Init();
     void Maintain();
-    void DeleteClient(SOCKET socket);
+    void DeleteClient(const IPAddress &remoteIP, word remotePort);
     bool IsValidId(const String &id);
     void AddClient(const String &id);
 

@@ -4,7 +4,6 @@
 #include <StateMachine.h>
 #include <Observers.h>
 #include <time.h>
-#include <ICMPPing.h>
 #include <Relays.h>
 #include <AppConfig.h>
 

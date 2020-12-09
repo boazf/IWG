@@ -1,3 +1,4 @@
+#ifndef ESP32
 #ifndef w5100ex_h
 #define w5100ex_h
 
@@ -46,4 +47,5 @@ private:
 
 extern W5100ClassEx W5100Ex;
 
-#endif
+#endif // w5100ex_h
+#endif // ESP32

@@ -4,17 +4,22 @@
 #include <SFT.h>
 #include <TimeUtil.h>
 #include <SDUtil.h>
-#include <AppConfig.h>
-#include <WString.h>
-#include <IPAddress.h>
 
 EthernetServer SFT::server(765);    // The server object for TCP communication
+#ifndef ESP32
 SdVolume SFT::vol;                  // The SD card volume
 SdFile SFT::curDir;                 // The current directory object
+#endif
 char SFT::curPath[MAX_PATH + 1];    // The path of the current directory
 
 #define SERVER_MAJOR_VERSION 1
 #define SERVER_MINOR_VERSION 0
+
+#ifdef ESP32
+#define PATH_SEP_CHAR "/"
+#else
+#define PATH_SEP_CHAR "\\"
+#endif
 
 // Connect a client to the server
 void SFT::Connect(EthernetClient &client)
@@ -31,13 +36,26 @@ void SFT::Connect(EthernetClient &client)
 // Waitnig for at most 2 seconds (1.5 seconds on average).
 bool SFT::WaitForClient(EthernetClient &client)
 {
-  time_t t0 = t;
-  while(client.available() == 0 && t - t0 < 2);
+  time_t t0 = t_now;
+  while(client.available() == 0 && t_now - t0 < 2);
   return client.available() != 0;
 }
 
 #define FILE_TRANSFER_BUFF_SIZE 256     // Size for the send and receive buffers over TCP
 #define MAKE_LONG(b0, b1, b2, b3) ((long)(b0) | ((long)(b1)) << 8 | ((long)(b2)) << 16) | ((long)(b3) << 24)
+
+#ifdef ESP32
+char *combinePath(char *dstPath, const char *srcPath1, const char *srcPath2)
+{
+  if (strlen(srcPath1) + strlen(srcPath2) + (srcPath1[1] != '\0') > MAX_PATH)
+    return NULL;
+  strcpy(dstPath, srcPath1);
+  if (srcPath1[1] != '\0')
+    strcat(dstPath, PATH_SEP_CHAR);
+  strcat(dstPath, srcPath2);
+  return dstPath;
+}
+#endif
 
 // Upload a file from the client to Arduino
 // Currently the destination file can only be put in the currect directoy.
@@ -61,9 +79,22 @@ void SFT::Upload(EthernetClient &client)
   long length = MAKE_LONG(buff[fileNameLen + 1], buff[fileNameLen + 2], buff[fileNameLen +3], buff[fileNameLen + 4]);
 
   // Open the file
-  SdFile file, org = curDir;
-  uint8_t res = file.open(curDir, fileName, O_CREAT | O_WRITE);
+  SdFile file;
+  uint8_t res;
+#ifdef ESP32
+  char filePath[MAX_PATH];
+  if (combinePath(filePath, curPath, fileName) == NULL)
+    res = 0;
+  else
+  {
+    file = SD.open(filePath, FILE_WRITE);
+    res = file;
+  }
+#else
+  SdFile org = curDir;
+  res = file.open(curDir, fileName, O_CREAT | O_WRITE);
   curDir = org; // For some unknown reason file.open changes the directory object passed to it
+#endif
 
   // Send status indicating whether the file could be opened
   buff[0] = res == 1 ? 220 : 100;
@@ -76,12 +107,18 @@ void SFT::Upload(EthernetClient &client)
     Serial.println("Failed to receive first buffer");
 #endif
     file.close();
+#ifdef ESP32
+    SD.remove(filePath);
+#else
     file.remove();
+#endif
     return;
   }
 
+#ifndef ESP32
   // Erase file content
   file.truncate(0); 
+#endif
 
   // Loop through the blocks with file content
   long offset = 0;
@@ -117,7 +154,11 @@ void SFT::Upload(EthernetClient &client)
   if (offset != length)
   {
     file.close();
+  #ifdef ESP32
+    SD.remove(filePath);
+  #else
     file.remove();
+  #endif
     return;
   }
 
@@ -155,9 +196,24 @@ void SFT::Download(EthernetClient &client)
 #endif
 
   // Try to open the file
-  SdFile file, org = curDir;
-  uint8_t ores = file.open(curDir, fileName, O_READ);
+  SdFile file;
+  uint8_t ores;
+#ifdef ESP32
+  {
+    char filePath[MAX_PATH + 1];
+    if (combinePath(filePath, curPath, fileName) == NULL)
+      ores = 0;
+    else
+    {
+      file = SD.open(filePath);
+      ores = file;
+    }
+  }
+#else
+  SdFile org = curDir;
+  ores = file.open(curDir, fileName, O_READ);
   curDir = org;
+#endif
   if (ores == 0)
   {
     // Send indication that the file could not be opened
@@ -167,7 +223,12 @@ void SFT::Download(EthernetClient &client)
   }
 
   // Send status indicating the file is opened and the file size
-  long size = file.fileSize();
+  long size = 
+  #ifdef ESP32
+    file.size();
+  #else
+  	file.fileSize();
+  #endif
   byte ret[5];
   ret[0] = 220;
   *((long *)(ret + 1)) = size;
@@ -265,45 +326,105 @@ void SFT::Download(EthernetClient &client)
   delay(1);
 }
 
+#ifdef ESP32
+#define MAX_FILE_NAME 128
+#else
+#define MAX_FILE_NAME 13
+#endif
 // File information sent to client
 typedef struct FILE_INFO_
 {
-  word signature;   // Indication that this is the first word of the file info structure
-  byte day;         // File last write day
-  byte month;       // File last write month
-  word year;        // File last write year
-  byte hour;        // File last write hour
-  byte minute;      // File last write minute
-  long size;        // File size
-  bool isDir;       // File is a directory
-  char name[13];    // File name
-} FILE_INFO;
+  byte signature[2];            // Indication that this is the first word of the file info structure
+  byte day;                     // File last write day
+  byte month;                   // File last write month
+  byte year[2];                 // File last write year
+  byte hour;                    // File last write hour
+  byte minute;                  // File last write minute
+  byte size[4];                 // File size
+  byte isDir;                   // File is a directory
+  char name[MAX_FILE_NAME];     // File name
+} __attribute__((__packed__)) FILE_INFO;
 
 // Send to the client information about all entries in the curernt directory
 void SFT::ListDirectory(EthernetClient &client)
 {
+#ifndef ESP32
   SdFile org = curDir;
   dir_t dir;
+#endif
 #ifdef DEBUG_SFT
   Serial.println("List directory...");
 #endif
   bool fail = false;
   // Loop through the directory entries
+#ifdef ESP32
+  File dir = SD.open(curPath);
+  File file = dir.openNextFile();
+  while (file)
+#else
   while (curDir.readDir(&dir)>0)
+#endif
   {
     FILE_INFO fileInfo;
-    fileInfo.signature = 222;
+    fileInfo.signature[0] = 222;
+    fileInfo.signature[1] = 0;
+#ifdef ESP32
+    char filePath[MAX_PATH + 1];
+    strcpy(filePath, file.name());
+    char *slash = strrchr(filePath, *PATH_SEP_CHAR);
+    strncpy(fileInfo.name, slash + 1, MAX_FILE_NAME);
+#else
     SdFile::dirName(dir, fileInfo.name);
-#ifdef DEBUG_SFT
-    Serial.println(fileInfo.name);
 #endif
-    fileInfo.isDir = DIR_IS_SUBDIR(&dir);
-    fileInfo.size = dir.fileSize;
-    fileInfo.day = FAT_DAY(dir.lastWriteDate);
-    fileInfo.month = FAT_MONTH(dir.lastWriteDate);
-    fileInfo.year = FAT_YEAR(dir.lastWriteDate);
-    fileInfo.hour = FAT_HOUR(dir.lastWriteTime);
-    fileInfo.minute = FAT_MINUTE(dir.lastWriteTime);
+    fileInfo.isDir = 
+#ifdef ESP32
+      file.isDirectory();
+#else
+      DIR_IS_SUBDIR(&dir);
+#endif
+    long size = 
+#ifdef ESP32
+      file.size();
+#else
+      dir.fileSize;
+#endif
+    memcpy(&fileInfo.size, &size, 4);
+#ifdef ESP32
+    time_t fileTime = file.getLastWrite();
+    tm tr;
+    localtime_r(&fileTime, &tr);
+#endif
+    fileInfo.day = 
+#ifdef ESP32
+      tr.tm_mday;
+#else
+      FAT_DAY(dir.lastWriteDate);
+#endif
+    fileInfo.month = 
+#ifdef ESP32
+      tr.tm_mon + 1;
+#else
+      FAT_MONTH(dir.lastWriteDate);
+#endif
+    word year =
+#ifdef ESP32
+      tr.tm_year + 1900;
+#else
+      FAT_YEAR(dir.lastWriteDate);
+#endif
+    memcpy(&fileInfo.year, &year, 2);
+    fileInfo.hour =
+#ifdef ESP32
+      tr.tm_hour;
+#else
+      FAT_HOUR(dir.lastWriteTime);
+#endif
+    fileInfo.minute = 
+#ifdef ESP32
+      tr.tm_min;
+#else
+    FAT_MINUTE(dir.lastWriteTime);
+#endif
     // Send the file information to the client
     int res = client.write((byte *)&fileInfo, sizeof(fileInfo));
     if (res != sizeof(fileInfo))
@@ -332,13 +453,22 @@ void SFT::ListDirectory(EthernetClient &client)
       fail = true;
       break;
     }
+#ifdef ESP32
+    file.close();
+    file = dir.openNextFile();
+#endif
   }
 
+#ifdef ESP32
+  dir.close();
+#endif
   // Send finalizing indication
   byte ret = fail ? 100 : 220;
   client.write(&ret, 1);
   delay(1);
+#ifndef ESP32
   curDir = org; // Restore the root directory objet since enumeratin directory entries modifies the directory file object
+#endif
 }
 
 // Change curent directory
@@ -376,7 +506,7 @@ void SFT::ChangeDirectory(EthernetClient &client)
       if (strcmp(path, "..") == 0)
       {
         // Request to go up to the parent directory
-        if (strcmp(curPath, "\\") == 0)
+        if (strcmp(curPath, PATH_SEP_CHAR) == 0)
         {
           // cannot go up in case we're currently in the root directory
 #ifdef DEBUG_SFT  
@@ -387,7 +517,7 @@ void SFT::ChangeDirectory(EthernetClient &client)
         else
         {
           // Get the last backslash character in the current directory path
-          char *backSlash = strrchr(curPath, '\\');
+          char *backSlash = strrchr(curPath, *PATH_SEP_CHAR);
           if (backSlash != curPath)
             // The curent path contains more than one backslash.
             // Trim the path one directory less from the end
@@ -397,6 +527,7 @@ void SFT::ChangeDirectory(EthernetClient &client)
             // We should go up one directory to the root directory.
             curPath[1] = '\0';
           
+#ifndef ESP32
           // Open the root directory
           curDir.close();
           curDir.openRoot(vol);
@@ -409,7 +540,7 @@ void SFT::ChangeDirectory(EthernetClient &client)
             // Point to the name of the first sub-directory
             char *inCurPath = pathCopy;
             // Find the next backslash in the path.
-            backSlash = strchr(inCurPath, '\\');
+            backSlash = strchr(inCurPath, *PATH_SEP_CHAR);
             while (!fail && backSlash != NULL)
             {
               // Change the backslash it to null character (aka '\0')
@@ -435,7 +566,7 @@ void SFT::ChangeDirectory(EthernetClient &client)
                 curDir = subDir;
                 // Find the next backslash in the path
                 inCurPath = backSlash + 1;
-                backSlash = strchr(inCurPath, '\\');
+                backSlash = strchr(inCurPath, *PATH_SEP_CHAR);
               }
             }
             if (!fail)
@@ -458,12 +589,27 @@ void SFT::ChangeDirectory(EthernetClient &client)
               }
             }
           }
+#endif
         }
       }
       else
       {
         // Verify that the path length will not exceed the maximum
-        if (strlen(curPath) + strlen(path) <= MAX_PATH)
+#ifdef ESP32   
+        char tempPath[MAX_PATH + 1];
+        if (combinePath(tempPath, curPath, path) != NULL)
+        {
+          File newPath = SD.open(tempPath);
+          fail = !newPath || !newPath.isDirectory();
+          if (!fail)
+          {
+            strcpy(curPath, tempPath);
+            if (newPath)
+              newPath.close();
+          }
+        }
+#else
+        if (strlen(curPath) + strlen(path) + (strlen(curPath) > 1) <= MAX_PATH)
         {
           // Try to open the sub-directory
           SdFile subDir, org = curDir;
@@ -478,13 +624,14 @@ void SFT::ChangeDirectory(EthernetClient &client)
           {
             // Concatinate the new sub-directory to the path
             if (strlen(curPath) > 1)
-                strcat(curPath, "\\");
+                strcat(curPath, PATH_SEP_CHAR);
             strcat(curPath, path);
             // Change current directory object to point to the new directory
             curDir.close();
             curDir = subDir;
           }
         }
+#endif
         else
         {
             // Path will become too long, we do not allow it
@@ -512,7 +659,9 @@ void SFT::ChangeDirectory(EthernetClient &client)
 // cannot contain path, only one directory name.
 void SFT::MakeDirectory(EthernetClient &client)
 {
+#ifndef ESP32
   SdFile org = curDir;
+#endif
   bool fail = false;
   char path[MAX_PATH];
   memset(path, 0, sizeof(path));
@@ -534,6 +683,10 @@ void SFT::MakeDirectory(EthernetClient &client)
   }
   else
   {
+#ifdef ESP32
+    char newPath[MAX_PATH + 1];
+    fail = combinePath(newPath, curPath, path) == NULL || !SD.mkdir(newPath);
+#else
     // Create the new sub-directory
     SdFile subDir;
     if (subDir.makeDir(curDir, path) == 0)
@@ -550,13 +703,16 @@ void SFT::MakeDirectory(EthernetClient &client)
       // Close the sub-directory object
       subDir.close();
     }
+  #endif
   }
   
   // Send pass/fail indication to the client
   byte ret = fail ? 100 : 220;
   client.write(&ret, 1);
   delay(1);
+#ifndef ESP32
   curDir = org;
+#endif
 }
 
 // Delete a file
@@ -564,7 +720,9 @@ void SFT::MakeDirectory(EthernetClient &client)
 // It is not possible to send a path to a file.
 void SFT::Delete(EthernetClient &client)
 {
+#ifndef ESP32
   SdFile org = curDir;
+#endif
   bool fail = false;
   char path[MAX_PATH];
   memset(path, 0, sizeof(path));
@@ -585,23 +743,33 @@ void SFT::Delete(EthernetClient &client)
   }
   else
   {
+#ifdef ESP32
+    char tempPath[MAX_PATH + 1];
+    fail = combinePath(tempPath, curPath, path) == NULL || !SD.remove(tempPath);
+#else
     // Try to delete the file
     if (SdFile::remove(curDir, path) == 0)
     {
       // File deletion failed
       fail = true;
+    }
+#endif
 #ifdef DEBUG_SFT    
+    if (fail)
+    {   
       Serial.print("Failed to delete file: ");
       Serial.println(path);
-#endif
     }
+#endif
   }
   
   // Send pass/fail indication to the client
   byte ret = fail ? 100 : 220;
   client.write(&ret, 1);
   delay(1);
+#ifndef ESP32
   curDir = org;
+#endif
 }
 
 // Delete a sub-directory
@@ -609,7 +777,9 @@ void SFT::Delete(EthernetClient &client)
 // It is not possible to send a path to a directory for deletion
 void SFT::RemoveDirectory(EthernetClient &client)
 {
+#ifndef ESP32
   SdFile org = curDir;
+#endif
   bool fail = false;
   char path[MAX_PATH];
   memset(path, 0, sizeof(path));
@@ -631,6 +801,10 @@ void SFT::RemoveDirectory(EthernetClient &client)
   }
   else
   {
+  #ifdef ESP32
+    char tempPath[MAX_PATH + 1];
+    fail = combinePath(tempPath, curPath, path) == NULL || !SD.rmdir(tempPath);
+  #else
     // Try to delete the sub-directory
     SdFile subDir;
 
@@ -639,89 +813,23 @@ void SFT::RemoveDirectory(EthernetClient &client)
     {
       // Failed to delete the sub-directory
       fail = true;
+    }
+#endif
+  }
 #ifdef DEBUG_SFT    
+  if (fail)
+  {
       Serial.print("Failed to remove directory: ");
       Serial.println(path);
-#endif
-    }
   }
+#endif
   
   // Send pass/fail indication to the client
   byte ret = fail ? 100 : 220;
   client.write(&ret, 1);
   delay(1);
+#ifndef ESP32
   curDir = org;
-}
-
-#define FILL_BUFF(type, val) *((type *)ptr) = val; ptr += sizeof(type)
-
-// void MemoryDump(byte *buff, size_t len)
-// {
-//   for (size_t i = 0; i < len; i++)
-//   {
-//     if (buff[i]<16)
-//       Serial.print("0");
-//     Serial.print(buff[i], HEX);
-//     if ((i + 1) % 16 == 0 || i == len - 1)
-//       Serial.println();
-//     else
-//       Serial.print(", ");
-//   }
-// }
-
-void SFT::ReadAppConfig(EthernetClient &client)
-{
-#ifdef DEBUG_SFT    
-  Serial.print("Read App Config: ");
-#endif
-  byte buff[128];
-  byte *ptr = buff;
-  FILL_BUFF(bool, AppConfig::getAutoRecovery());
-  FILL_BUFF(int, AppConfig::getConnectionTestPeriod());
-  FILL_BUFF(uint32_t, (uint32_t)AppConfig::getLANAddr());
-  FILL_BUFF(bool, AppConfig::getLimitCycles());
-  FILL_BUFF(int, AppConfig::getMaxHistory());
-  FILL_BUFF(int, AppConfig::getMDisconnect());
-  FILL_BUFF(int, AppConfig::getMReconnect());
-  FILL_BUFF(int, AppConfig::getRDisconnect());
-  FILL_BUFF(int, AppConfig::getRecoveryCycles());
-  FILL_BUFF(int, AppConfig::getRReconnect());
-  String server1 = AppConfig::getServer1();
-  strcpy((char *)ptr, server1.c_str());
-  ptr += strlen(server1.c_str()) + 1;
-  String server2 = AppConfig::getServer2();
-  strcpy((char *)ptr, server2.c_str());
-  ptr += strlen(server2.c_str()) + 1;
-  FILL_BUFF(byte, 220);
-  client.write(buff, ptr - buff);
-#ifdef DEBUG_SFT    
-  Serial.println("Done.");
-#endif
-}
-
-void SFT::WriteAppConfig(EthernetClient &client)
-{
-#ifdef DEBUG_SFT    
-  Serial.print("Write App Config: ");
-#endif
-  AppConfig::setAutoRecovery(true);
-  AppConfig::setConnectionTestPeriod(15);
-  IPAddress lanAddress(192,168,0,10);
-  AppConfig::setLANAddr(lanAddress);
-  AppConfig::setLimitCycles(true);
-  AppConfig::setMaxHistory(10);
-  AppConfig::setMDisconnect(5);
-  AppConfig::setMReconnect(210);
-  AppConfig::setRDisconnect(5);
-  AppConfig::setRecoveryCycles(5);
-  AppConfig::setRReconnect(180);
-  String server1("google.com");
-  AppConfig::setServer1(server1);
-  String server2("yahoo.com");
-  AppConfig::setServer2(server2);
-  client.write(220);
-#ifdef DEBUG_SFT    
-  Serial.println("Done.");
 #endif
 }
 
@@ -733,9 +841,11 @@ void SFT::Init()
 
   // Set current path to the root directory
   memset(curPath, 0, sizeof(curPath));
-  curPath[0] = '\\';
+  curPath[0] = *PATH_SEP_CHAR;
+#ifndef ESP32
   vol.init(card);
   curDir.openRoot(vol);
+#endif
 #ifdef DEBUG_SFT    
   Serial.println("SFT Initialized");
 #endif
@@ -750,8 +860,12 @@ void SFT::DoService()
         return;
     }
 #ifdef DEBUG_SFT    
+#ifdef ESP32
+    Serial.println("New client");
+#else
     Serial.print("New client on socket ");
     Serial.println(client.getSocketNumber());
+#endif
 #endif
     while (client.connected())
     {
@@ -793,14 +907,6 @@ void SFT::DoService()
 
           case 'X':
             RemoveDirectory(client);
-            break;
-
-          case 'a':
-            ReadAppConfig(client);
-            break;
-
-          case 'A':
-            WriteAppConfig(client);
             break;
         }
         break;

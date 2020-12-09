@@ -23,21 +23,31 @@ void HistoryStorage::ReportIntializationResult()
 
 void HistoryStorage::init(int _maxRecords)
 {
+#ifdef RESET_HISTORY
+    availableRecords = 0;
+    putAvailableRecords();
+    EEPROM.commit();
+#endif
     maxRecords = _maxRecords;
     getAvailableRecords();
     if (availableRecords < maxRecords)
     {
         startIndex = availableRecords;
-        HistoryStorageItem historyStorageItem;
-        historyStorageItem.get(startIndex - 1);
-        lastRecovery = historyStorageItem.endTime();
+        if (availableRecords > 0)
+        {
+            HistoryStorageItem historyStorageItem;
+            historyStorageItem.get(startIndex - 1);
+            lastRecovery = historyStorageItem.endTime();
+        }
+        else
+            lastRecovery = INT32_MAX;
 #ifdef DEBUG_HISTORY
         ReportIntializationResult();
 #endif
         return;
     }
 
-    time_t minT = UINT32_MAX;
+    time_t minT = INT32_MAX;
     startIndex = 0;
     bool first = true;
     lastRecovery = 0;
@@ -55,7 +65,7 @@ void HistoryStorage::init(int _maxRecords)
                 break;
         }
         time_t endTime = historyStorageItem.endTime();
-        if (endTime != UINT32_MAX && lastRecovery < endTime)
+        if (endTime != INT32_MAX && lastRecovery < endTime)
         {
             if (historyStorageItem.recoveryStatus() == RecoveryFailure)
                 lastRecovery = 0;
@@ -65,7 +75,7 @@ void HistoryStorage::init(int _maxRecords)
         first = false;
     }
     if (lastRecovery == 0)
-        lastRecovery = UINT32_MAX;
+        lastRecovery = INT32_MAX;
 
 #ifdef DEBUG_HISTORY
         ReportIntializationResult();
@@ -82,9 +92,12 @@ void HistoryStorage::addHistory(HistoryStorageItem &item)
     }
     startIndex = (startIndex + 1) % maxRecords;
     if (item.recoveryStatus() != RecoverySuccess)
-        lastRecovery = UINT32_MAX;
+        lastRecovery = INT32_MAX;
     else
         lastRecovery = item.endTime();
+#ifdef ESP32
+    EEPROM.commit();
+#endif
 }
 
 void HistoryStorage::resize(int _maxRecords)
@@ -164,6 +177,9 @@ void HistoryStorage::resize(int _maxRecords)
         availableRecords = maxRecords;
         putAvailableRecords();
     }
+#ifdef ESP32
+    EEPROM.commit();
+#endif
 }
 
 int HistoryStorage::available()

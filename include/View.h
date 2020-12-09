@@ -2,8 +2,8 @@
 #define View_h
 
 #include <Arduino.h>
-#include <SD.h>
-#include <Ethernet.h>
+#include <SDUtil.h>
+#include <EthernetUtil.h>
 
 enum CONTENT_TYPE
 {
@@ -36,7 +36,11 @@ public:
 
     virtual ~View()
     {
+#ifndef ESP32
         if (file.isOpen())
+#else
+        if (file)
+#endif
             file.close();
         buff = NULL;
         buffSize = 0;

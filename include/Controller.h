@@ -2,7 +2,7 @@
 #define Controller_h
 
 #include <Arduino.h>
-#include <Ethernet.h>
+#include <EthernetUtil.h>
 
 class Controller
 {

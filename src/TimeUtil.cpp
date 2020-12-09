@@ -4,7 +4,9 @@
 #include <Config.h>
 #include <Common.h>
 
-volatile time_t t = 0;
+#ifndef ESP32
+volatile time_t t_now = 0;
+#endif
 
 void InitTime()
 {
@@ -12,20 +14,29 @@ void InitTime()
   Serial.print("Time Server: ");
   Serial.println(Config::timeServer);
 #endif
-  t = NTPClient::getUTC();
-  if (t != 0)
-    t += Config::timeZone * 60;
+#ifdef ESP32
+  configTime(Config::timeZone * 60, 0, Config::timeServer);
+  tm tr1;
+  delay(2000);
+  tr1.tm_year = 0;
+  getLocalTime(&tr1, 5000);
+#else
+  t_now = NTPClient::getUTC();
+  if (t_now != 0)
+    t_now += Config::timeZone * 60;
+#endif
 
 #ifdef DEBUG_TIME
   char buff[128];
   tm tr;
-  time_t now = t;
+  time_t now = t_now;
 
-  gmtime_r(&now, &tr);
+  localtime_r(&now, &tr);
   strftime(buff, sizeof(buff), "DateTime: %a %d/%m/%Y %T%n", &tr);
   Serial.print(buff);
 #endif
 
+#ifndef ESP32
   cli();//stop interrupts
 
   //set timer1 interrupt at 1Hz
@@ -42,23 +53,25 @@ void InitTime()
   TIMSK1 |= (1 << OCIE1A);
 
   sei();//allow interrupts
+#endif // ESP32
 }
 
+#ifndef ESP32
 //boolean toggle1 = false;
 
 ISR(TIMER1_COMPA_vect){//timer1 interrupt 1Hz toggles pin 13 (LED)
   // Generates pulse wave of frequency 1Hz/2 = 0.5Hz
-  if (t == 0)
+  if (t_now == 0)
     return;
 
   // digitalWrite(13, toggle1 ? HIGH : LOW);
   // toggle1 = !toggle1;
-  t++;
+  t_now++;
 }
 
 void getFatDateTime(uint16_t *date, uint16_t *time)
 {
-  if (t == 0)
+  if (t_now == 0)
   {
     *date = FAT_DEFAULT_DATE;
     *time = FAT_DEFAULT_TIME;
@@ -66,10 +79,10 @@ void getFatDateTime(uint16_t *date, uint16_t *time)
   else
   {
     tm tr;
-    time_t now = t;
+    time_t now = t_now;
     gmtime_r(&now, &tr);
     *date = FAT_DATE(tr.tm_year + 1900, tr.tm_mon + 1, tr.tm_mday);
     *time = FAT_TIME(tr.tm_hour, tr.tm_min, tr.tm_sec);
   }
 }
-
+#endif

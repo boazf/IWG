@@ -1,3 +1,4 @@
+#ifndef ESP32
 #include <NTPClient.h>
 #include <Config.h>
 
@@ -58,3 +59,4 @@ time_t NTPClient::getUTC()
 
   return ret;
 }
+#endif

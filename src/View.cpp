@@ -53,6 +53,7 @@ int View::viewHandler(byte *buff, int buffSize)
     return buffSize;
 }
 
+#ifndef ESP32
 bool View::openWWWROOT(SdFile &dir)
 {
     SdFile root;
@@ -77,6 +78,7 @@ bool View::openWWWROOT(SdFile &dir)
     
     return true;
 }
+#endif
 
 bool View::open(byte *_buff, int _buffSize)
 {
@@ -84,6 +86,7 @@ bool View::open(byte *_buff, int _buffSize)
     buffSize = _buffSize;
     offset = buffSize;
 
+#ifndef ESP32
     SdFile dir;
     if (!openWWWROOT(dir))
         return false;
@@ -108,19 +111,34 @@ bool View::open(byte *_buff, int _buffSize)
         dir = subDir;
         index = slash + 1;
     }
+#endif
 
-    String fileName = viewFilePath.substring(index);
+    String fileName;
+#ifndef ESP32
+    fileName = viewFilePath.substring(index);
+#else
+    fileName = "/wwwroot" + viewFilePath;
+#endif
+#ifndef ESP32
     if (file.open(dir, fileName.c_str(), O_READ) == 0)
+#else
+    file = SD.open(fileName, FILE_READ);
+    if (!file)
+#endif
     {
 #ifdef DEBUG_HTTP_SERVER
         Serial.print("Failed to open file ");
         Serial.println(fileName.c_str());
 #endif
+#ifndef ESP32
         dir.close();
+#endif
         return false;
     }
 
+#ifndef ESP32
     dir.close();
+#endif
 
     return true;
 }
@@ -132,7 +150,11 @@ void View::close()
 
 long View::getViewSize()
 {
+#ifndef ESP32
     return file.fileSize();
+#else
+    return file.size();
+#endif
 }
 
 bool View::redirect(EthernetClient &client, const String &id)
@@ -142,6 +164,7 @@ bool View::redirect(EthernetClient &client, const String &id)
 
 bool View::getLastModifiedTime(String &lastModifiedTimeStr)
 {
+#ifndef ESP32
     dir_t dirEntry;
     memset(&dirEntry, 0, sizeof(dirEntry));
     if (file.dirEntry(dirEntry) == 0)
@@ -172,6 +195,10 @@ bool View::getLastModifiedTime(String &lastModifiedTimeStr)
         return false;
     }
     fileTime = fileTime - Config::timeZone * 60; // Set to GMT
+#else
+    tm tr;
+    time_t fileTime = file.getLastWrite();
+#endif
     gmtime_r(&fileTime, &tr);
     char lastModifiedTime[64];
     // Last-Modified: Sun, 21 Jun 2020 14:33:06 GMT

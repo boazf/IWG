@@ -1,10 +1,15 @@
 #include <SPI.h>
-#include <Ethernet.h>
+#include <EthernetUtil.h>
 #include <RecoveryControl.h>
 #include <Observers.h>
 #include <Common.h>
 #include <Config.h>
+#ifndef ESP32
 #include <Dns.h>
+#include <ICMPPing.h>
+#else
+#include <ping.h>
+#endif
 #include <AppConfig.h>
 #include <TimeUtil.h>
 #include <HistoryControl.h>
@@ -276,28 +281,37 @@ class CheckConnectivityStateParam
 {
 public:
 	CheckConnectivityStateParam() :
+#ifndef ESP32
 		ping(MAX_SOCK_NUM, 1),
-		stage(CheckLAN),
-		status(Message::M_Disconnected)
+#endif
+		status(Message::M_Disconnected),
+		stage(CheckLAN)
 	{
 	}
 
 public:
+#ifndef ESP32
 	ICMPPing ping;
 	ICMPEchoReply pingResult;
-	CheckConnectivityStages stage;
+#else
+	IPAddress address;
+#endif
 	Message status;
+	CheckConnectivityStages stage;
 };
 
 static bool TryGetHostAddress(IPAddress &address, String server)
 {
 	if (server.equals(""))
 		return false;
-
+#ifdef ESP32
+	if (WiFi.hostByName(server.c_str(), address) != 1)
+#else
 	DNSClient dns;
 	dns.begin(Config::gateway);
 
 	if (dns.getHostByName(server.c_str(), address) != 1)
+#endif
 	{
 #ifdef DEBUG_RECOVERY_CONTROL
 		Serial.print("Failed to get host address for ");
@@ -364,7 +378,11 @@ void RecoveryControl::OnEnterCheckConnectivity(void *param)
 		Serial.print(".");
 		Serial.println(address[3]);
 #endif
+#ifndef ESP32
 		stateParam->ping.asyncStart(address, 3, stateParam->pingResult);
+#else
+		stateParam->address = address;
+#endif
 	}
 }
 
@@ -376,13 +394,22 @@ Message RecoveryControl::OnCheckConnectivity(void *param)
 
 	if (stateParam->stage != ChecksCompleted)
 	{
+#ifndef ESP32
 		if (!stateParam->ping.asyncComplete(stateParam->pingResult))
 			return Message::None;
 
 		status = stateParam->pingResult.status == SUCCESS ? Message::M_Connected : Message::M_Disconnected;
+#else
+		for (int attempts = 0; attempts < 3 && status == Message::M_Disconnected; attempts++);
+			status = ping_start(stateParam->address, 1, 0, 0, 1000) ? Message::M_Connected : Message::M_Disconnected;
+#endif
 #ifdef DEBUG_RECOVERY_CONTROL
 		Serial.print("Ping result: ");
+#ifndef ESP32
 		Serial.println(stateParam->pingResult.status);
+#else
+		Serial.println(status == Message::M_Connected ? "OK" : "Failed");
+#endif
 #endif
 	}
 
@@ -438,13 +465,13 @@ Message RecoveryControl::UpdateRecoveryState(Message message, void *param)
 
 	if (message == Message::M_Connected)
 	{
-		if (smParam->lastRecovery == UINT32_MAX)
-			smParam->lastRecovery = t;
+		if (smParam->lastRecovery == INT32_MAX)
+			smParam->lastRecovery = t_now;
 		smParam->m_recoveryControl->RaiseRecoveryStateChanged(RecoveryTypes::NoRecovery, smParam->m_byUser);
 	}
 	else
 	{
-		smParam->lastRecovery = UINT32_MAX;
+		smParam->lastRecovery = INT32_MAX;
 	}
 	
 	return message;
@@ -461,12 +488,12 @@ Message RecoveryControl::DecideRecoveryPath(Message message, void *param)
 			smParam->m_byUser = false;
             if (!AppConfig::getAutoRecovery() && !smParam->updateConnState)
             {
-                smParam->lastRecovery = UINT32_MAX;
+                smParam->lastRecovery = INT32_MAX;
                 smParam->m_recoveryControl->RaiseRecoveryStateChanged(RecoveryTypes::Disconnected, param);
                 return message;
             }
 
-			if (!smParam->lanConnected || smParam->lastRecovery == UINT32_MAX || t - smParam->lastRecovery > 3600)
+			if (!smParam->lanConnected || smParam->lastRecovery == INT32_MAX || t_now - smParam->lastRecovery > 3600)
 				message = Message::M_DisconnectRouter;
 			else
 				message = smParam->lastRecoveryType == RecoveryTypes::Router ? Message::M_DisconnectModem : Message::M_DisconnectRouter;
@@ -491,7 +518,7 @@ void RecoveryControl::RaiseRecoveryStateChanged(RecoveryTypes recoveryType, bool
 void RecoveryControl::OnEnterWaitConnectionPeriod(void *param)
 {
 	SMParam *smParam = (SMParam *)param;
-	smParam->t0 = t;
+	smParam->t0 = t_now;
 #ifdef DEBUG_RECOVERY_CONTROL
 	Serial.print(__func__);
 	Serial.print(": Waiting for ");
@@ -513,7 +540,7 @@ Message RecoveryControl::OnWaitConnectionTestPeriod(void *param)
 		return requestedRecovery;
 	}
 
-	return t - smParam->t0 >= static_cast<time_t>(AppConfig::getConnectionTestPeriod()) ? Message::M_Done : Message::None;
+	return t_now - smParam->t0 >= static_cast<time_t>(AppConfig::getConnectionTestPeriod()) ? Message::M_Done : Message::None;
 }
 
 Message RecoveryControl::OnStartCheckConnectivity(void *param)
@@ -528,9 +555,9 @@ void RecoveryControl::OnEnterDisconnectRouter(void *param)
 {
 	SMParam *smParam = (SMParam *)param;
 	smParam->lastRecoveryType = RecoveryTypes::Router;
-	smParam->lastRecovery = UINT32_MAX;
+	smParam->lastRecovery = INT32_MAX;
 	smParam->m_recoveryControl->RaiseRecoveryStateChanged(RecoveryTypes::Router, smParam->m_byUser);
-	smParam->recoveryStart = t;
+	smParam->recoveryStart = t_now;
 	SetRouterPowerState(POWER_OFF);
 	smParam->m_recoveryControl->m_routerPowerStateChanged.callObservers(PowerStateChangedParams(POWER_OFF));
 #ifdef DEBUG_RECOVERY_CONTROL
@@ -541,7 +568,7 @@ void RecoveryControl::OnEnterDisconnectRouter(void *param)
 Message RecoveryControl::OnDisconnectRouter(void *param)
 {
 	SMParam *smParam = (SMParam *)param;
-	if (t - smParam->recoveryStart < static_cast<time_t>(AppConfig::getRDisconnect()))
+	if (t_now - smParam->recoveryStart < static_cast<time_t>(AppConfig::getRDisconnect()))
 		return Message::None;
 
 	SetRouterPowerState(POWER_ON);
@@ -555,28 +582,28 @@ Message RecoveryControl::OnDisconnectRouter(void *param)
 void RecoveryControl::OnEnterWaitWhileRecovering(void *param)
 {
 	SMParam *smParam = (SMParam *)param;
-	smParam->t0 = t;
+	smParam->t0 = t_now;
 }
 Message RecoveryControl::OnWaitWhileRecovering(void *param)
 {
 	SMParam *smParam = (SMParam *)param;
-	return t - smParam->t0 >= 5 ? Message::M_Done : Message::None;
+	return t_now - smParam->t0 >= 5 ? Message::M_Done : Message::None;
 }
 
 Message RecoveryControl::OnCheckRouterRecoveryTimeout(void *param)
 {
 	SMParam *smParam = (SMParam *)param;
-	return t - smParam->recoveryStart > static_cast<time_t>(AppConfig::getRReconnect()) ? Message::M_Timeout : Message::M_NoTimeout;
+	return t_now - smParam->recoveryStart > static_cast<time_t>(AppConfig::getRReconnect()) ? Message::M_Timeout : Message::M_NoTimeout;
 }
 
 void RecoveryControl::OnEnterDisconnectModem(void *param)
 {
 	SMParam *smParam = (SMParam *)param;
 	smParam->lastRecoveryType = RecoveryTypes::Modem;
-	smParam->lastRecovery = UINT32_MAX;
+	smParam->lastRecovery = INT32_MAX;
 	SetModemPowerState(POWER_OFF);
 	smParam->m_recoveryControl->RaiseRecoveryStateChanged(RecoveryTypes::Modem, smParam->m_byUser);
-	smParam->recoveryStart = t;
+	smParam->recoveryStart = t_now;
 #ifdef DEBUG_RECOVERY_CONTROL
 	Serial.println("Disconnecting Modem");
 #endif
@@ -588,7 +615,7 @@ Message RecoveryControl::OnDisconnectModem(void *param)
 {
 	SMParam *smParam = (SMParam *)param;
 
-	if (t - smParam->recoveryStart < static_cast<time_t>(AppConfig::getMDisconnect()))
+	if (t_now - smParam->recoveryStart < static_cast<time_t>(AppConfig::getMDisconnect()))
 		return Message::None;
 
 	SetModemPowerState(POWER_ON);
@@ -602,7 +629,7 @@ Message RecoveryControl::OnDisconnectModem(void *param)
 Message RecoveryControl::OnCheckModemRecoveryTimeout(void *param)
 {
 	SMParam *smParam = (SMParam *)param;
-	return t - smParam->recoveryStart > static_cast<time_t>(AppConfig::getMReconnect()) ? Message::M_Timeout : Message::M_NoTimeout;
+	return t_now - smParam->recoveryStart > static_cast<time_t>(AppConfig::getMReconnect()) ? Message::M_Timeout : Message::M_NoTimeout;
 }
 
 Message RecoveryControl::OnCheckMaxCyclesExceeded(void *param)

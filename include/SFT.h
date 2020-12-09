@@ -1,9 +1,15 @@
 #ifndef SFT_h
 #define SFT_h
 
-#include <SPI.h>
-#include <Ethernet.h>
 #include <Common.h>
+#include <SDUtil.h>
+#include <EthernetUtil.h>
+#include <SPI.h>
+#ifdef ESP32
+#include <WiFi.h>
+#else
+#include <Ethernet.h>
+#endif
 
 class SFT
 {
@@ -13,8 +19,10 @@ public:
 
 private:
     static EthernetServer server;
+#ifndef ESP32
     static SdVolume vol;
     static SdFile curDir;
+#endif
     static char curPath[MAX_PATH + 1];
 
 private:
@@ -26,8 +34,6 @@ private:
     static void MakeDirectory(EthernetClient &client);
     static void Delete(EthernetClient &client);
     static void RemoveDirectory(EthernetClient &client);
-    static void ReadAppConfig(EthernetClient &client);
-    static void WriteAppConfig(EthernetClient &client);
     static bool WaitForClient(EthernetClient &client);
 };
 
