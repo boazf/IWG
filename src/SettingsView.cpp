@@ -104,7 +104,6 @@ static void SetConfigValue(String &pair, bool &autoRecovery, bool &limitCycles)
         AppConfig::setRecoveryCycles(parseInt(val));
     else if (var.equals("MaxHistoryRecords"))
         AppConfig::setMaxHistory(parseInt(val));
-    AppConfig::commit();
 }
 
 bool SettingsView::post(EthernetClient &client, const String &resource, const String &id)
@@ -127,6 +126,7 @@ bool SettingsView::post(EthernetClient &client, const String &resource, const St
     }
 
     SetConfigValue(pair, autoRecovery, limitCycles);
+    AppConfig::commit();
 
     client.println("HTTP/1.1 302 Found");
     client.println("Location: /index");

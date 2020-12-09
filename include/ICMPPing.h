@@ -7,6 +7,7 @@
  * published by the Free Software Foundation.
  */
 
+#ifndef ESP32
 #include <SPI.h>
 #include <Ethernet.h>
 #include <w5100ex.h>
@@ -306,3 +307,4 @@ private:
 };
 
 #pragma pack(1)
+#endif // ESP32

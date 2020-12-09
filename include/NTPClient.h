@@ -1,3 +1,4 @@
+#ifndef ESP32
 #ifndef NTPClient_h
 #define NTPClient_h
 
@@ -18,3 +19,4 @@ private:
 };
 
 #endif // NTPClient_h
+#endif // ESP32

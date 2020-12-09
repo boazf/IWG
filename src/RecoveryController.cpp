@@ -1,6 +1,6 @@
 #include <RecoveryController.h>
 #include <RecoveryControl.h>
-#include <Ethernet.h>
+#include <EthernetUtil.h>
 
 bool RecoveryController::Get(EthernetClient &client, String &resource)
 {

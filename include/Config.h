@@ -8,7 +8,9 @@
 class Config
 {
 public:
+#ifndef ESP32
     static byte mac[6];
+#endif
     static byte ip[4];
     static byte gateway[4];
     static byte mask[4];
@@ -16,10 +18,14 @@ public:
     static const char *timeServer;
     static byte modemRelay;
     static byte routerRelay;
+#ifdef ESP32
+    static const char *ssid;
+    static const char *password;
+#endif
 
 
 public:
-    static void Init(SdVolume vol);
+    static void Init();
 
 private:
     static const char *configFileName;

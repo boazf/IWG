@@ -6,7 +6,7 @@
  * or the GNU Lesser General Public License version 2.1, both as
  * published by the Free Software Foundation.
  */
-
+#ifndef ESP32
 #include "ICMPPing.h"
 #include <util.h>
 
@@ -147,18 +147,6 @@ bool ICMPPing::openSocket()
     Serial.println(_socket);
 #endif
 
-    // Serial.print("ICMPPing::openSocket, _socket=");
-    // Serial.println(_socket);
-    // if (_socket < MAX_SOCK_NUM)
-    // {
-	//  W5100Ex.execCmdSn(_socket, Sock_CLOSE);
-    // }
-    // else
-    // {
-    //     _socket = Ethernet.socketBegin(SnMR::IPRAW, 0);
-    //     if (_socket == MAX_SOCK_NUM)
-    //         return;
-    // }
     W5100Ex.writeSnIR(_socket, 0xFF);
     W5100Ex.writeSnMR(_socket, SnMR::IPRAW);
     W5100Ex.writeSnPROTO(_socket, IPPROTO::ICMP);
@@ -416,6 +404,4 @@ bool ICMPPing::asyncComplete(ICMPEchoReply& result)
 }
 
 #endif	/* ICMPPING_ASYNCH_ENABLE */
-
-
-
+#endif // ESP32

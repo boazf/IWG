@@ -278,7 +278,7 @@ bool HistoryControl::CreateHistoryItem(RecoverySource recoverySource)
     if (currStorageItem != NULL)
         return false;
 
-    currStorageItem = new HistoryStorageItem(recoverySource, t, UINT32_MAX, 0, 0, OnGoingRecovery);
+    currStorageItem = new HistoryStorageItem(recoverySource, t_now, INT32_MAX, 0, 0, OnGoingRecovery);
     return true;
 }
 
@@ -290,7 +290,7 @@ void HistoryControl::AddToHistoryStorage(RecoveryStatus status, bool withEndTime
     currStorageItem->recoveryStatus() = status;
     if (withEndTime)
     {
-        currStorageItem->endTime() = t;
+        currStorageItem->endTime() = t_now;
     }
     storage.addHistory(*currStorageItem);
     delete currStorageItem;
@@ -312,10 +312,10 @@ const HistoryStorageItem HistoryControl::GetHistoryItem(int index)
     if (currStorageItem == NULL)
         return storage.getItem(index);
 
-    if (index == maxHistory - 1)
+    if (index == Available() - 1)
         return *currStorageItem;
 
-    return storage.getItem(index + 1);
+    return storage.getItem(index + 1 - (storage.available() < maxHistory));
 }
 
 HistoryControl historyControl;

@@ -2,7 +2,11 @@
 #define HTTPServer_h
 
 #include <SPI.h>
+#ifdef ESP32
+#include <WiFi.h>
+#else
 #include <Ethernet.h>
+#endif
 #include <View.h>
 #include <Controller.h>
 

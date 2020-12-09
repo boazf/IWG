@@ -27,12 +27,12 @@ class HistoryStorageItem
 public:
     HistoryStorageItem()
     {
-        data.endTime = UINT32_MAX;
+        data.endTime = INT32_MAX;
         data.modemRecoveries = 0;
         data.recoverySource = AutoRecovery;
         data.recoveryStatus = RecoverySuccess;
         data.routerRecoveries = 0;
-        data.startTime = UINT32_MAX;
+        data.startTime = INT32_MAX;
     }
 
     HistoryStorageItem(

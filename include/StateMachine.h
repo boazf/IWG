@@ -1,6 +1,7 @@
 #ifndef StateMachine_h
 #define StateMachine_h
 
+#include <Arduino.h>
 #include <assert.h>
 
 template<typename Verb, typename StateName>

@@ -1,6 +1,7 @@
 #ifndef AppConfig_h
 #define AppConfig_h
 
+#include <Arduino.h>
 #include <WString.h>
 #include <IPAddress.h>
 #include <EEPROM.h>

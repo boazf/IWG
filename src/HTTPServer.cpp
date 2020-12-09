@@ -411,8 +411,12 @@ void HTTPServer::CheckForNewClients()
     while (client)
     {
 #ifdef DEBUG_HTTP_SERVER
+#ifndef ESP32
         Serial.print("New client, socket=");
         Serial.println(client.getSocketNumber());
+#else 
+        Serial.println("New client");
+#endif
 #endif
         PClientContext context = new ClientContext(client);
         clients.Insert(context);
@@ -457,16 +461,24 @@ void HTTPServer::ServeClient()
         EthernetClient client = context->client;
         if (!client.connected())
         {
+#ifndef ESP32
             if (client.status() != 0)
             {
+#endif
 #ifdef DEBUG_HTTP_SERVER
+#ifndef ESP32
                 Serial.print("Client disconnected, socket=");
                 Serial.println(client.getSocketNumber());
+#else
+                Serial.println("Client disconnected");
 #endif
-                sseController.DeleteClient(client.getSocketNumber());
+#endif
+                sseController.DeleteClient(client.remoteIP(), client.remotePort());
+#ifndef ESP32
                 if (client.status() != 0)
                     client.stop();
             }
+#endif
             delete listNode->value;
             listNode->value = NULL;
             listNode = clients.Delete(listNode);
