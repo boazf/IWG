@@ -1,22 +1,11 @@
 #include <Arduino.h>
-<<<<<<< HEAD
-=======
-#ifdef ESP32
-#include <WiFi.h>
-#else
-#include <Ethernet.h>
-#endif
->>>>>>> a63da845e88aa0691195000445395faa6ecabe5e
 #include <Common.h>
 #include <EthernetUtil.h>
 #include <Config.h>
 #include <TimeUtil.h>
-<<<<<<< HEAD
 #ifdef ESP32
 #include <ping.h>
 #endif
-=======
->>>>>>> a63da845e88aa0691195000445395faa6ecabe5e
 
 bool IsZeroIPAddress(const IPAddress &ip)
 {
