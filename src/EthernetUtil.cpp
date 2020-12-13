@@ -1,11 +1,22 @@
 #include <Arduino.h>
+<<<<<<< HEAD
+=======
+#ifdef ESP32
+#include <WiFi.h>
+#else
+#include <Ethernet.h>
+#endif
+>>>>>>> a63da845e88aa0691195000445395faa6ecabe5e
 #include <Common.h>
 #include <EthernetUtil.h>
 #include <Config.h>
 #include <TimeUtil.h>
+<<<<<<< HEAD
 #ifdef ESP32
 #include <ping.h>
 #endif
+=======
+>>>>>>> a63da845e88aa0691195000445395faa6ecabe5e
 
 bool IsZeroIPAddress(const IPAddress &ip)
 {
@@ -102,6 +113,7 @@ void MaintainEthernet()
   }
 #endif // DEBUG_ETHERNET
 #else
+<<<<<<< HEAD
   static bool connected = true;
   wl_status_t status = (wl_status_t)WiFi.status();
   if (status != WL_CONNECTED)
@@ -172,6 +184,25 @@ void MaintainEthernet()
     Serial.println("Reconnecting");
 #endif
     WiFi.reconnect();
+=======
+  if (WiFi.waitForConnectResult() != WL_CONNECTED)
+  {
+#ifdef DEBUG_ETHERNET
+    Serial.print("Network disconnected, trying to reconnect ");
+#endif
+    time_t t0 = t_now;
+    while(true)
+    {
+      WiFi.reconnect();
+      if (WiFi.waitForConnectResult() == WL_CONNECTED)
+        break;
+      if (t_now - t0 >=120)
+        break;
+      Serial.print('.');
+      delay(500);
+    }
+    Serial.println(WiFi.waitForConnectResult() == WL_CONNECTED ? " Connected" : " Failed");
+>>>>>>> a63da845e88aa0691195000445395faa6ecabe5e
   }
 #endif // ESP32
 }

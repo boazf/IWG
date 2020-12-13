@@ -411,8 +411,8 @@ void HTTPServer::CheckForNewClients()
     while (client)
     {
 #ifdef DEBUG_HTTP_SERVER
-        Serial.print("New client, socket=");
 #ifndef ESP32
+        Serial.print("New client, socket=");
         Serial.print(client.getSocketNumber());
         Serial.print(", IP=");
         PrintIP(client.remoteIP());
