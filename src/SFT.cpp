@@ -867,12 +867,9 @@ void SFT::DoService()
     Serial.println(client.getSocketNumber());
 #endif
 #endif
-<<<<<<< HEAD
 #ifdef ESP32
     AutoSD autoSD;
 #endif
-=======
->>>>>>> a63da845e88aa0691195000445395faa6ecabe5e
     while (client.connected())
     {
         if (!client.available())
