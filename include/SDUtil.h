@@ -4,6 +4,18 @@
 #include <Arduino.h>
 #include <SD.h>
 
+#ifdef ESP32
+class AutoSD
+{
+public:
+  AutoSD();
+  ~AutoSD();
+
+private:
+  static int count;
+};
+#endif
+
 void InitSD();
 
 #ifdef ESP32

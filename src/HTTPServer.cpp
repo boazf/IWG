@@ -10,28 +10,14 @@
 #include <SSEController.h>
 #include <MemUtil.h>
 
-typedef struct ClientContext_
-{
-    ClientContext_(EthernetClient client)
-    {
-        this->client = client;
-    }
-    EthernetClient client;
-    String reqLine;
-    String request;
-    String lastModified;
-} ClientContext, *PClientContext;
-
-static String RequestResource(String &request)
+String HTTPServer::RequestResource(String &request)
 {
     int firstSpace = request.indexOf(' ');
     int secondSpace = request.indexOf(' ', firstSpace + 1);
     return request.substring(firstSpace + 1, secondSpace);
 }
 
-static void NotModified(EthernetClient &client);
-
-static LinkedList<View *> views;
+LinkedList<View *> HTTPServer::views;
 
 void HTTPServer::AddView(View *view)
 {
@@ -45,14 +31,7 @@ void HTTPServer::AddController(Controller *controller)
     controllers.Insert(controller);
 }
 
-enum HTTP_REQ_TYPE
-{
-    HTTP_UNKNOWN,
-    HTTP_GET,
-    HTTP_POST
-};
-
-static bool DoController(EthernetClient &client, String &resource, HTTP_REQ_TYPE requestType)
+bool HTTPServer::DoController(EthernetClient &client, String &resource, HTTP_REQ_TYPE requestType)
 {
     int slashIndex = resource.indexOf('/');
     String id;
@@ -107,7 +86,7 @@ static bool DoController(EthernetClient &client, String &resource, HTTP_REQ_TYPE
     return false;
 }
 
-static bool GetView(const String resource, View *&view, String &id)
+bool HTTPServer::GetView(const String resource, View *&view, String &id)
 {
     view = NULL;
 
@@ -141,7 +120,7 @@ static bool GetView(const String resource, View *&view, String &id)
     return true;
 }
 
-static bool HandlePostRequest(PClientContext context, const String &resource)
+bool HTTPServer::HandlePostRequest(PClientContext context, const String &resource)
 {
     View *view = NULL;
     String id;
@@ -151,15 +130,16 @@ static bool HandlePostRequest(PClientContext context, const String &resource)
     if (view == NULL)
         return false;
 
-    EthernetClient client = context->client;
-
-    return view->post(client, resource, id);
+    return view->post(context->client, resource, id);
 }
 
-static bool HandleGetRequest(PClientContext context, String &resource)
+bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
 {
     TRACK_FREE_MEMORY(__func__);
-    EthernetClient client = context->client;
+#ifdef ESP32
+    AutoSD autoSD;
+#endif
+    EthernetClient *client = &context->client;
     AutoPtr<View> tempView;
     View *view = NULL;
     String id;
@@ -182,7 +162,7 @@ static bool HandleGetRequest(PClientContext context, String &resource)
     Serial.println(view->viewFilePath);
 #endif
 
-    if (view->redirect(client, id))
+    if (view->redirect(*client, id))
         return true;
 
     byte buff[256];
@@ -204,7 +184,7 @@ static bool HandleGetRequest(PClientContext context, String &resource)
             Serial.print(" File was not modified. ");
             Serial.println(context->lastModified);
 #endif
-            NotModified(context->client);
+            NotModified(*client);
             view->close();
             return true;
         }
@@ -255,28 +235,28 @@ static bool HandleGetRequest(PClientContext context, String &resource)
 
     long size = view->getViewSize();
 
-    client.println("HTTP/1.1 200 OK");
-    client.print("Content-Length: ");
-    client.println(size);
-    client.println(contentTypeHeader);
-    client.println("Connection: close"); 
-    client.println("Server: Arduino");
+    client->println("HTTP/1.1 200 OK");
+    client->print("Content-Length: ");
+    client->println(size);
+    client->println(contentTypeHeader);
+    client->println("Connection: close"); 
+    client->println("Server: Arduino");
     if (type != CONTENT_TYPE::HTML)
     {
         String lastModifiedTime;
         if (view->getLastModifiedTime(lastModifiedTime))
         {
-            client.print("Last-Modified: ");
-            client.println(lastModifiedTime);
+            client->print("Last-Modified: ");
+            client->println(lastModifiedTime);
         }
     }
-    client.println();
+    client->println();
 
     long bytesSent = 0;
     while (bytesSent < size)
     {
         int nBytes = view->read();
-        client.write(buff, nBytes);
+        client->write(buff, nBytes);
         bytesSent += nBytes;
     }
 
@@ -293,7 +273,7 @@ static bool HandleGetRequest(PClientContext context, String &resource)
     return true;
 }
 
-static void NotModified(EthernetClient &client)
+void HTTPServer::NotModified(EthernetClient &client)
 {
     client.println("HTTP/1.1 304 Not Modified");
     client.println("Content-Length: 0");
@@ -302,7 +282,7 @@ static void NotModified(EthernetClient &client)
     client.println();
 }
 
-static void PageNotFound(EthernetClient &client)
+void HTTPServer::PageNotFound(EthernetClient &client)
 {
     // const char *lines[] =
     // {
@@ -332,7 +312,7 @@ static void PageNotFound(EthernetClient &client)
     //     client.println(lines[i]);
 }
 
-static HTTP_REQ_TYPE RequestType(String &request)
+HTTP_REQ_TYPE HTTPServer::RequestType(String &request)
 {
     if (strncmp(request.c_str(), "GET ", 4) == 0)
         return HTTP_REQ_TYPE::HTTP_GET;
@@ -342,7 +322,7 @@ static HTTP_REQ_TYPE RequestType(String &request)
     return HTTP_REQ_TYPE::HTTP_UNKNOWN;
 }
 
-static bool ProcessLine(PClientContext context)
+bool HTTPServer::ProcessLine(PClientContext context)
 {
     if (!context->reqLine.equals(""))
     {
@@ -358,7 +338,7 @@ static bool ProcessLine(PClientContext context)
 }
 
 
-void ServiceRequest(PClientContext context)
+void HTTPServer::ServiceRequest(PClientContext context)
 {
 #ifdef DEBUG_HTTP_SERVER
     Serial.println(context->request);
@@ -393,7 +373,12 @@ void ServiceRequest(PClientContext context)
     }
 }
 
+#ifndef ESP32
 EthernetServer HTTPServer::server(80);
+#else
+#define MAX_CLIENTS 12
+WiFiServer HTTPServer::server(80, MAX_CLIENTS);
+#endif
 
 void HTTPServer::Init()
 {
@@ -403,7 +388,22 @@ void HTTPServer::Init()
 #endif
 }
 
-LinkedList<PClientContext> clients;
+LinkedList<PClientContext> HTTPServer::clients;
+
+#ifdef DEBUG_HTTP_SERVER
+#ifndef ESP32
+static void PrintIP(const IPAddress &address)
+{
+    Serial.print(address[0]);
+    Serial.print(",");
+    Serial.print(address[1]);
+    Serial.print(",");
+    Serial.print(address[2]);
+    Serial.print(",");
+    Serial.print(address[3]);
+}
+#endif
+#endif
 
 void HTTPServer::CheckForNewClients()
 {
@@ -411,11 +411,15 @@ void HTTPServer::CheckForNewClients()
     while (client)
     {
 #ifdef DEBUG_HTTP_SERVER
-#ifndef ESP32
         Serial.print("New client, socket=");
-        Serial.println(client.getSocketNumber());
+#ifndef ESP32
+        Serial.print(client.getSocketNumber());
+        Serial.print(", IP=");
+        PrintIP(client.remoteIP());
+        Serial.print(", port=");
+        Serial.println(client.remotePort());
 #else 
-        Serial.println("New client");
+        Serial.printf("New client: IP=%s, port=%d\n", client.remoteIP().toString().c_str(), client.remotePort());
 #endif
 #endif
         PClientContext context = new ClientContext(client);
@@ -458,38 +462,60 @@ void HTTPServer::ServeClient()
     while(listNode != NULL)
     {
         PClientContext context = listNode->value;
-        EthernetClient client = context->client;
-        if (!client.connected())
+        EthernetClient *client = &context->client;
+        word remotePort;
+    #ifdef ESP32
+        try
+        {
+            remotePort = client->remotePort();
+        }
+        catch(...)
+        {
+            remotePort = 0;
+        }
+    #else
+        remotePort = client->remotePort();
+    #endif
+
+        bool brokenClient = listNode->value->remotePort != remotePort;
+#ifdef DEBUG_HTTP_SERVER
+        if (brokenClient)
+        {
+            Serial.print("Broken client: port=");
+            Serial.print(listNode->value->remotePort);
+            Serial.print(", ");
+            Serial.println(remotePort);
+        }
+#endif
+        if (brokenClient || !client->connected())
         {
 #ifndef ESP32
-            if (client.status() != 0)
-            {
 #endif
 #ifdef DEBUG_HTTP_SERVER
 #ifndef ESP32
-                Serial.print("Client disconnected, socket=");
-                Serial.println(client.getSocketNumber());
+            Serial.print("Client disconnected, port=");
+            Serial.println(listNode->value->remotePort);
 #else
-                Serial.println("Client disconnected");
+            if (!brokenClient)
+                Serial.printf("Client disconnected, IP=%s, port=%d\n", client->remoteIP().toString().c_str(), client->remotePort());
 #endif
 #endif
-                sseController.DeleteClient(client.remoteIP(), client.remotePort());
-#ifndef ESP32
-                if (client.status() != 0)
-                    client.stop();
+            if (!sseController.DeleteClient(*client, !brokenClient) && !brokenClient)
+            {
+                client->stop();
             }
-#endif
+
             delete listNode->value;
             listNode->value = NULL;
             listNode = clients.Delete(listNode);
             continue;
         }
-        if (!client.available()) 
+        if (!client->available()) 
         {
             listNode = listNode->next;
             continue;
         }
-        char c = client.read();
+        char c = client->read();
         if (c == '\r');
         else if (c == '\n')
         {

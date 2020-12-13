@@ -1,13 +1,11 @@
 #include <Arduino.h>
-#ifdef ESP32
-#include <WiFi.h>
-#else
-#include <Ethernet.h>
-#endif
 #include <Common.h>
 #include <EthernetUtil.h>
 #include <Config.h>
 #include <TimeUtil.h>
+#ifdef ESP32
+#include <ping.h>
+#endif
 
 bool IsZeroIPAddress(const IPAddress &ip)
 {
@@ -104,25 +102,76 @@ void MaintainEthernet()
   }
 #endif // DEBUG_ETHERNET
 #else
-  if (WiFi.waitForConnectResult() != WL_CONNECTED)
+  static bool connected = true;
+  wl_status_t status = (wl_status_t)WiFi.status();
+  if (status != WL_CONNECTED)
   {
+    connected = false;
 #ifdef DEBUG_ETHERNET
-    Serial.print("Network disconnected, trying to reconnect ");
+    Serial.println("Network disconnected, trying to reconnect ");
 #endif
     time_t t0 = t_now;
-    while(true)
+    time_t tReconnect = t0;
+    bool stop = false;
+    while(!stop)
     {
-      WiFi.reconnect();
-      if (WiFi.waitForConnectResult() == WL_CONNECTED)
-        break;
-      if (t_now - t0 >=120)
-        break;
-      Serial.print('.');
       delay(500);
+      status = (wl_status_t)WiFi.status();
+      switch (status)
+      {
+        case WL_CONNECTED:
+#ifdef DEBUG_ETHERNET
+          Serial.println();
+#endif
+          stop = true;
+          break;
+        default:
+          if (t_now - tReconnect > 60)
+          {
+#ifdef DEBUG_ETHERNET
+            Serial.println(" Reconnecting");
+#endif
+            WiFi.reconnect();
+            tReconnect = t_now;
+          }
+          break;
+      }
+      if (t_now - t0 >=120)
+      {
+#ifdef DEBUG_ETHERNET
+      Serial.print(" Failed!");
+#endif
+        break;
+      }
     }
-    Serial.println(WiFi.waitForConnectResult() == WL_CONNECTED ? " Connected" : " Failed");
+    if (status == WL_CONNECTED)
+    {
+      delay(2000);
+      if (!ping_start(Config::gateway, 4, 0, 0, 1000))
+      {
+#ifdef DEBUG_ETHERNET
+        Serial.println("Failed to ping gateway after network reconnect!");
+#endif
+        status = WL_DISCONNECTED;
+      }
+    }
+  }
+  if (status == WL_CONNECTED)
+  {
+    if(!connected)
+    {
+#ifdef DEBUG_ETHERNET
+      Serial.println("Connected!");
+#endif
+      connected = true;
+    }
+  }
+  else
+  {
+#ifdef DEBUG_ETHERNET
+    Serial.println("Reconnecting");
+#endif
+    WiFi.reconnect();
   }
 #endif // ESP32
 }
-
-

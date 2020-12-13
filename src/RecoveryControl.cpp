@@ -283,6 +283,8 @@ public:
 	CheckConnectivityStateParam() :
 #ifndef ESP32
 		ping(MAX_SOCK_NUM, 1),
+#else
+		attempts(0),
 #endif
 		status(Message::M_Disconnected),
 		stage(CheckLAN)
@@ -295,6 +297,7 @@ public:
 	ICMPEchoReply pingResult;
 #else
 	IPAddress address;
+	int attempts;
 #endif
 	Message status;
 	CheckConnectivityStages stage;
@@ -327,6 +330,8 @@ static bool TryGetHostAddress(IPAddress &address, String server)
 
 	return true;
 }
+
+#define MAX_PING_ATTEMPTS 5
 
 void RecoveryControl::OnEnterCheckConnectivity(void *param)
 {
@@ -379,9 +384,10 @@ void RecoveryControl::OnEnterCheckConnectivity(void *param)
 		Serial.println(address[3]);
 #endif
 #ifndef ESP32
-		stateParam->ping.asyncStart(address, 3, stateParam->pingResult);
+		stateParam->ping.asyncStart(address, MAX_PING_ATTEMPTS, stateParam->pingResult);
 #else
 		stateParam->address = address;
+		stateParam->attempts = 0;
 #endif
 	}
 }
@@ -400,8 +406,19 @@ Message RecoveryControl::OnCheckConnectivity(void *param)
 
 		status = stateParam->pingResult.status == SUCCESS ? Message::M_Connected : Message::M_Disconnected;
 #else
-		for (int attempts = 0; attempts < 3 && status == Message::M_Disconnected; attempts++);
-			status = ping_start(stateParam->address, 1, 0, 0, 1000) ? Message::M_Connected : Message::M_Disconnected;
+		if (stateParam->attempts < MAX_PING_ATTEMPTS)
+		{
+			if (ping_start(stateParam->address, 1, 0, 0, 1000))
+				status = Message::M_Connected;
+			else
+			{
+				stateParam->attempts++;
+#ifdef DEBUG_RECOVERY_CONTROL
+				Serial.printf("Ping attempt no. %d failed, address %s\n", stateParam->attempts, stateParam->address.toString().c_str());
+#endif
+				return Message::None;
+			}
+		}
 #endif
 #ifdef DEBUG_RECOVERY_CONTROL
 		Serial.print("Ping result: ");

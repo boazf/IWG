@@ -8,11 +8,9 @@
 struct ClientInfo
 {
 public:
-    ClientInfo(const String &_id, EthernetClient &_client, IPAddress _remoteIP, word _remotePort, time_t _timeToDie) :
+    ClientInfo(const String &_id, EthernetClient &_client, time_t _timeToDie) :
         id(_id),
         client(&_client),
-        remoteIP(_remoteIP),
-        remotePort(_remotePort),
         timeToDie(_timeToDie),
         waitingResponce(false)
     {
@@ -21,7 +19,6 @@ public:
     ClientInfo(const String &_id) :
         id(_id),
         client(NULL),
-        remotePort(0),
         timeToDie(INT32_MAX),
         waitingResponce(false)
     {
@@ -29,8 +26,6 @@ public:
 
     const String id;
     EthernetClient *client;
-    IPAddress remoteIP;
-    word remotePort;
     time_t timeToDie;
     bool waitingResponce;
 };
@@ -46,7 +41,7 @@ public:
     bool Post(EthernetClient &client, String &resource);
     void Init();
     void Maintain();
-    void DeleteClient(const IPAddress &remoteIP, word remotePort);
+    bool DeleteClient(EthernetClient &client, bool stopClient);
     bool IsValidId(const String &id);
     void AddClient(const String &id);
 
@@ -57,7 +52,7 @@ private:
     static void RouterPowerStateChanged(const PowerStateChangedParams &params, const void *context);
     void NotifyState();
     void UpdateStateLastRecoveryTime();
-    void DeleteClient(ListNode<ClientInfo*> *&clientInfo);
+    void DeleteClient(ListNode<ClientInfo*> *&clientInfo, bool stopClient);
 
 private:
     static int id;

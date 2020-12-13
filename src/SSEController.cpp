@@ -24,13 +24,17 @@ bool SSEController::Get(EthernetClient &client, String &id)
     {
         if (clientInfo->value->id.equals(id))
         {
-            DeleteClient(clientInfo);
+            DeleteClient(clientInfo, true);
             break;
         }
         clientInfo = clientInfo->next;
     }
-
-    clients.Insert(new ClientInfo(id, client, client.remoteIP(), client.remotePort(), t_now + SESSION_LENGTH));
+#ifdef ESP32
+#ifdef DEBUG_HTTP_SERVER
+    Serial.printf("Adding SSE client: id=%s, IP=%s, port=%d, object=%lx\n", id.c_str(), client.remoteIP().toString().c_str(), client.remotePort(), (ulong)&client);
+#endif
+#endif
+    clients.Insert(new ClientInfo(id, client, t_now + SESSION_LENGTH));
     client.println("HTTP/1.1 200 OK");
     client.println("Content-Type: text/event-stream");
     client.println("Connection: keep-alive");  // the connection will be closed after completion of the response
@@ -207,13 +211,12 @@ void SSEController::Maintain()
             {
                 clientInfo->value->client->stop();
                 clientInfo->value->client = NULL;
-                clientInfo->value->remotePort = 0;
                 clientInfo->value->timeToDie = t_now + 5;
                 clientInfo->value->waitingResponce = true;
             }
             else
             {
-                DeleteClient(clientInfo);
+                DeleteClient(clientInfo, true);
                 continue;
             }
         }
@@ -221,19 +224,21 @@ void SSEController::Maintain()
     }
 }
 
-void SSEController::DeleteClient(const IPAddress &remoteIP, word remotePort)
+bool SSEController::DeleteClient(EthernetClient &client, bool stopClient)
 {
     for (ListNode<ClientInfo *> *clientInfo = clients.head; clientInfo != NULL; clientInfo = clientInfo->next)
     {
-        if (clientInfo->value->remoteIP == remoteIP && clientInfo->value->remotePort == remotePort)
+        if (clientInfo->value->client == &client)
         {
-            DeleteClient(clientInfo);
-            break;
+            DeleteClient(clientInfo, stopClient);
+            return true;
         }
     }
+
+    return false;
 }
 
-void SSEController::DeleteClient(ListNode<ClientInfo *> *&clientInfo)
+void SSEController::DeleteClient(ListNode<ClientInfo *> *&clientInfo, bool stopClient)
 {
 #ifdef DEBUG_HTTP_SERVER
     if (clientInfo->value->client != NULL)
@@ -248,8 +253,10 @@ void SSEController::DeleteClient(ListNode<ClientInfo *> *&clientInfo)
 #endif
     }
 #endif
-    if (clientInfo->value->client != NULL)
+    if (clientInfo->value->client != NULL && stopClient)
+    {
         clientInfo->value->client->stop();
+    }
     clientInfo->value->client = NULL;
     delete clientInfo->value;
     clientInfo->value = NULL;

@@ -10,12 +10,25 @@ Sd2Card card;
 SdVolume vol;
 #endif
 
+#ifdef ESP32
+int AutoSD::count = 0;;
+
+AutoSD::AutoSD()
+{
+  if (count++ == 0)
+    SD.begin();
+}
+
+AutoSD::~AutoSD()
+{
+  if (--count == 0)
+    SD.end();
+}
+#endif
+
 void InitSD()
 {
-#ifdef ESP32
-  assert(SD.begin());
-  Serial.println("SD Initialized");
-#else
+#ifndef ESP32
   // change this to match your SD shield or module;
   // Arduino Ethernet shield: pin 4
   // Adafruit SD shields and modules: pin 10

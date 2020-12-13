@@ -74,6 +74,9 @@ bool Config::ParseByte(const String &configValue, void *parsedByte)
 
 void Config::Init()
 {
+#ifdef ESP32
+  AutoSD autoSD;
+#endif  
   struct ConfigLineParser
   {
     String configVarName;
