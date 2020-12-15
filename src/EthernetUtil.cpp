@@ -48,7 +48,7 @@ void InitEthernet()
 #endif      
   }
 #ifdef DEBUG_ETHERNET
-    Serial.println(" conneted!");
+    Serial.println(" Connected!");
 #endif      
 #else
   else
@@ -117,6 +117,9 @@ void MaintainEthernet()
     {
       delay(500);
       status = (wl_status_t)WiFi.status();
+#ifdef DEBUG_ETHERNET
+      Serial.print(status);
+#endif
       switch (status)
       {
         case WL_CONNECTED:
@@ -172,6 +175,7 @@ void MaintainEthernet()
     Serial.println("Reconnecting");
 #endif
     WiFi.reconnect();
+    delay(2000);
   }
 #endif // ESP32
 }
