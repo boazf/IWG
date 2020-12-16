@@ -10,24 +10,18 @@ struct ClientInfo
 public:
     ClientInfo(const String &_id, EthernetClient &_client, time_t _timeToDie) :
         id(_id),
-        client(&_client),
-        timeToDie(_timeToDie),
-        waitingResponce(false)
+        client(&_client)
     {
     }
 
     ClientInfo(const String &_id) :
         id(_id),
-        client(NULL),
-        timeToDie(INT32_MAX),
-        waitingResponce(false)
+        client(NULL)
     {
     }
 
     const String id;
     EthernetClient *client;
-    time_t timeToDie;
-    bool waitingResponce;
 };
 
 class SSEController : public Controller
@@ -40,7 +34,6 @@ public:
     bool Get(EthernetClient &client, String &resource);
     bool Post(EthernetClient &client, String &resource);
     void Init();
-    void Maintain();
     bool DeleteClient(EthernetClient &client, bool stopClient);
     bool IsValidId(const String &id);
     void AddClient(const String &id);
@@ -50,7 +43,7 @@ private:
     static void AutoRecoveryStateChanged(const AutoRecoveryStateChangedParams &params, const void *context);
     static void ModemPowerStateChanged(const PowerStateChangedParams &params, const void *context);
     static void RouterPowerStateChanged(const PowerStateChangedParams &params, const void *context);
-    void NotifyState();
+    void NotifyState(const String &id);
     void UpdateStateLastRecoveryTime();
     void DeleteClient(ListNode<ClientInfo*> *&clientInfo, bool stopClient);
 

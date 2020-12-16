@@ -44,45 +44,17 @@ bool SSEController::Get(EthernetClient &client, String &id)
     client.println();
     client.flush();
 
-    NotifyState();
+    NotifyState(id);
 
     return true;
 }
 
-bool SSEController::Post(EthernetClient &client, String &id)
+bool SSEController::Post(EthernetClient &client, String &resource)
 {
-#ifdef DEBUG_HTTP_SERVER
-    Serial.print("SSEController Post, Client id=");
-    Serial.print(id);
-#ifndef ESP32
-    Serial.print(", socket=");
-    Serial.println(client.getSocketNumber());
-#else
-    Serial.println();
-#endif
-#endif
-    client.println("HTTP/1.1 200 OK");
-    client.println("Connection: close");  // the connection will be closed after completion of the response
-    client.println("Access-Control-Allow-Origin: *");  // allow any connection. We don't want Arduino to host all of the website ;-)
-    client.println("Cache-Control: no-cache");  // refresh the page automatically every 5 sec
-    client.println("Content-Length: 0");
-    client.println();
-    client.flush();
-
-    for (ListNode<ClientInfo *> *clientInfo = clients.head; clientInfo != NULL; clientInfo = clientInfo->next)
-    {
-        if (clientInfo->value->id == id)
-        {
-            clientInfo->value->timeToDie = t_now + SESSION_LENGTH;
-            clientInfo->value->waitingResponce = false;
-            break;
-        }
-    }
-
-    return true;
+    return false;
 }
 
-void SSEController::NotifyState()
+void SSEController::NotifyState(const String &id)
 {
     TRACK_FREE_MEMORY(__func__);
 
@@ -114,6 +86,8 @@ void SSEController::NotifyState()
 
     for (ListNode<ClientInfo *> *clientInfo = clients.head; clientInfo != NULL; clientInfo = clientInfo->next)
     {
+        if (!id.equals("") && !id.equals(clientInfo->value->id))
+            continue;
         EthernetClient *client = clientInfo->value->client;
         if (client == NULL)
             continue;
@@ -130,8 +104,8 @@ void SSEController::NotifyState()
         client->print(event);
         client->println();
         client->flush();
-        clientInfo->value->timeToDie = t_now + 5;
-        clientInfo->value->waitingResponce = true;
+        if (!id.equals(""))
+            break;
     }
 }
 
@@ -167,7 +141,7 @@ void SSEController::RecoveryStateChanged(const RecoveryStateChangedParams &param
     SSEController *controller = (SSEController *)context;
     controller->state.recoveryType = params.m_recoveryType;
     controller->UpdateStateLastRecoveryTime();
-    controller->NotifyState();
+    controller->NotifyState("");
 }
 
 void SSEController::AutoRecoveryStateChanged(const AutoRecoveryStateChangedParams &params, const void *context)
@@ -178,50 +152,21 @@ void SSEController::AutoRecoveryStateChanged(const AutoRecoveryStateChangedParam
 #endif
     SSEController *controller = (SSEController *)context;
     controller->state.autoRecovery = params.m_autoRecovery;
-    controller->NotifyState();
+    controller->NotifyState("");
 }
 
 void SSEController::ModemPowerStateChanged(const PowerStateChangedParams &params, const void *context)
 {
     SSEController *controller = (SSEController *)context;
     controller->state.modemState = params.m_state;
-    controller->NotifyState();
+    controller->NotifyState("");
 }
 
 void SSEController::RouterPowerStateChanged(const PowerStateChangedParams &params, const void *context)
 {
     SSEController *controller = (SSEController *)context;
     controller->state.routerState = params.m_state;
-    controller->NotifyState();
-}
-
-void SSEController::Maintain()
-{
-    ListNode<ClientInfo *> *clientInfo = clients.head;
-
-    while (clientInfo != NULL)
-    {
-        if (t_now >= clientInfo->value->timeToDie)
-        {
-#ifdef DEBUG_HTTP_SERVER
-            Serial.print("Time to die client id=");
-            Serial.println(clientInfo->value->id);
-#endif
-            if (!clientInfo->value->waitingResponce)
-            {
-                clientInfo->value->client->stop();
-                clientInfo->value->client = NULL;
-                clientInfo->value->timeToDie = t_now + 5;
-                clientInfo->value->waitingResponce = true;
-            }
-            else
-            {
-                DeleteClient(clientInfo, true);
-                continue;
-            }
-        }
-        clientInfo = clientInfo->next;
-    }
+    controller->NotifyState("");
 }
 
 bool SSEController::DeleteClient(EthernetClient &client, bool stopClient)
