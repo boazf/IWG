@@ -625,7 +625,6 @@ void RecoveryControl::OnEnterDisconnectModem(void *param)
 	Serial.println("Disconnecting Modem");
 #endif
 	smParam->m_recoveryControl->m_modemPowerStateChanged.callObservers(PowerStateChangedParams(POWER_OFF));
-	// TODO: Turn off modem
 }
 
 Message RecoveryControl::OnDisconnectModem(void *param)

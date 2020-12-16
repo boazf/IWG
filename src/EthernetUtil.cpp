@@ -103,79 +103,63 @@ void MaintainEthernet()
 #endif // DEBUG_ETHERNET
 #else
   static bool connected = true;
+  static time_t tReconnect;
+#ifdef DEBUG_ETHERNET
+  static time_t tLastUpdate;
+#endif
   wl_status_t status = (wl_status_t)WiFi.status();
   if (status != WL_CONNECTED)
   {
-    connected = false;
-#ifdef DEBUG_ETHERNET
-    Serial.println("Network disconnected, trying to reconnect ");
-#endif
-    time_t t0 = t_now;
-    time_t tReconnect = t0;
-    bool stop = false;
-    while(!stop)
+    if (connected)
     {
-      delay(500);
-      status = (wl_status_t)WiFi.status();
 #ifdef DEBUG_ETHERNET
-      Serial.print(status);
+      Serial.println("Network disconnected, trying to reconnect");
+      tLastUpdate = 0;
 #endif
-      switch (status)
-      {
-        case WL_CONNECTED:
-#ifdef DEBUG_ETHERNET
-          Serial.println();
-#endif
-          stop = true;
-          break;
-        default:
-          if (t_now - tReconnect > 60)
-          {
-#ifdef DEBUG_ETHERNET
-            Serial.println(" Reconnecting");
-#endif
-            WiFi.reconnect();
-            tReconnect = t_now;
-          }
-          break;
-      }
-      if (t_now - t0 >=120)
-      {
-#ifdef DEBUG_ETHERNET
-      Serial.print(" Failed!");
-#endif
-        break;
-      }
+      tReconnect = t_now;
+      connected = false;
     }
-    if (status == WL_CONNECTED)
-    {
-      delay(2000);
-      if (!ping_start(Config::gateway, 4, 0, 0, 1000))
-      {
 #ifdef DEBUG_ETHERNET
-        Serial.println("Failed to ping gateway after network reconnect!");
+    if (tLastUpdate != t_now)
+    {
+      tLastUpdate = t_now;
+      Serial.printf("WiFi status: %d\n", status);
+    }
 #endif
-        status = WL_DISCONNECTED;
-      }
+    if (t_now - tReconnect > 60)
+    {
+#ifdef DEBUG_ETHERNET
+      Serial.println("Reconnecting");
+#endif
+      WiFi.reconnect();
+      tReconnect = t_now;
+      delay(2000);
     }
   }
-  if (status == WL_CONNECTED)
+  else
   {
-    if(!connected)
+    if (connected)
+      return;
+#ifdef DEBUG_ETHERNET
+    Serial.printf("WiFi status: %d\n", status);
+#endif
+    delay(2000);
+    if (!ping_start(Config::gateway, 4, 0, 0, 1000))
+    {
+#ifdef DEBUG_ETHERNET
+      Serial.println("Failed to ping gateway after network reconnect!\nReconnecting");
+#endif
+      WiFi.reconnect();
+      tReconnect = t_now;
+      delay(2000);
+    }
+    else
     {
 #ifdef DEBUG_ETHERNET
       Serial.println("Connected!");
 #endif
       connected = true;
     }
-  }
-  else
-  {
-#ifdef DEBUG_ETHERNET
-    Serial.println("Reconnecting");
-#endif
-    WiFi.reconnect();
-    delay(2000);
   }
 #endif // ESP32
 }
