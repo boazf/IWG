@@ -574,9 +574,9 @@ void RecoveryControl::OnEnterDisconnectRouter(void *param)
 	smParam->lastRecoveryType = RecoveryTypes::Router;
 	smParam->lastRecovery = INT32_MAX;
 	smParam->m_recoveryControl->RaiseRecoveryStateChanged(RecoveryTypes::Router, smParam->m_byUser);
+	delay(500);
 	smParam->recoveryStart = t_now;
 	SetRouterPowerState(POWER_OFF);
-	smParam->m_recoveryControl->m_routerPowerStateChanged.callObservers(PowerStateChangedParams(POWER_OFF));
 #ifdef DEBUG_RECOVERY_CONTROL
 	Serial.println("Disconnecting Router");
 #endif
@@ -589,7 +589,6 @@ Message RecoveryControl::OnDisconnectRouter(void *param)
 		return Message::None;
 
 	SetRouterPowerState(POWER_ON);
-	smParam->m_recoveryControl->m_routerPowerStateChanged.callObservers(PowerStateChangedParams(POWER_ON));
 #ifdef DEBUG_RECOVERY_CONTROL
 	Serial.println("Reconnecting Router");
 #endif
