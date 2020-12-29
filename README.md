@@ -10,7 +10,7 @@ There are quite a few configurable parameters to this software, like name of ser
 <br/><br/>
 For turning the power off and on, it is necessary to have a two relay board wired to two GPIO pins. The pin numbers are also configurable.
 <br/><br/>
-There is also an implementation of a web (HTML) site that is used for controlling and configuring the software. The web site also has a page for reporting recoveries history.
+There is also an implementation of a web (HTML) site that is used for monitoring, controlling and configuring the software. The web site also has a page for reporting recoveries history.
 <br/><br/>
 The files in the SD directory should be (tree) copied to an SD card and be placed in the SD card reader.
 <br/><br/>
