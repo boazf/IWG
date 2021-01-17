@@ -24,7 +24,7 @@ void RecoveryControl::Init()
 {
 	Transition<Message, State> checkConnecticityTrans[] =
 	{
-		{Message::M_Disconnected, State::WaitWhileRecoveryFailure },
+		{ Message::M_Disconnected, State::WaitWhileRecoveryFailure },
 		{ Message::M_Done, State::CheckConnectivity },
 		{ Message::M_Connected, State::WaitWhileConnected },
 		{ Message::M_DisconnectRouter, State::DisconnectRouter },
