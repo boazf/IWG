@@ -30,6 +30,14 @@ void HistoryStorage::init(int _maxRecords)
 #endif
     maxRecords = _maxRecords;
     getAvailableRecords();
+#ifdef ESP32
+    if (availableRecords == -1)
+    {
+        // Reset history on first time the board is running
+        availableRecords = 0;
+        putAvailableRecords();
+    }
+#endif
     if (availableRecords < maxRecords)
     {
         startIndex = availableRecords;

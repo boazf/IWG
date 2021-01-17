@@ -394,8 +394,15 @@ void AppConfig::internalSetLANAddr(const IPAddress &value)
 
 bool AppConfig::isInitialized()
 {
+#ifndef ESP32
     bool value = false;
-    return getField<bool>(offsetof(AppConfigStore, initialized), value);
+    getField<bool>(offsetof(AppConfigStore, initialized), value);
+    return value;
+#else
+    byte value = 0;
+    getField<byte>(offsetof(AppConfigStore, initialized), value);
+    return value != 255;
+#endif
 }
 
 void AppConfig::setInitialized(bool isInitialized)
