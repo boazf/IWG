@@ -233,8 +233,29 @@
         }
     }
 
+    function BuildConnectionStatus(recoveryType, message) {
+        var statusGlyphicon;
+        switch(recoveryType) {
+            case recoveryTypes.NONE:
+                statusGlyphicon = 'glyphicon-ok';
+                break;
+            case recoveryTypes.ROUTER:
+            case recoveryTypes.MODEM:
+            case recoveryTypes.FAILED:
+            case recoveryTypes.HW_FAILURE:
+            case recoveryTypes.DISCONNECTED:
+                statusGlyphicon = 'glyphicon-remove';
+                break;
+            case recoveryTypes.TEST_CONNECTION:
+                statusGlyphicon = 'glyphicon-refresh';
+                break;
+        }
+
+        return "<span class='glyphicon " + statusGlyphicon + "'></span> " + message;
+    }
+
     function SetConnectionStatus(recoveryType) {
-        $("#connection")[0].innerHTML = ConnectionString(recoveryType);
+        $("#connection")[0].innerHTML = BuildConnectionStatus(recoveryType, ConnectionString(recoveryType));
         SetConnectionClass(recoveryType);
     }
 
@@ -255,8 +276,8 @@
         return num.toString().padStart(size, '0');
     }
 
-    function SetLastRecoveryText(d, h, m, s) {
-        $('#connection')[0].innerHTML = ConnectionString(recoveryTypes.NONE) + " Time since last recovery: " + d + "." + PadZeroes(h, 2) + ":" + PadZeroes(m, 2) + ":" + PadZeroes(s, 2);
+    function SetLastRecoveryStatus(d, h, m, s) {
+        $('#connection')[0].innerHTML = BuildConnectionStatus(recoveryTypes.NONE, ConnectionString(recoveryTypes.NONE) + " Time since last recovery: " + d + "." + PadZeroes(h, 2) + ":" + PadZeroes(m, 2) + ":" + PadZeroes(s, 2));
     }
 
     function SetLastRecoveryDisplay(d, h, m, s, show) {
@@ -267,7 +288,7 @@
         var minutes = m;
         var seconds = s;
         StopRecoveryTimer();
-        SetLastRecoveryText(days, hours, minutes, seconds);
+        SetLastRecoveryStatus(days, hours, minutes, seconds);
         recoveryTimer = setInterval(function () {
             if (++seconds == 60) {
                 seconds = 0;
@@ -279,7 +300,7 @@
                     }
                 }
             }
-            SetLastRecoveryText(days, hours, minutes, seconds);
+            SetLastRecoveryStatus(days, hours, minutes, seconds);
         }, 1000);
     }
 
