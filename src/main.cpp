@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <Trace.h>
 #include <Config.h>
 #include <TimeUtil.h>
 #include <SDUtil.h>
@@ -16,21 +17,13 @@
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
-  // Open serial communications and wait for port to open:
-#ifndef ESP32
-  Serial.begin(9600);
-#else
-  Serial.begin(115200);
-#endif
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
-  }
-
+  InitSerialTrace();
   InitSD();
   InitConfig();
   InitAppConfig();
   InitEthernet();
   InitTime();
+  InitFileTrace();
   InitSFT();
   InitRelays();
   InitControllers();

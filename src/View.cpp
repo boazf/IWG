@@ -21,7 +21,7 @@ int View::viewHandler(byte *buff, int buffSize)
             if (sscanf((const char *)buff + i + 1, "%d", &nFill) != 1)
             {
 #ifdef DEBUG_HTTP_SERVER
-                Serial.println("Bad filler index!");
+                Traceln("Bad filler index!");
 #endif
                 continue;
             }
@@ -30,7 +30,7 @@ int View::viewHandler(byte *buff, int buffSize)
             if (!DoFill(nFill, fill))
             {
 #ifdef DEBUG_HTTP_SERVER
-                Serial.println("Failed to fill view!");
+                Traceln("Failed to fill view!");
 #endif
                 continue;
             }
@@ -41,7 +41,7 @@ int View::viewHandler(byte *buff, int buffSize)
                 if (buff[i + j] != (char)' ')
                 {
 #ifdef DEBUG_HTTP_SERVER
-                    Serial.println("Not enough spaces for filled value!");
+                    Traceln("Not enough spaces for filled value!");
 #endif
                     break;
                 }
@@ -60,7 +60,7 @@ bool View::openWWWROOT(SdFile &dir)
     if (root.openRoot(vol) == 0)
     {
 #ifdef DEBUG_HTTP_SERVER
-        Serial.println("Faield to open root directory");
+        Traceln("Faield to open root directory");
 #endif
         return false;
     }
@@ -68,7 +68,7 @@ bool View::openWWWROOT(SdFile &dir)
     if (dir.open(root, "wwwroot", O_READ) == 0)
     {
 #ifdef DEBUG_HTTP_SERVER
-        Serial.println("Failed to open wwwroot directory");
+        Traceln("Failed to open wwwroot directory");
 #endif
         root.close();
         return false;
@@ -101,8 +101,8 @@ bool View::open(byte *_buff, int _buffSize)
         if (subDir.open(dir, dirName.c_str(), O_READ) == 0)
         {
 #ifdef DEBUG_HTTP_SERVER
-            Serial.print("Faield to open directory ");
-            Serial.println(dirName.c_str());
+            Trace("Faield to open directory ");
+            Traceln(dirName.c_str());
 #endif
             dir.close();
             return false;
@@ -127,8 +127,8 @@ bool View::open(byte *_buff, int _buffSize)
 #endif
     {
 #ifdef DEBUG_HTTP_SERVER
-        Serial.print("Failed to open file ");
-        Serial.println(fileName.c_str());
+        Trace("Failed to open file ");
+        Traceln(fileName.c_str());
 #endif
 #ifndef ESP32
         dir.close();
@@ -170,8 +170,8 @@ bool View::getLastModifiedTime(String &lastModifiedTimeStr)
     if (file.dirEntry(dirEntry) == 0)
     {
 #ifdef DEBUG_HTTP_SERVER
-        Serial.print(__func__);
-        Serial.println(": failed in file.dirEntry()");
+        Trace(__func__);
+        Traceln(": failed in file.dirEntry()");
 #endif
         return false;
     }
@@ -189,8 +189,8 @@ bool View::getLastModifiedTime(String &lastModifiedTimeStr)
     if (fileTime == (time_t)-1)
     {
 #ifdef DEBUG_HTTP_SERVER
-        Serial.print(__func__);
-        Serial.println(": failed in mktime");
+        Trace(__func__);
+        Traceln(": failed in mktime");
 #endif
         return false;
     }

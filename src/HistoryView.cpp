@@ -118,7 +118,7 @@ bool HistoryView::open(byte *buff, int buffSize)
         if (!tempDir.makeDir(dir, "TEMP"))
         {
 #ifdef DEBUG_HTTP_SERVER
-            Serial.println("Failed to open TEMP directory");
+            Traceln("Failed to open TEMP directory");
 #endif            
             dir.close();
             return false;
@@ -139,7 +139,7 @@ bool HistoryView::open(byte *buff, int buffSize)
 #endif
     {
 #ifdef DEBUG_HTTP_SERVER
-        Serial.println("Failed to open HISTORY.HTM file");
+        Traceln("Failed to open HISTORY.HTM file");
 #endif
 #ifndef ESP32            
         tempDir.close();

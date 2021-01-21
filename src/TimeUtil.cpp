@@ -11,8 +11,8 @@ volatile time_t t_now = 0;
 void InitTime()
 {
 #ifdef DEBUG_TIME
-  Serial.print("Time Server: ");
-  Serial.println(Config::timeServer);
+  Trace("Time Server: ");
+  Traceln(Config::timeServer);
 #endif
 #ifdef ESP32
   configTime(Config::timeZone * 60, 0, Config::timeServer);
@@ -33,7 +33,7 @@ void InitTime()
 
   localtime_r(&now, &tr);
   strftime(buff, sizeof(buff), "DateTime: %a %d/%m/%Y %T%n", &tr);
-  Serial.print(buff);
+  Trace(buff);
 #endif
 
 #ifndef ESP32

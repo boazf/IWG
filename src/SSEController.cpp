@@ -8,13 +8,13 @@
 bool SSEController::Get(EthernetClient &client, String &id)
 {
 #ifdef DEBUG_HTTP_SERVER
-    Serial.print("SSEController Get, Client id=");
-    Serial.print(id);
+    Trace("SSEController Get, Client id=");
+    Trace(id);
 #ifndef ESP32
-    Serial.print(", socket=");
-    Serial.println(client.getSocketNumber());
+    Trace(", socket=");
+    Traceln(client.getSocketNumber());
 #else
-    Serial.println();
+    Traceln();
 #endif
 #endif
 
@@ -31,7 +31,7 @@ bool SSEController::Get(EthernetClient &client, String &id)
     }
 #ifdef ESP32
 #ifdef DEBUG_HTTP_SERVER
-    Serial.printf("Adding SSE client: id=%s, IP=%s, port=%d, object=%lx\n", id.c_str(), client.remoteIP().toString().c_str(), client.remotePort(), (ulong)&client);
+    Tracef("Adding SSE client: id=%s, IP=%s, port=%d, object=%lx\n", id.c_str(), client.remoteIP().toString().c_str(), client.remotePort(), (ulong)&client);
 #endif
 #endif
     clients.Insert(new ClientInfo(id, client, t_now + SESSION_LENGTH));
@@ -81,7 +81,7 @@ void SSEController::NotifyState(const String &id)
     event += state.seconds;
     event += "}\n";
 #ifdef DEBUG_HTTP_SERVER
-    Serial.println(event);
+    Traceln(event);
 #endif
 
     for (ListNode<ClientInfo *> *clientInfo = clients.head; clientInfo != NULL; clientInfo = clientInfo->next)
@@ -92,13 +92,13 @@ void SSEController::NotifyState(const String &id)
         if (client == NULL)
             continue;
 #ifdef DEBUG_HTTP_SERVER
-        Serial.print("Notifying client id=");
-        Serial.print(clientInfo->value->id);
+        Trace("Notifying client id=");
+        Trace(clientInfo->value->id);
 #ifndef ESP32
-        Serial.print(", socket=");
-        Serial.println(client->getSocketNumber());
+        Trace(", socket=");
+        Traceln(client->getSocketNumber());
 #else
-        Serial.println();
+        Traceln();
 #endif
 #endif
         client->print(event);
@@ -147,8 +147,8 @@ void SSEController::RecoveryStateChanged(const RecoveryStateChangedParams &param
 void SSEController::AutoRecoveryStateChanged(const AutoRecoveryStateChangedParams &params, const void *context)
 {
 #ifdef DEBUG_HTTP_SERVER
-    Serial.print("AutoRecoveryStateChanged: ");
-    Serial.println(params.m_autoRecovery);
+    Trace("AutoRecoveryStateChanged: ");
+    Traceln(params.m_autoRecovery);
 #endif
     SSEController *controller = (SSEController *)context;
     controller->state.autoRecovery = params.m_autoRecovery;
@@ -188,13 +188,13 @@ void SSEController::DeleteClient(ListNode<ClientInfo *> *&clientInfo, bool stopC
 #ifdef DEBUG_HTTP_SERVER
     if (clientInfo->value->client != NULL)
     {
-        Serial.print("Deleting previous session id=");
-        Serial.print(clientInfo->value->id);
+        Trace("Deleting previous session id=");
+        Trace(clientInfo->value->id);
 #ifndef ESP32
-        Serial.print(", socket=");
-        Serial.println(clientInfo->value->client->getSocketNumber());
+        Trace(", socket=");
+        Traceln(clientInfo->value->client->getSocketNumber());
 #else
-        Serial.println();
+        Traceln();
 #endif
     }
 #endif

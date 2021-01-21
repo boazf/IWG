@@ -107,8 +107,8 @@ void Config::Init()
 #ifdef ESP32
   String configFilePath = String("/") + configFileName;
 #ifdef DEBUG_CONFIG
-  Serial.print("Config file: ");
-  Serial.println(configFilePath);
+  Trace("Config file: ");
+  Traceln(configFilePath);
 #endif
   config = SD.open(configFilePath);
 #else
@@ -126,7 +126,7 @@ void Config::Init()
 #endif
   {
 #ifdef DEBUG_CONFIG
-    Serial.println("Failed to open configuration file");
+    Traceln("Failed to open configuration file");
 #endif
     return;
   }
@@ -162,15 +162,15 @@ void Config::Init()
       continue;
     }
 #ifdef DEBUG_CONFIG
-    Serial.print("Config line:");
-    Serial.println(configLine.c_str());
+    Trace("Config line:");
+    Traceln(configLine.c_str());
 #endif
     int sepIndex = configLine.indexOf('=');
     if (sepIndex == -1)
     {
 #ifdef DEBUG_CONFIG
-      Serial.print("Invalid configuration line: ");
-      Serial.println(configLine.c_str());
+      Trace("Invalid configuration line: ");
+      Traceln(configLine.c_str());
 #endif
       continue;
     }
@@ -179,8 +179,8 @@ void Config::Init()
     if (configName.equals("") || configValue.equals(""))
     {
 #ifdef DEBUG_CONFIG
-      Serial.print("Invalid configuration line: ");
-      Serial.println(configLine.c_str());
+      Trace("Invalid configuration line: ");
+      Traceln(configLine.c_str());
 #endif
       continue;
     }
@@ -192,16 +192,16 @@ void Config::Init()
     if (i == NELEMS(parsers))
     {
 #ifdef DEBUG_CONFIG
-      Serial.print("Unrecognized configuration variable: ");
-      Serial.println(configName);
+      Trace("Unrecognized configuration variable: ");
+      Traceln(configName);
 #endif
       continue;
     }
     if (!parsers[i].parser(configValue, parsers[i].param))
     {
 #ifdef DEBUG_CONFIG
-      Serial.print("Failed to parse configuration value for configuration line: ");
-      Serial.println(configLine.c_str());
+      Trace("Failed to parse configuration value for configuration line: ");
+      Traceln(configLine.c_str());
 #endif
       continue;
     }

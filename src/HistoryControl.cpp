@@ -176,7 +176,7 @@ H_Message HistoryControl::OnStateDoNotihng(void *param)
 void HistoryControl::OnConnected(void *param)
 {
 #ifdef DEBUG_HISTORY
-    Serial.println(__func__);
+    Traceln(__func__);
 #endif
     HistoryControl *control = (HistoryControl *)param;
     HistoryStorageItem *currStorageItem = control->currStorageItem;
@@ -197,7 +197,7 @@ void HistoryControl::OnConnected(void *param)
 void HistoryControl::OnCheckingConnectivity(void *param)
 {
 #ifdef DEBUG_HISTORY
-    Serial.println(__func__);
+    Traceln(__func__);
 #endif
     HistoryControl *control = (HistoryControl *)param;
 
@@ -207,7 +207,7 @@ void HistoryControl::OnCheckingConnectivity(void *param)
 void HistoryControl::OnRecoveringModem(void *param)
 {
 #ifdef DEBUG_HISTORY
-    Serial.println(__func__);
+    Traceln(__func__);
 #endif
     HistoryControl *control = (HistoryControl *)param;
 
@@ -218,7 +218,7 @@ void HistoryControl::OnRecoveringModem(void *param)
 void HistoryControl::OnRecoveringRouter(void *param)
 {
 #ifdef DEBUG_HISTORY
-    Serial.println(__func__);
+    Traceln(__func__);
 #endif
     HistoryControl *control = (HistoryControl *)param;
 
@@ -229,7 +229,7 @@ void HistoryControl::OnRecoveringRouter(void *param)
 void HistoryControl::OnRecoveryFailed(void *param)
 {
 #ifdef DEBUG_HISTORY
-    Serial.println(__func__);
+    Traceln(__func__);
 #endif
     HistoryControl *control = (HistoryControl *)param;
 
@@ -239,7 +239,7 @@ void HistoryControl::OnRecoveryFailed(void *param)
 void HistoryControl::OnHWFailure(void *param)
 {
 #ifdef DEBUG_HISTORY
-    Serial.println(__func__);
+    Traceln(__func__);
 #endif
     HistoryControl *control = (HistoryControl *)param;
 
@@ -250,7 +250,7 @@ void HistoryControl::OnHWFailure(void *param)
 H_Message HistoryControl::AddToHistory(H_Message message, void *param)
 {
 #ifdef DEBUG_HISTORY
-    Serial.println(__func__);
+    Traceln(__func__);
 #endif
     if (message == HM_RecoverySuccess)
     {
@@ -265,7 +265,7 @@ H_Message HistoryControl::AddToHistory(H_Message message, void *param)
 void HistoryControl::AddHistoryItem(bool byUser)
 {
 #ifdef DEBUG_HISTORY
-    Serial.println(__func__);
+    Traceln(__func__);
 #endif
     CreateHistoryItem(byUser ? UserInitiatedRecovery : AutoRecovery);
 }
@@ -273,7 +273,7 @@ void HistoryControl::AddHistoryItem(bool byUser)
 bool HistoryControl::CreateHistoryItem(RecoverySource recoverySource)
 {
 #ifdef DEBUG_HISTORY
-    Serial.println(__func__);
+    Traceln(__func__);
 #endif
     if (currStorageItem != NULL)
         return false;
@@ -285,7 +285,7 @@ bool HistoryControl::CreateHistoryItem(RecoverySource recoverySource)
 void HistoryControl::AddToHistoryStorage(RecoveryStatus status, bool withEndTime)
 {
 #ifdef DEBUG_HISTORY
-    Serial.println(__func__);
+    Traceln(__func__);
 #endif
     currStorageItem->recoveryStatus() = status;
     if (withEndTime)

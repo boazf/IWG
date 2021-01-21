@@ -5,6 +5,9 @@
 #include <SD.h>
 
 #ifdef ESP32
+
+#include <Lock.h>
+
 class AutoSD
 {
 public:
@@ -13,6 +16,7 @@ public:
 
 private:
   static int count;
+  static CriticalSection cs;
 };
 #endif
 

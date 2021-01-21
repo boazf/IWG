@@ -25,7 +25,7 @@ char SFT::curPath[MAX_PATH + 1];    // The path of the current directory
 void SFT::Connect(EthernetClient &client)
 {
 #ifdef DEBUG_SFT    
-   Serial.println("Connect");
+   Traceln("Connect");
 #endif
   // Reply with the server major.minor version
   uint16_t rep = ((SERVER_MAJOR_VERSION) << 8) | (SERVER_MINOR_VERSION);
@@ -63,7 +63,7 @@ char *combinePath(char *dstPath, const char *srcPath1, const char *srcPath2)
 void SFT::Upload(EthernetClient &client)
 {
 #ifdef DEBUG_SFT    
-  Serial.print("Upload: ");
+  Trace("Upload: ");
 #endif
   byte buff[FILE_TRANSFER_BUFF_SIZE];
 
@@ -71,7 +71,7 @@ void SFT::Upload(EthernetClient &client)
   unsigned int len = client.read(buff, sizeof(buff));
   char *fileName = (char *)buff;
 #ifdef DEBUG_SFT    
-  Serial.println(fileName);
+  Traceln(fileName);
 #endif
   int fileNameLen = strlen(fileName);
 
@@ -104,7 +104,7 @@ void SFT::Upload(EthernetClient &client)
   if (!WaitForClient(client))
   {
 #ifdef DEBUG_SFT    
-    Serial.println("Failed to receive first buffer");
+    Traceln("Failed to receive first buffer");
 #endif
     file.close();
 #ifdef ESP32
@@ -126,14 +126,14 @@ void SFT::Upload(EthernetClient &client)
   {
     offset += len;
 #ifdef DEBUG_SFT    
-    Serial.print("Receiving file ");
-    Serial.println(offset);
+    Trace("Receiving file ");
+    Traceln(offset);
 #endif
     // Write file content
     size_t res = file.write(buff, len);
 #ifdef DEBUG_SFT    
-    Serial.print("Written to file: ");
-    Serial.println(res);
+    Trace("Written to file: ");
+    Traceln(res);
 #endif
 
     // Send indication whether the block could successfully be written
@@ -144,7 +144,7 @@ void SFT::Upload(EthernetClient &client)
     if (!WaitForClient(client))
     {
 #ifdef DEBUG_SFT    
-      Serial.println("Failed to receive buffer");
+      Traceln("Failed to receive buffer");
 #endif
       break;
     }
@@ -163,15 +163,15 @@ void SFT::Upload(EthernetClient &client)
   }
 
 #ifdef DEBUG_SFT    
-  Serial.println("Completed file upload");
+  Traceln("Completed file upload");
 #endif
   file.close();
 
   // Completion sequence
   char c = client.read();
 #ifdef DEBUG_SFT    
-  Serial.print("Completion: ");
-  Serial.println((char)c);
+  Trace("Completion: ");
+  Traceln((char)c);
 #endif
   buff[0] = c == 'u' ? 220 : 100;
   client.write(buff, 1);
@@ -183,7 +183,7 @@ void SFT::Upload(EthernetClient &client)
 void SFT::Download(EthernetClient &client)
 {
 #ifdef DEBUG_SFT    
-  Serial.print("Download: ");
+  Trace("Download: ");
 #endif
   byte buff[FILE_TRANSFER_BUFF_SIZE];
   memset(buff, 0, sizeof(buff));
@@ -192,7 +192,7 @@ void SFT::Download(EthernetClient &client)
   client.read(buff, sizeof(buff));
   char *fileName = (char *)buff;
 #ifdef DEBUG_SFT    
-  Serial.println(fileName);
+  Traceln(fileName);
 #endif
 
   // Try to open the file
@@ -243,16 +243,16 @@ void SFT::Download(EthernetClient &client)
     // Loop through the file content blocks
     offset += rres;
 #ifdef DEBUG_SFT    
-    Serial.print("Read file: ");
-    Serial.print(offset);
-    Serial.print(" bytes out of ");
-    Serial.println(size);
+    Trace("Read file: ");
+    Trace(offset);
+    Trace(" bytes out of ");
+    Traceln(size);
 #endif
     // Wait for handshake
     if (!WaitForClient(client))
     {
 #ifdef DEBUG_SFT    
-      Serial.println("Failed to receive dowload buffer request");
+      Traceln("Failed to receive dowload buffer request");
 #endif
       fail = true;
       continue;
@@ -263,10 +263,10 @@ void SFT::Download(EthernetClient &client)
     if (reqRes != 1 && req != (byte)'w')
     {
 #ifdef DEBUG_SFT    
-      Serial.print("Enexpected buffer request: res = ");
-      Serial.print(reqRes);
-      Serial.print(", data = ");
-      Serial.println((char) req);
+      Trace("Enexpected buffer request: res = ");
+      Trace(reqRes);
+      Trace(", data = ");
+      Traceln((char) req);
 #endif
       fail = true;
       continue;
@@ -276,10 +276,10 @@ void SFT::Download(EthernetClient &client)
     if (sres != (size_t)rres)
     {
 #ifdef DEBUG_SFT    
-      Serial.print("Failed to write file content to client, write result: ");
-      Serial.print(sres);
-      Serial.print(", sent bytes: ");
-      Serial.println(rres);
+      Trace("Failed to write file content to client, write result: ");
+      Trace(sres);
+      Trace(", sent bytes: ");
+      Traceln(rres);
 #endif
       fail = true;
       continue;
@@ -297,14 +297,14 @@ void SFT::Download(EthernetClient &client)
     return;
 
 #ifdef DEBUG_SFT    
-  Serial.println("Completed file download");
+  Traceln("Completed file download");
 #endif
 
   // Wait for completion handshake
   if (!WaitForClient(client))
   {
 #ifdef DEBUG_SFT    
-    Serial.println("Failed to receive completion status request");
+    Traceln("Failed to receive completion status request");
 #endif
     return;
   }
@@ -314,12 +314,12 @@ void SFT::Download(EthernetClient &client)
 #endif
   client.read(ret, sizeof(ret));
 #ifdef DEBUG_SFT    
-  Serial.print("Completion: len = ");
-  Serial.print(len);
-  Serial.print(" content: ");
+  Trace("Completion: len = ");
+  Trace(len);
+  Trace(" content: ");
   for (int i = 0; i < len; i++)
-    Serial.print((char)ret[i]);
-  Serial.println();
+    Trace((char)ret[i]);
+  Traceln();
 #endif
   buff[0] = ret[0] == (byte)'?' ? 220 : 100;
   client.write(buff, 1);
@@ -353,7 +353,7 @@ void SFT::ListDirectory(EthernetClient &client)
   dir_t dir;
 #endif
 #ifdef DEBUG_SFT
-  Serial.println("List directory...");
+  Traceln("List directory...");
 #endif
   bool fail = false;
   // Loop through the directory entries
@@ -437,7 +437,7 @@ void SFT::ListDirectory(EthernetClient &client)
     if (!WaitForClient(client))
     {
 #ifdef DEBUG_SFT
-      Serial.println("Failed to receive continuation");
+      Traceln("Failed to receive continuation");
 #endif
       fail = true;
       break;
@@ -448,7 +448,7 @@ void SFT::ListDirectory(EthernetClient &client)
     if (c != 'l')
     {
 #ifdef DEBUG_SFT
-      Serial.println("Unexpected continuation");
+      Traceln("Unexpected continuation");
 #endif
       fail = true;
       break;
@@ -483,21 +483,21 @@ void SFT::ChangeDirectory(EthernetClient &client)
   char path[MAX_PATH + 2];
   memset(path, 0, sizeof(path));
 #ifdef DEBUG_SFT  
-  Serial.print("Change directory: ");
+  Trace("Change directory: ");
 #endif
   // Read the requested new directory
   int len = client.read((byte *)path, sizeof(path));
   if (len == 0)
   {
 #ifdef DEBUG_SFT  
-    Serial.println("path was not received");
+    Traceln("path was not received");
 #endif
     fail = true;
   }
   else
   {
 #ifdef DEBUG_SFT  
-    Serial.println(path);
+    Traceln(path);
 #endif
 
     if (path[0] != '\0')
@@ -510,7 +510,7 @@ void SFT::ChangeDirectory(EthernetClient &client)
         {
           // cannot go up in case we're currently in the root directory
 #ifdef DEBUG_SFT  
-          Serial.println("can't go up directory from root directory");
+          Traceln("can't go up directory from root directory");
 #endif
           fail = true;
         }
@@ -552,8 +552,8 @@ void SFT::ChangeDirectory(EthernetClient &client)
               {
                 // Failed to open sub-directory
 #ifdef DEBUG_SFT    
-                Serial.println("Failed to open directory: ");
-                Serial.println(inCurPath);
+                Traceln("Failed to open directory: ");
+                Traceln(inCurPath);
 #endif
                 fail = true;
                 break;
@@ -577,8 +577,8 @@ void SFT::ChangeDirectory(EthernetClient &client)
               if (res == 0)
               {
 #ifdef DEBUG_SFT    
-                Serial.println("Failed to open directory: ");
-                Serial.println(inCurPath);
+                Traceln("Failed to open directory: ");
+                Traceln(inCurPath);
 #endif
                 fail = true;
               }
@@ -645,8 +645,8 @@ void SFT::ChangeDirectory(EthernetClient &client)
   path[0] = fail ? 100 : 220;
   strcpy(path+1, curPath);
 #ifdef DEBUG_SFT  
-  Serial.print("Current path: ");
-  Serial.println(curPath);
+  Trace("Current path: ");
+  Traceln(curPath);
 #endif
   // Send finalizing indication to the client
   client.write(path, strlen(path));
@@ -666,18 +666,18 @@ void SFT::MakeDirectory(EthernetClient &client)
   char path[MAX_PATH];
   memset(path, 0, sizeof(path));
 #ifdef DEBUG_SFT    
-  Serial.print("Make directory: ");
+  Trace("Make directory: ");
 #endif
   // Read the name of the requested sub-directory
   int len = client.read((byte *)path, sizeof(path));
 #ifdef DEBUG_SFT    
-  Serial.println(path);
+  Traceln(path);
 #endif
   if (len == 0)
   {
     // No name was sent.
 #ifdef DEBUG_SFT    
-    Serial.println("path was not received");
+    Traceln("path was not received");
 #endif
     fail = true;
   }
@@ -694,7 +694,7 @@ void SFT::MakeDirectory(EthernetClient &client)
       // sub-directory creation failed.
       // Probably a sub-directory with the same name already exist
 #ifdef DEBUG_SFT    
-      Serial.println("Failed to create directory");
+      Traceln("Failed to create directory");
 #endif
       fail = true;
     }
@@ -727,17 +727,17 @@ void SFT::Delete(EthernetClient &client)
   char path[MAX_PATH];
   memset(path, 0, sizeof(path));
 #ifdef DEBUG_SFT    
-  Serial.print("Delete file: ");
+  Trace("Delete file: ");
 #endif
   // Read the file name to be deleted
   int len = client.read((byte *)path, sizeof(path));
 #ifdef DEBUG_SFT    
-  Serial.println(path);
+  Traceln(path);
 #endif
   if (len == 0)
   {
 #ifdef DEBUG_SFT    
-    Serial.println("file name was not received");
+    Traceln("file name was not received");
 #endif
     fail = true;
   }
@@ -757,8 +757,8 @@ void SFT::Delete(EthernetClient &client)
 #ifdef DEBUG_SFT    
     if (fail)
     {   
-      Serial.print("Failed to delete file: ");
-      Serial.println(path);
+      Trace("Failed to delete file: ");
+      Traceln(path);
     }
 #endif
   }
@@ -784,18 +784,18 @@ void SFT::RemoveDirectory(EthernetClient &client)
   char path[MAX_PATH];
   memset(path, 0, sizeof(path));
 #ifdef DEBUG_SFT    
-  Serial.print("Remove directory: ");
+  Trace("Remove directory: ");
 #endif
   // Read the name of the sub-directory to be deleted
   int len = client.read((byte *)path, sizeof(path));
 #ifdef DEBUG_SFT    
-  Serial.println(path);
+  Traceln(path);
 #endif
   if (len == 0)
   {
     // No sub-directory name was received
 #ifdef DEBUG_SFT    
-    Serial.println("file name was not received");
+    Traceln("file name was not received");
 #endif
     fail = true;
   }
@@ -819,8 +819,8 @@ void SFT::RemoveDirectory(EthernetClient &client)
 #ifdef DEBUG_SFT    
   if (fail)
   {
-      Serial.print("Failed to remove directory: ");
-      Serial.println(path);
+      Trace("Failed to remove directory: ");
+      Traceln(path);
   }
 #endif
   
@@ -847,7 +847,7 @@ void SFT::Init()
   curDir.openRoot(vol);
 #endif
 #ifdef DEBUG_SFT    
-  Serial.println("SFT Initialized");
+  Traceln("SFT Initialized");
 #endif
 }
 
@@ -861,10 +861,10 @@ void SFT::DoService()
     }
 #ifdef DEBUG_SFT    
 #ifdef ESP32
-    Serial.println("New client");
+    Traceln("New client");
 #else
-    Serial.print("New client on socket ");
-    Serial.println(client.getSocketNumber());
+    Trace("New client on socket ");
+    Traceln(client.getSocketNumber());
 #endif
 #endif
 #ifdef ESP32
@@ -917,7 +917,7 @@ void SFT::DoService()
     // Close the connection:
     client.stop();
 #ifdef DEBUG_SFT    
-    Serial.println("Client disconnected");
+    Traceln("Client disconnected");
 #endif
 }
 

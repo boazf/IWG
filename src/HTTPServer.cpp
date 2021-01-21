@@ -49,10 +49,10 @@ bool HTTPServer::DoController(EthernetClient &client, String &resource, HTTP_REQ
     }
 
 #ifdef DEBUG_HTTP_SERVER
-    Serial.print("controller: ");
-    Serial.print(controller.c_str());
-    Serial.print(" id=");
-    Serial.println(id);
+    Trace("controller: ");
+    Trace(controller.c_str());
+    Trace(" id=");
+    Traceln(id);
 #endif
 
     ListNode<Controller *> *controllerNode = controllers.head;
@@ -67,7 +67,7 @@ bool HTTPServer::DoController(EthernetClient &client, String &resource, HTTP_REQ
     if (controllerNode == NULL)
     {
 #ifdef DEBUG_HTTP_SERVER
-        Serial.println("Controller was not found!");
+        Traceln("Controller was not found!");
 #endif
         return false;
     }
@@ -154,12 +154,12 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
     }
 
 #ifdef DEBUG_HTTP_SERVER
-    Serial.print("View=");
-    Serial.print(view->viewPath);
-    Serial.print(", id=");
-    Serial.print(id);
-    Serial.print(", Path=");
-    Serial.println(view->viewFilePath);
+    Trace("View=");
+    Trace(view->viewPath);
+    Trace(", id=");
+    Trace(id);
+    Trace(", Path=");
+    Traceln(view->viewFilePath);
 #endif
 
     if (view->redirect(*client, id))
@@ -179,10 +179,10 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
         if (context->lastModified.equals(lastModifiedTime))
         {
 #ifdef DEBUG_HTTP_SERVER
-            Serial.print("Resource: ");
-            Serial.print(resource);
-            Serial.print(" File was not modified. ");
-            Serial.println(context->lastModified);
+            Trace("Resource: ");
+            Trace(resource);
+            Trace(" File was not modified. ");
+            Traceln(context->lastModified);
 #endif
             NotModified(*client);
             view->close();
@@ -226,7 +226,7 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
         break;
     case CONTENT_TYPE::CT_UNKNOWN:
 #ifdef DEBUG_HTTP_SERVER
-        Serial.println("Unknown extention");
+        Traceln("Unknown extention");
 #endif
         view->close();
         return false;
@@ -261,11 +261,11 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
     }
 
 #ifdef DEBUG_HTTP_SERVER
-    Serial.print("Done sending ");
-    Serial.print(view->viewFilePath.c_str());
-    Serial.print(" Sent ");
-    Serial.print(bytesSent);
-    Serial.println(" bytes");
+    Trace("Done sending ");
+    Trace(view->viewFilePath.c_str());
+    Trace(" Sent ");
+    Trace(bytesSent);
+    Traceln(" bytes");
 #endif
 
     view->close();
@@ -341,7 +341,7 @@ bool HTTPServer::ProcessLine(PClientContext context)
 void HTTPServer::ServiceRequest(PClientContext context)
 {
 #ifdef DEBUG_HTTP_SERVER
-    Serial.println(context->request);
+    Traceln(context->request);
 #endif
     String resource = RequestResource(context->request);
     resource.toUpperCase();
@@ -384,7 +384,7 @@ void HTTPServer::Init()
 {
     server.begin();
 #ifdef DEBUG_HTTP_SERVER
-    Serial.println("HTTP Server has started");
+    Traceln("HTTP Server has started");
 #endif
 }
 
@@ -394,13 +394,13 @@ LinkedList<PClientContext> HTTPServer::clients;
 #ifndef ESP32
 static void PrintIP(const IPAddress &address)
 {
-    Serial.print(address[0]);
-    Serial.print(",");
-    Serial.print(address[1]);
-    Serial.print(",");
-    Serial.print(address[2]);
-    Serial.print(",");
-    Serial.print(address[3]);
+    Trace(address[0]);
+    Trace(",");
+    Trace(address[1]);
+    Trace(",");
+    Trace(address[2]);
+    Trace(",");
+    Trace(address[3]);
 }
 #endif
 #endif
@@ -412,14 +412,14 @@ void HTTPServer::CheckForNewClients()
     {
 #ifdef DEBUG_HTTP_SERVER
 #ifndef ESP32
-        Serial.print("New client, socket=");
-        Serial.print(client.getSocketNumber());
-        Serial.print(", IP=");
+        Trace("New client, socket=");
+        Trace(client.getSocketNumber());
+        Trace(", IP=");
         PrintIP(client.remoteIP());
-        Serial.print(", port=");
-        Serial.println(client.remotePort());
+        Trace(", port=");
+        Traceln(client.remotePort());
 #else 
-        Serial.printf("New client: IP=%s, port=%d\n", client.remoteIP().toString().c_str(), client.remotePort());
+        Tracef("New client: IP=%s, port=%d\n", client.remoteIP().toString().c_str(), client.remotePort());
 #endif
 #endif
         PClientContext context = new ClientContext(client);
@@ -441,9 +441,9 @@ void HTTPServer::ServeClient()
     {
         if (!empty)
         {
-            Serial.println("List is empty");
-            Serial.print("Free mem: ");
-            Serial.println(freeMemory());
+            Traceln("List is empty");
+            Trace("Free mem: ");
+            Traceln(freeMemory());
         }
         empty = true;
     }
@@ -451,9 +451,9 @@ void HTTPServer::ServeClient()
     {
         if (empty)
         {
-            Serial.println("List is not empty");
-            Serial.print("Free mem: ");
-            Serial.println(freeMemory());
+            Traceln("List is not empty");
+            Trace("Free mem: ");
+            Traceln(freeMemory());
         }
         empty = false;
     }
@@ -481,10 +481,10 @@ void HTTPServer::ServeClient()
 #ifdef DEBUG_HTTP_SERVER
         if (brokenClient)
         {
-            Serial.print("Broken client: port=");
-            Serial.print(listNode->value->remotePort);
-            Serial.print(", ");
-            Serial.println(remotePort);
+            Trace("Broken client: port=");
+            Trace(listNode->value->remotePort);
+            Trace(", ");
+            Traceln(remotePort);
         }
 #endif
         if (brokenClient || !client->connected())
@@ -493,11 +493,11 @@ void HTTPServer::ServeClient()
 #endif
 #ifdef DEBUG_HTTP_SERVER
 #ifndef ESP32
-            Serial.print("Client disconnected, port=");
-            Serial.println(listNode->value->remotePort);
+            Trace("Client disconnected, port=");
+            Traceln(listNode->value->remotePort);
 #else
             if (!brokenClient)
-                Serial.printf("Client disconnected, IP=%s, port=%d\n", client->remoteIP().toString().c_str(), client->remotePort());
+                Tracef("Client disconnected, IP=%s, port=%d\n", client->remoteIP().toString().c_str(), client->remotePort());
 #endif
 #endif
             if (!sseController.DeleteClient(*client, !brokenClient) && !brokenClient)

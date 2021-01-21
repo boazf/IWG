@@ -242,7 +242,7 @@ RecoveryControl::~RecoveryControl()
 void RecoveryControl::AppConfigChanged(const AppConfigChangedParam &param, const void *context)
 {
 #ifdef DEBUG_RECOVERY_CONTROL
-	Serial.println("Configuration changed");
+	Traceln("Configuration changed");
 #endif
 	RecoveryControl *recoveryControl = (RecoveryControl *)context;
 	SMParam *smParam = recoveryControl->m_param;
@@ -317,15 +317,15 @@ static bool TryGetHostAddress(IPAddress &address, String server)
 #endif
 	{
 #ifdef DEBUG_RECOVERY_CONTROL
-		Serial.print("Failed to get host address for ");
-		Serial.println(server.c_str());
+		Trace("Failed to get host address for ");
+		Traceln(server.c_str());
 #endif
 		return false;
 	}
 
 #ifdef DEBUG_RECOVERY_CONTROL
-	Serial.print("About to ping ");
-	Serial.println(server.c_str());
+	Trace("About to ping ");
+	Traceln(server.c_str());
 #endif
 
 	return true;
@@ -374,14 +374,14 @@ void RecoveryControl::OnEnterCheckConnectivity(void *param)
 	if (stateParam->stage != ChecksCompleted)
 	{
 #ifdef DEBUG_RECOVERY_CONTROL
-		Serial.print("Pinging address: ");
-		Serial.print(address[0]);
-		Serial.print(".");
-		Serial.print(address[1]);
-		Serial.print(".");
-		Serial.print(address[2]);
-		Serial.print(".");
-		Serial.println(address[3]);
+		Trace("Pinging address: ");
+		Trace(address[0]);
+		Trace(".");
+		Trace(address[1]);
+		Trace(".");
+		Trace(address[2]);
+		Trace(".");
+		Traceln(address[3]);
 #endif
 #ifndef ESP32
 		stateParam->ping.asyncStart(address, MAX_PING_ATTEMPTS, stateParam->pingResult);
@@ -414,18 +414,18 @@ Message RecoveryControl::OnCheckConnectivity(void *param)
 			{
 				stateParam->attempts++;
 #ifdef DEBUG_RECOVERY_CONTROL
-				Serial.printf("Ping attempt no. %d failed, address %s\n", stateParam->attempts, stateParam->address.toString().c_str());
+				Tracef("Ping attempt no. %d failed, address %s\n", stateParam->attempts, stateParam->address.toString().c_str());
 #endif
 				return Message::None;
 			}
 		}
 #endif
 #ifdef DEBUG_RECOVERY_CONTROL
-		Serial.print("Ping result: ");
+		Trace("Ping result: ");
 #ifndef ESP32
-		Serial.println(stateParam->pingResult.status);
+		Traceln((unsigned int)stateParam->pingResult.status);
 #else
-		Serial.println(status == Message::M_Connected ? "OK" : "Failed");
+		Traceln(status == Message::M_Connected ? "OK" : "Failed");
 #endif
 #endif
 	}
@@ -537,10 +537,10 @@ void RecoveryControl::OnEnterWaitConnectionPeriod(void *param)
 	SMParam *smParam = (SMParam *)param;
 	smParam->t0 = t_now;
 #ifdef DEBUG_RECOVERY_CONTROL
-	Serial.print(__func__);
-	Serial.print(": Waiting for ");
-	Serial.print(AppConfig::getConnectionTestPeriod());
-	Serial.println(" Sec.");
+	Trace(__func__);
+	Trace(": Waiting for ");
+	Trace(AppConfig::getConnectionTestPeriod());
+	Traceln(" Sec.");
 #endif
 }
 
@@ -578,7 +578,7 @@ void RecoveryControl::OnEnterDisconnectRouter(void *param)
 	smParam->recoveryStart = t_now;
 	SetRouterPowerState(POWER_OFF);
 #ifdef DEBUG_RECOVERY_CONTROL
-	Serial.println("Disconnecting Router");
+	Traceln("Disconnecting Router");
 #endif
 }
 
@@ -590,7 +590,7 @@ Message RecoveryControl::OnDisconnectRouter(void *param)
 
 	SetRouterPowerState(POWER_ON);
 #ifdef DEBUG_RECOVERY_CONTROL
-	Serial.println("Reconnecting Router");
+	Traceln("Reconnecting Router");
 #endif
 	return Message::M_Done;
 }
@@ -621,7 +621,7 @@ void RecoveryControl::OnEnterDisconnectModem(void *param)
 	smParam->m_recoveryControl->RaiseRecoveryStateChanged(RecoveryTypes::Modem, smParam->m_byUser);
 	smParam->recoveryStart = t_now;
 #ifdef DEBUG_RECOVERY_CONTROL
-	Serial.println("Disconnecting Modem");
+	Traceln("Disconnecting Modem");
 #endif
 	smParam->m_recoveryControl->m_modemPowerStateChanged.callObservers(PowerStateChangedParams(POWER_OFF));
 }
@@ -636,7 +636,7 @@ Message RecoveryControl::OnDisconnectModem(void *param)
 	SetModemPowerState(POWER_ON);
 	smParam->m_recoveryControl->m_modemPowerStateChanged.callObservers(PowerStateChangedParams(POWER_ON));
 #ifdef DEBUG_RECOVERY_CONTROL
-	Serial.println("Reconnecting Modem");
+	Traceln("Reconnecting Modem");
 #endif
 	return Message::M_Done;
 }

@@ -35,20 +35,20 @@ void InitEthernet()
   }
 #ifdef ESP32
 #ifdef DEBUG_ETHERNET
-  Serial.print("Connecting to: ");
-  Serial.print(Config::ssid);
-  Serial.print(' ');
+  Trace("Connecting to: ");
+  Trace(Config::ssid);
+  Trace(' ');
 #endif
   WiFi.begin(Config::ssid, Config::password);
   while(WiFi.waitForConnectResult() != WL_CONNECTED)
   {
     delay(500);
 #ifdef DEBUG_ETHERNET
-    Serial.print('.');
+    Trace('.');
 #endif      
   }
 #ifdef DEBUG_ETHERNET
-    Serial.println(" Connected!");
+    Traceln(" Connected!");
 #endif      
 #else
   else
@@ -56,8 +56,8 @@ void InitEthernet()
 #endif
 
 #ifdef DEBUG_ETHERNET
-  Serial.print("My IP address: ");
-  Serial.println(Ethernet.localIP());
+  Trace("My IP address: ");
+  Traceln(Ethernet.localIP());
 #endif
 }
 
@@ -72,28 +72,28 @@ void MaintainEthernet()
   switch (res) {
     case 1:
       //renewed fail
-      Serial.println("Error: renewed fail");
+      Traceln("Error: renewed fail");
       break;
 
     case 2:
       //renewed success
-      Serial.println("Renewed success");
+      Traceln("Renewed success");
       //print your local IP address:
-      Serial.print("My IP address: ");
-      Serial.println(Ethernet.localIP());
+      Trace("My IP address: ");
+      Traceln(Ethernet.localIP());
       break;
 
     case 3:
       //rebind fail
-      Serial.println("Error: rebind fail");
+      Traceln("Error: rebind fail");
       break;
 
     case 4:
       //rebind success
-      Serial.println("Rebind success");
+      Traceln("Rebind success");
       //print your local IP address:
-      Serial.print("My IP address: ");
-      Serial.println(Ethernet.localIP());
+      Trace("My IP address: ");
+      Traceln(Ethernet.localIP());
       break;
 
     default:
@@ -113,7 +113,7 @@ void MaintainEthernet()
     if (connected)
     {
 #ifdef DEBUG_ETHERNET
-      Serial.println("Network disconnected, trying to reconnect");
+      Traceln("Network disconnected, trying to reconnect");
       tLastUpdate = 0;
 #endif
       tReconnect = t_now;
@@ -123,13 +123,13 @@ void MaintainEthernet()
     if (tLastUpdate != t_now)
     {
       tLastUpdate = t_now;
-      Serial.printf("WiFi status: %d\n", status);
+      Tracef("WiFi status: %d\n", status);
     }
 #endif
     if (t_now - tReconnect > 60)
     {
 #ifdef DEBUG_ETHERNET
-      Serial.println("Reconnecting");
+      Traceln("Reconnecting");
 #endif
       WiFi.reconnect();
       tReconnect = t_now;
@@ -141,13 +141,13 @@ void MaintainEthernet()
     if (connected)
       return;
 #ifdef DEBUG_ETHERNET
-    Serial.printf("WiFi status: %d\n", status);
+    Tracef("WiFi status: %d\n", status);
 #endif
     delay(2000);
     if (!ping_start(Config::gateway, 4, 0, 0, 1000))
     {
 #ifdef DEBUG_ETHERNET
-      Serial.println("Failed to ping gateway after network reconnect!\nReconnecting");
+      Traceln("Failed to ping gateway after network reconnect!\nReconnecting");
 #endif
       WiFi.reconnect();
       tReconnect = t_now;
@@ -156,7 +156,7 @@ void MaintainEthernet()
     else
     {
 #ifdef DEBUG_ETHERNET
-      Serial.println("Connected!");
+      Traceln("Connected!");
 #endif
       connected = true;
     }

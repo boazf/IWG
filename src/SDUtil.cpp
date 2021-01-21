@@ -12,15 +12,18 @@ SdVolume vol;
 
 #ifdef ESP32
 int AutoSD::count = 0;;
+CriticalSection AutoSD::cs;
 
 AutoSD::AutoSD()
 {
+  Lock lock(cs);
   if (count++ == 0)
     SD.begin();
 }
 
 AutoSD::~AutoSD()
 {
+  Lock lock(cs);
   if (--count == 0)
     SD.end();
 }
@@ -38,13 +41,13 @@ void InitSD()
 
   if (!card.init(SPI_HALF_SPEED, chipSelect))
 #ifdef DEBUG_SD
-    Serial.println("Failed to initialize SD card")
+    Traceln("Failed to initialize SD card")
 #endif
     ;
   SdFile::dateTimeCallback(getFatDateTime);
   if (!vol.init(card))
 #ifdef DEBUG_SD
-    Serial.println("Failed to initialize SD volume")
+    Traceln("Failed to initialize SD volume")
 #endif
     ;
 #endif // ESP32

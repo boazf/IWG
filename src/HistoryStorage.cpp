@@ -10,14 +10,14 @@ HistoryStorage::HistoryStorage()
 #ifdef DEBUG_HISTORY
 void HistoryStorage::ReportIntializationResult()
 {
-    Serial.print("startIndex=");
-    Serial.println(startIndex);
+    Trace("startIndex=");
+    Traceln(startIndex);
     tm tr;
     char buff[64];
     localtime_r(&lastRecovery, &tr);
     strftime(buff, sizeof(buff), "%d/%m/%Y %T", &tr);
-    Serial.print("Last Recovery: ");
-    Serial.println(buff);
+    Trace("Last Recovery: ");
+    Traceln(buff);
 }
 #endif
 
@@ -199,8 +199,8 @@ void HistoryStorage::putAvailableRecords()
 {
     EEPROM.put<int>(HISTORY_EEPROM_START_ADDRESS, availableRecords);
 #ifdef DEBUG_HISTORY
-    Serial.print("Stored availableRecords: ");
-    Serial.println(availableRecords);
+    Trace("Stored availableRecords: ");
+    Traceln(availableRecords);
 #endif
 }
 
@@ -208,8 +208,8 @@ void HistoryStorage::getAvailableRecords()
 {
     availableRecords = EEPROM.get<int>(HISTORY_EEPROM_START_ADDRESS, availableRecords);
 #ifdef DEBUG_HISTORY
-    Serial.print("availableRecords: ");
-    Serial.println(availableRecords);
+    Trace("availableRecords: ");
+    Traceln(availableRecords);
 #endif
 }
 

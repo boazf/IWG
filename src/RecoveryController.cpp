@@ -5,7 +5,7 @@
 bool RecoveryController::Get(EthernetClient &client, String &resource)
 {
 #ifdef DEBUG_HTTP_SERVER
-    Serial.println("RecoveryController Get");
+    Traceln("RecoveryController Get");
 #endif
     return false;
 }
@@ -13,7 +13,7 @@ bool RecoveryController::Get(EthernetClient &client, String &resource)
 bool RecoveryController::Post(EthernetClient &client, String &resource)
 {
 #ifdef DEBUG_HTTP_SERVER
-    Serial.println("RecoveryController Post");
+    Traceln("RecoveryController Post");
 #endif
     String content;
 
@@ -23,16 +23,16 @@ bool RecoveryController::Post(EthernetClient &client, String &resource)
     }
 
 #ifdef DEBUG_HTTP_SERVER
-    Serial.print("RecoveryController::Post: ");
-    Serial.println(content);
+    Trace("RecoveryController::Post: ");
+    Traceln(content);
 #endif
 
     RecoveryTypes recoveryType;
     sscanf(content.c_str(), "{\"recoveryType\":%d}", reinterpret_cast<int*>(&recoveryType));
 
 #ifdef DEBUG_HTTP_SERVER
-    Serial.print("RecoveryType: ");
-    Serial.println(recoveryType);
+    Trace("RecoveryType: ");
+    Traceln(recoveryType);
 #endif
 
     recoveryControl.StartRecoveryCycles(recoveryType);

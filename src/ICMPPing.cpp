@@ -143,8 +143,8 @@ bool ICMPPing::openSocket()
     }
 
 #ifdef DEBUG_ETHERNET
-    Serial.print("Ping socket: ");
-    Serial.println(_socket);
+    Trace("Ping socket: ");
+    Traceln(_socket);
 #endif
 
     W5100Ex.writeSnIR(_socket, 0xFF);
