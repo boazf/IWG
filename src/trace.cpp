@@ -68,15 +68,14 @@ static void TraceTimeStamp(SdFile logFile)
     char buff[64];
     strftime(buff, sizeof(buff), "%F %H:%M:%S> ", &timeStamp);
     logFile.write((const uint8_t *)buff, strlen(buff));
+    logFile.flush();
 }
 
 static void FileLoggerTask(void *parameter)
 {
+    bool shouldTraceTimeStamp = true;
     AutoSD autoSD;
     SdFile logFile = SD.open(logFileName, FILE_APPEND);
-    logFile.seek(logFile.size());
-    TraceTimeStamp(logFile);
-    logFile.flush();
 
     while(true)
     {
@@ -86,7 +85,7 @@ static void FileLoggerTask(void *parameter)
             logFile.close();
             CreateNewLogFileName();
             logFile = SD.open(logFileName, FILE_WRITE);
-            TraceTimeStamp(logFile);
+            shouldTraceTimeStamp = true;
         }
         xSemaphoreTake(logSem, portMAX_DELAY);        
         ListNode<String> *messageNode = messages.head;
@@ -94,12 +93,20 @@ static void FileLoggerTask(void *parameter)
         char *newLine = strchr(message, '\n');
         while (newLine != NULL)
         {
+            if (shouldTraceTimeStamp)
+                TraceTimeStamp(logFile);
             logFile.write((const uint8_t *)message, newLine - message + 1);
-            TraceTimeStamp(logFile);
+            shouldTraceTimeStamp = true;
             message = newLine + 1;
             newLine = strchr(message, '\n');
         }
-        logFile.write((const uint8_t *)message, strlen(message));
+        if (message[0] != '\0')
+        {
+            if (shouldTraceTimeStamp)
+                TraceTimeStamp(logFile);
+            shouldTraceTimeStamp = false;
+            logFile.write((const uint8_t *)message, strlen(message));
+        }
         logFile.flush();
         messages.Delete(messageNode);
     }
