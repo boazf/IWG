@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <assert.h>
+#include <Common.h>
 
 template<typename Verb, typename StateName>
 class Transition
@@ -51,6 +52,9 @@ public:
 		m_onExit(0),
 		m_transitions(NULL),
 		m_nTransitions(0)
+	#ifdef DEBUG_STATE_MACHINE
+		, m_name("")
+	#endif
 	{
 	}
 
@@ -60,12 +64,19 @@ public:
 		m_transitions = NULL;
 	}
 
-	SMState(StateName state, OnEntry onEntry, OnState onState, OnExit onExit, const Transition<Verb, StateName> *transitions, int nTransitions) :
+	SMState(StateName state, OnEntry onEntry, OnState onState, OnExit onExit, const Transition<Verb, StateName> *transitions, int nTransitions
+	#ifdef DEBUG_STATE_MACHINE
+		, const char *name
+	#endif
+		) :
 		m_state(state),
 		m_onEntry(onEntry),
 		m_onState(onState),
 		m_onExit(onExit),
 		m_nTransitions(nTransitions)
+	#ifdef DEBUG_STATE_MACHINE
+		, m_name(name)
+	#endif
 	{
 		m_transitions = new Transition<Verb, StateName>[m_nTransitions];
 		for (int i = 0; i < m_nTransitions; i++)
@@ -84,12 +95,22 @@ public:
 		m_onState = other.m_onState;
 		m_onExit = other.m_onExit;
 		m_nTransitions = other.m_nTransitions;
+#ifdef DEBUG_STATE_MACHINE
+		m_name = other.m_name;
+#endif
 		m_transitions = new Transition <Verb, StateName>[m_nTransitions];
 		for (int i = 0; i < m_nTransitions; i++)
 			m_transitions[i] = other.m_transitions[i];
 
 		return *this;
 	}
+
+#ifdef DEBUG_STATE_MACHINE
+	const char *getStateName()
+	{
+		return m_name;
+	}
+#endif // DEBUG_STATE_MACHINE
 
 	StateName PerformTransition(Verb verb)
 	{
@@ -98,6 +119,9 @@ public:
 			if (m_transitions[i].m_verb == verb)
 				return m_transitions[i].m_state;
 		}
+#ifdef DEBUG_STATE_MACHINE
+		Tracef("Error: Transition not found, state=%s, verb=%d", m_name, (int)verb);
+#endif		
 		assert(false);
 		return (StateName)0;
 	}
@@ -139,16 +163,26 @@ private:
 	OnExit m_onExit;
 	Transition<Verb, StateName> *m_transitions;
 	int m_nTransitions;
+#ifdef DEBUG_STATE_MACHINE
+	const char *m_name;
+#endif	
 };
 
 template<typename Verb, typename StateName>
 struct StateMachine
 {
 public:
-	StateMachine(SMState<Verb, StateName> states[], int nStates, void *param) :
+	StateMachine(SMState<Verb, StateName> states[], int nStates, void *param
+#ifdef DEBUG_STATE_MACHINE
+		, const char *name
+#endif
+		) :
 		m_nStates(nStates),
 		m_first(true),
 		m_param(param)
+#ifdef DEBUG_STATE_MACHINE
+		, m_name(name)
+#endif
 	{
 		m_states = new SMState<Verb, StateName>[m_nStates];
 		for (int i = 0; i < m_nStates; i++)
@@ -173,21 +207,40 @@ public:
 		{
 			if (m_nextVerb != (Verb)0)
 			{
+#ifdef DEBUG_STATE_MACHINE
+				Tracef("State machine: %s, exiting state: %s\n", m_name, m_current->getStateName());
+#endif
 				Verb verb = m_current->doExit(m_nextVerb, m_param);
+#ifdef DEBUG_STATE_MACHINE
+				Tracef("State machine: %s, transfering from state: %s, verb: %d\n", m_name, m_current->getStateName(), (int)verb);
+#endif
 				StateName state = m_current->PerformTransition(verb);
+#ifdef DEBUG_STATE_MACHINE
+				Tracef("State machine: %s, new state: %d\n", m_name, (int)state);
+#endif
 				int i = 0;
 				for (; i < m_nStates; i++)
 				{
 					if (m_states[i].State() == state)
 						break;
 				}
+#ifdef DEBUG_STATE_MACHINE
+				if (i >= m_nStates)
+					Tracef("Error: State machine: %s, unknown new state: %d\n", m_name, (int)state);
+#endif
 				assert(i < m_nStates);
 				m_current = m_states + i;
+#ifdef DEBUG_STATE_MACHINE
+				Tracef("State machine: %s, entering  state: %s\n", m_name, m_current->getStateName());
+#endif
 				m_current->doEnter(m_param);
 			}
 		}
 		else
 		{
+#ifdef DEBUG_STATE_MACHINE
+			Tracef("State machine: %s, entering starting state: %s\n", m_name, m_current->getStateName());
+#endif
 			m_current->doEnter(m_param);
 			m_first = false;
 		}
@@ -207,6 +260,7 @@ private:
 	int m_nStates;
 	bool m_first;
 	void *m_param;
+	const char *m_name;
 };
 
 #endif // StateMachine_h

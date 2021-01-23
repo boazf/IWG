@@ -126,109 +126,173 @@ void RecoveryControl::Init()
 			OnCheckConnectivity, 
 			DecideRecoveryPath, 
 			checkConnecticityTrans, 
-			NELEMS(checkConnecticityTrans)),
+			NELEMS(checkConnecticityTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "CheckConnectivity"
+#endif
+			),
 		SMState<Message, State>(
 			State::WaitWhileConnected, 
 			OnEnterWaitConnectionPeriod, 
 			OnWaitConnectionTestPeriod, 
 			SMState<Message, State>::OnExitDoNothing, 
 			waitWhileConnectedTrans , 
-			NELEMS(waitWhileConnectedTrans)),
+			NELEMS(waitWhileConnectedTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "WaitWhileConnected"
+#endif
+			),
 		SMState<Message, State>(
 			State::StartCheckConnectivity, 
 			SMState<Message, State>::OnEnterDoNothing, 
 			OnStartCheckConnectivity, 
 			SMState<Message, State>::OnExitDoNothing, 
 			startCheckConnectivityTrans, 
-			NELEMS(startCheckConnectivityTrans)),
+			NELEMS(startCheckConnectivityTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "StartCheckConnectivity"
+#endif
+			),
 		SMState<Message, State>(
 			State::DisconnectRouter, 
 			OnEnterDisconnectRouter, 
 			OnDisconnectRouter, 
 			SMState<Message, State>::OnExitDoNothing, 
 			disconnectRouterTrans, 
-			NELEMS(disconnectRouterTrans)),
+			NELEMS(disconnectRouterTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "DisconnectRouter"
+#endif
+			),
 		SMState<Message, State>(
 			State::WaitAfterRouterRecovery, 
 			OnEnterWaitWhileRecovering, 
 			OnWaitWhileRecovering, 
 			SMState<Message, State>::OnExitDoNothing, 
 			waitAfterRouterRecoveryTrans, 
-			NELEMS(waitAfterRouterRecoveryTrans)),
+			NELEMS(waitAfterRouterRecoveryTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "WaitAfterRouterRecovery"
+#endif
+			),
 		SMState<Message, State>(
 			State::CheckConnectivityAfterRouterRecovery, 
 			OnEnterCheckConnectivity, 
 			OnCheckConnectivity, 
 			UpdateRecoveryState, 
 			checkConnectivityAfterRouterRecoveryTrans, 
-			NELEMS(checkConnectivityAfterRouterRecoveryTrans)),
+			NELEMS(checkConnectivityAfterRouterRecoveryTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "CheckConnectivityAfterRouterRecovery"
+#endif
+			),
 		SMState<Message, State>(
 			State::CheckRouterRecoveryTimeout, 
 			SMState<Message, State>::OnEnterDoNothing, 
 			OnCheckRouterRecoveryTimeout, 
 			SMState<Message, State>::OnExitDoNothing, 
 			checkRouterRecoveryTimeoutTrans, 
-			NELEMS(checkRouterRecoveryTimeoutTrans)),
+			NELEMS(checkRouterRecoveryTimeoutTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "CheckRouterRecoveryTimeout"
+#endif
+			),
 		SMState<Message, State>(
 			State::DisconnectModem, 
 			OnEnterDisconnectModem, 
 			OnDisconnectModem, 
 			SMState<Message, State>::OnExitDoNothing, 
 			disconnectModemTrans, 
-			NELEMS(disconnectModemTrans)),
+			NELEMS(disconnectModemTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "DisconnectModem"
+#endif
+			),
 		SMState<Message, State>(
 			State::WaitAfterModemRecovery, 
 			OnEnterWaitWhileRecovering, 
 			OnWaitWhileRecovering, 
 			SMState<Message, State>::OnExitDoNothing, 
 			waitAfterModemRecoveryTrans, 
-			NELEMS(waitAfterModemRecoveryTrans)),
+			NELEMS(waitAfterModemRecoveryTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "WaitAfterModemRecovery"
+#endif
+			),
 		SMState<Message, State>(
 			State::CheckConnectivityAfterModemRecovery, 
 			OnEnterCheckConnectivity, 
 			OnCheckConnectivity, 
 			UpdateRecoveryState, 
 			checkConnectivityAfterModemRecoveryTrans, 
-			NELEMS(checkConnectivityAfterModemRecoveryTrans)),
+			NELEMS(checkConnectivityAfterModemRecoveryTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "CheckConnectivityAfterModemRecovery"
+#endif
+			),
 		SMState<Message, State>(
 			State::CheckModemRecoveryTimeout, 
 			SMState<Message, State>::OnEnterDoNothing, 
 			OnCheckModemRecoveryTimeout, 
 			SMState<Message, State>::OnExitDoNothing, 
 			checkModemRecoveryTimeoutTrans, 
-			NELEMS(checkModemRecoveryTimeoutTrans)),
+			NELEMS(checkModemRecoveryTimeoutTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "CheckModemRecoveryTimeout"
+#endif
+			),
 		SMState<Message, State>(
 			State::CheckMaxCyclesExceeded, 
 			SMState<Message, State>::OnEnterDoNothing, 
 			OnCheckMaxCyclesExceeded, 
 			SMState<Message, State>::OnExitDoNothing, 
 			checkMaxCyclesExceededTrans, 
-			NELEMS(checkMaxCyclesExceededTrans)),
+			NELEMS(checkMaxCyclesExceededTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "CheckMaxCyclesExceeded"
+#endif
+			),
 		SMState<Message, State>(
 			State::CheckConnectivityAfterRecoveryFailure, 
 			OnEnterCheckConnectivity, 
 			OnCheckConnectivity, 
 			UpdateRecoveryState, 
 			checkConnectivityAfterRecoveryFailureTrans, 
-			NELEMS(checkConnectivityAfterRecoveryFailureTrans)),
+			NELEMS(checkConnectivityAfterRecoveryFailureTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "CheckConnectivityAfterRecoveryFailure"
+#endif
+			),
 		SMState<Message, State>(
 			State::WaitWhileRecoveryFailure, 
 			OnEnterWaitConnectionPeriod, 
 			OnWaitConnectionTestPeriod, 
 			SMState<Message, State>::OnExitDoNothing, 
 			waitWhileRecoveryFailureTrans,
-			NELEMS(waitWhileRecoveryFailureTrans)),
+			NELEMS(waitWhileRecoveryFailureTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "WaitWhileRecoveryFailure"
+#endif
+			),
 		SMState<Message, State>(
 			State::HWError, 
 			SMState<Message, State>::OnEnterDoNothing, 
 			OnHWError, 
 			SMState<Message, State>::OnExitDoNothing, 
 			hwErrorTrans, 
-			NELEMS(hwErrorTrans))
+			NELEMS(hwErrorTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "HWError"
+#endif
+			)
 	};
 
 	m_param = new SMParam(this, historyControl.getLastRecovery(), false);
-	m_pSM = new StateMachine<Message, State>(states, NELEMS(states), m_param);
+	m_pSM = new StateMachine<Message, State>(states, NELEMS(states), m_param
+#ifdef DEBUG_STATE_MACHINE
+			, "Recovery"
+#endif
+      );
 
 	AppConfig::getAppConfigChanged().addObserver(AppConfigChanged, this);
 }
@@ -464,6 +528,7 @@ Message RecoveryControl::OnCheckConnectivity(void *param)
 		break;
 	}
 
+	// Do not move this code to the switch
 	if (stateParam->stage == ChecksCompleted)
 	{
 		delete stateParam;

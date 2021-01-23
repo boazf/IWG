@@ -73,51 +73,83 @@ void HistoryControl::Init()
             OnStateDoNotihng,
    			SMState<H_Message, H_State>::OnExitDoNothing,
             connectedTrans,
-            NELEMS(connectedTrans)),
+            NELEMS(connectedTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "HS_Connected"
+#endif
+			),
         SMState<H_Message, H_State>(
             HS_CheckingConnectivity, 
             OnCheckingConnectivity,
             OnStateDoNotihng,
    			SMState<H_Message, H_State>::OnExitDoNothing,
             checkingConnectivityTrans,
-            NELEMS(checkingConnectivityTrans)),
+            NELEMS(checkingConnectivityTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "HS_CheckingConnectivity"
+#endif
+			),
         SMState<H_Message, H_State>(
             HS_RecoveringModem, 
             OnRecoveringModem,
             OnStateDoNotihng,
    			SMState<H_Message, H_State>::OnExitDoNothing,
             recoveringModemTrans,
-            NELEMS(recoveringModemTrans)),
+            NELEMS(recoveringModemTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "HS_RecoveringModem"
+#endif
+			),
         SMState<H_Message, H_State>(
             HS_RecoveringRouter, 
             OnRecoveringRouter,
             OnStateDoNotihng,
    			SMState<H_Message, H_State>::OnExitDoNothing,
             recoveringRouterTrans,
-            NELEMS(recoveringRouterTrans)),
+            NELEMS(recoveringRouterTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "HS_RecoveringRouter"
+#endif
+			),
         SMState<H_Message, H_State>(
             HS_RecoveryFailed, 
             OnRecoveryFailed,
             OnStateDoNotihng,
             AddToHistory,
             recoveryFailedTrans,
-            NELEMS(recoveryFailedTrans)),
+            NELEMS(recoveryFailedTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "HS_RecoveryFailed"
+#endif
+			),
         SMState<H_Message, H_State>(
             HS_CheckingConnectivityWhileInFailure, 
             OnCheckingConnectivity, 
             OnStateDoNotihng,
             AddToHistory,
             checkingConnectivityWhileInFailureTrans,
-            NELEMS(checkingConnectivityWhileInFailureTrans)),
+            NELEMS(checkingConnectivityWhileInFailureTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "HS_CheckingConnectivityWhileInFailure"
+#endif
+			),
         SMState<H_Message, H_State>(
             HS_HWFailure, 
             OnHWFailure,
             OnStateDoNotihng,
    			SMState<H_Message, H_State>::OnExitDoNothing,
             HWFailureTrans,
-            NELEMS(HWFailureTrans))
+            NELEMS(HWFailureTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "HS_HWFailure"
+#endif
+			)
     };
-  	m_pSM = new StateMachine<H_Message, H_State>(states, NELEMS(states), this);
+  	m_pSM = new StateMachine<H_Message, H_State>(states, NELEMS(states), this
+#ifdef DEBUG_STATE_MACHINE
+			, "History"
+#endif
+      );
     storage.init(maxHistory);
 }
 
