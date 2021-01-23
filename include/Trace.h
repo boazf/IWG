@@ -15,6 +15,7 @@ inline size_t Traceln(const String &message) { return Trace(message) + Traceln()
 size_t Tracef(const char *format, ...);
 #ifndef ESP32
 inline size_t Trace(uint32_t n) { return Tracef("%lu", n); }
+inline size_t Traceln(uint32_t n) { return Trace(n) + Traceln(); }
 #endif
 inline size_t Trace(long n) { return Tracef("%ld", n); }
 inline size_t Traceln(long n) { return Trace(n) + Traceln(); }
