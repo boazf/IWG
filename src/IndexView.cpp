@@ -8,11 +8,11 @@
 #include <Config.h>
 
 IndexView::IndexView(const char *_viewName, const char *_viewFile) : 
-    View(_viewName, _viewFile)
+   HttpFillerView(_viewName, _viewFile)
 {
 }
 
-static ViewFiller fillers[] = 
+ViewFiller IndexView::fillers[] = 
 {
     /*  0 */ [](String &fill) { fill = AppConfig::getAutoRecovery() ? "none" : "block"; fill += "\""; },
     /*  1 */ [](String &fill) { fill = GetRouterPowerState() == POWER_ON ? "checked" : ""; },
@@ -27,12 +27,10 @@ static ViewFiller fillers[] =
     /* 10 */ [](String &fill) { IPAddress myIP = Ethernet.localIP(); fill = String("'http://") + myIP[0] + "." + myIP[1]+ "." + myIP[2] + "." + myIP[3] + "/'"; }
 };
 
-bool IndexView::DoFill(int nFill, String &fill)
+int IndexView::getFillers(const ViewFiller *&_fillers)
 {
-    if ((size_t)nFill >= NELEMS(fillers))
-        return false;
-    fillers[nFill](fill);
-    return true;
+    _fillers = fillers;
+    return NELEMS(fillers);
 }
 
 int IndexView::id = 0;

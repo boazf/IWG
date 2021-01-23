@@ -11,11 +11,6 @@ public:
     {
     }
 
-    int read()
-    {
-        return file.read(buff, buffSize);
-    }
-
 private:
     const String mapper(const String _filePath)
     {

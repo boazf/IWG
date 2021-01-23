@@ -1,16 +1,21 @@
 #ifndef IndexView_h
 #define IndexView_h
 
-#include <View.h>
+#include <HttpFillerView.h>
 
-class IndexView : public View
+class IndexView : public HttpFillerView
 {
 public:
     IndexView(const char *_viewName, const char *_viewFile);     
     bool redirect(EthernetClient &client, const String &_id);
 
+protected:
+    int getFillers(const ViewFiller *&fillers);
+
 private:
-    bool DoFill(int nFill, String &fill);
+    static ViewFiller fillers[];
+
+private:
     static int id;
 };
 

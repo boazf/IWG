@@ -1,16 +1,25 @@
 #ifndef SettingsView_h
 #define SettingsView_h
 
-#include <View.h>
+#include <HttpFillerView.h>
 
-class SettingsView : public View
+class SettingsView : public HttpFillerView
 {
 public:
     SettingsView(const char *_viewName, const char *_viewFile);     
     bool post(EthernetClient &client, const String &resource, const String &id);
     
+protected:
+    int getFillers(const ViewFiller *&fillers);
+
 private:
-    bool DoFill(int nFill, String &fill);
+    static ViewFiller fillers[];
+
+private:
+    bool parseBool(const String &val);
+    IPAddress parseIPAddress(const String &val);
+    int parseInt(const String &val);
+    void SetConfigValue(const String &pair, bool &autoRecovery, bool &limitCycles);
 };
 
 extern SettingsView settingsView;

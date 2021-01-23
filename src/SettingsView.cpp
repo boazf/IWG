@@ -4,11 +4,11 @@
 #include <EthernetUtil.h>
 
 SettingsView::SettingsView(const char *_viewName, const char *_viewFile) : 
-    View(_viewName, _viewFile)
+    HttpFillerView(_viewName, _viewFile)
 {
 }
 
-static ViewFiller fillers[] = 
+ViewFiller SettingsView::fillers[] =
 {
     /*  0 */ [](String &fill){ fill = AppConfig::getAutoRecovery() ?  "checked=\"checked\" />" : " />"; },
     /*  1 */ [](String &fill)
@@ -30,20 +30,18 @@ static ViewFiller fillers[] =
     /* 12 */ [](String &fill){ fill = AppConfig::getLimitCycles() ? "'True'" : "'False'"; }
 };
 
-bool SettingsView::DoFill(int nFill, String &fill)
+int SettingsView::getFillers(const ViewFiller *&_fillers)
 {
-    if ((size_t)nFill >= NELEMS(fillers))
-        return false;
-    fillers[nFill](fill);
-    return true;
+    _fillers = fillers;
+    return NELEMS(fillers);
 }
 
-bool parseBool(String &val)
+bool SettingsView::parseBool(const String &val)
 {
     return val.equals("true");
 }
 
-IPAddress parseIPAddress(String &val)
+IPAddress SettingsView::parseIPAddress(const String &val)
 {
     int b1, b2, b3, b4;
     if (val.equals(""))
@@ -54,7 +52,7 @@ IPAddress parseIPAddress(String &val)
     return IPAddress(b1, b2, b3, b4);
 }
 
-int parseInt(String &val)
+int SettingsView::parseInt(const String &val)
 {
     int ret;
 
@@ -63,7 +61,7 @@ int parseInt(String &val)
     return ret;
 }
 
-static void SetConfigValue(String &pair, bool &autoRecovery, bool &limitCycles)
+void SettingsView::SetConfigValue(const String &pair, bool &autoRecovery, bool &limitCycles)
 {
     if (pair.equals(""))
         return;

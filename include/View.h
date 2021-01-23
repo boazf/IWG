@@ -20,8 +20,6 @@ enum CONTENT_TYPE
     WOFF2
 };
 
-typedef void (*ViewFiller)(String &fill);
-
 struct View
 {
 public:
@@ -48,7 +46,6 @@ public:
 
     const String viewPath;
     const String viewFilePath;
-    int viewHandler(byte *buff, int buffSize);
     virtual bool open(byte *buff, int buffSize);
     virtual void close();
     virtual bool redirect(EthernetClient &client, const String &id);
@@ -66,9 +63,6 @@ protected:
     int offset;
     byte *buff;
     int buffSize;
-
-private:
-    virtual bool DoFill(int nFill, String &fill);
 };
 
 #endif // View_h
