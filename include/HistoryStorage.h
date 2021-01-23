@@ -73,20 +73,20 @@ private:
     void put(int i) const
     {
 #ifdef DEBUG_HISTORY
-        Serial.print("Put History(");
-        Serial.print(i);
-        Serial.print("): source=");
-        Serial.print(data.recoverySource);
-        Serial.print(", status=");
-        Serial.print(data.recoveryStatus);
-        Serial.print(", route=");
-        Serial.print(data.routerRecoveries);
-        Serial.print(", modem=");
-        Serial.print(data.modemRecoveries);
-        Serial.print(", start=");
-        Serial.print(data.startTime);
-        Serial.print(", end=");
-        Serial.println(data.endTime);
+        Trace("Put History(");
+        Trace(i);
+        Trace("): source=");
+        Trace(data.recoverySource);
+        Trace(", status=");
+        Trace(data.recoveryStatus);
+        Trace(", route=");
+        Trace(data.routerRecoveries);
+        Trace(", modem=");
+        Trace(data.modemRecoveries);
+        Trace(", start=");
+        Trace(data.startTime);
+        Trace(", end=");
+        Traceln(data.endTime);
 #endif
         EEPROM.put<HistoryStorageItemData>(HISTORY_EEPROM_START_ADDRESS + sizeof(int) + sizeof(HistoryStorageItemData) * i, data);
     }
@@ -95,20 +95,20 @@ private:
     {
         EEPROM.get<HistoryStorageItemData>(HISTORY_EEPROM_START_ADDRESS + sizeof(int) + sizeof(HistoryStorageItemData) * i, data);
 #ifdef DEBUG_HISTORY
-        Serial.print("Get History(");
-        Serial.print(i);
-        Serial.print("): source=");
-        Serial.print(data.recoverySource);
-        Serial.print(", status=");
-        Serial.print(data.recoveryStatus);
-        Serial.print(", route=");
-        Serial.print(data.routerRecoveries);
-        Serial.print(", modem=");
-        Serial.print(data.modemRecoveries);
-        Serial.print(", start=");
-        Serial.print(data.startTime);
-        Serial.print(", end=");
-        Serial.println(data.endTime);
+        Trace("Get History(");
+        Trace(i);
+        Trace("): source=");
+        Trace(data.recoverySource);
+        Trace(", status=");
+        Trace(data.recoveryStatus);
+        Trace(", route=");
+        Trace(data.routerRecoveries);
+        Trace(", modem=");
+        Trace(data.modemRecoveries);
+        Trace(", start=");
+        Trace(data.startTime);
+        Trace(", end=");
+        Traceln(data.endTime);
 #endif
         return *this;
     }
