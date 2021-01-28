@@ -31,7 +31,7 @@ void HTTPServer::AddController(Controller *controller)
     controllers.Insert(controller);
 }
 
-bool HTTPServer::DoController(EthernetClient &client, String &resource, HTTP_REQ_TYPE requestType)
+bool HTTPServer::DoController(PClientContext context, String &resource, HTTP_REQ_TYPE requestType)
 {
     int slashIndex = resource.indexOf('/');
     String id;
@@ -75,10 +75,16 @@ bool HTTPServer::DoController(EthernetClient &client, String &resource, HTTP_REQ
     switch(requestType)
     {
     case HTTP_GET:
-        return controllerNode->value->Get(client, id);
+        return controllerNode->value->Get(context->client, id);
 
     case HTTP_POST:
-        return controllerNode->value->Post(client, id);
+        return controllerNode->value->Post(context->client, id, context->contentLength, context->contentType);
+
+    case HTTP_PUT:
+        return controllerNode->value->Put(context->client, id);
+
+    case HTTP_DELETE:
+        return controllerNode->value->Delete(context->client, id);
 
     default:;
     }
@@ -318,6 +324,10 @@ HTTP_REQ_TYPE HTTPServer::RequestType(String &request)
         return HTTP_REQ_TYPE::HTTP_GET;
     else if (strncmp(request.c_str(), "POST ", 5) == 0)
         return HTTP_REQ_TYPE::HTTP_POST;
+    else if (strncmp(request.c_str(), "PUT ", 4) == 0)
+        return HTTP_REQ_TYPE::HTTP_PUT;
+    else if (strncmp(request.c_str(), "DELETE ", 7) == 0)
+        return HTTP_REQ_TYPE::HTTP_DELETE;
 
     return HTTP_REQ_TYPE::HTTP_UNKNOWN;
 }
@@ -330,6 +340,10 @@ bool HTTPServer::ProcessLine(PClientContext context)
             context->request = context->reqLine;
         else if (context->reqLine.startsWith("If-Modified-Since: "))
             context->lastModified = context->reqLine.substring(context->reqLine.indexOf(' ') + 1);
+        else if (context->reqLine.startsWith("Content-Length: "))
+            sscanf(context->reqLine.substring(context->reqLine.indexOf(' ') + 1).c_str(), "%u", &(context->contentLength));
+        else if (context->reqLine.startsWith("Content-Type: "))
+            context->contentType = context->reqLine.substring(context->reqLine.indexOf(' ') + 1);
         context->reqLine = "";
         return true;
     }
@@ -350,7 +364,7 @@ void HTTPServer::ServiceRequest(PClientContext context)
     if (resource.startsWith("/API"))
     {
         String controller = resource.substring(5);
-        if (!DoController(context->client, controller, requestType))
+        if (!DoController(context, controller, requestType))
             PageNotFound(context->client);
         return;
     }
@@ -367,6 +381,8 @@ void HTTPServer::ServiceRequest(PClientContext context)
             PageNotFound(context->client);
         break;
 
+    case HTTP_PUT:
+    case HTTP_DELETE:
     case HTTP_UNKNOWN:
         PageNotFound(context->client);
         break;

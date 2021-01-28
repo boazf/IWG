@@ -10,7 +10,23 @@ bool RecoveryController::Get(EthernetClient &client, String &resource)
     return false;
 }
 
-bool RecoveryController::Post(EthernetClient &client, String &resource)
+bool RecoveryController::Put(EthernetClient &client, String &resource)
+{
+#ifdef DEBUG_HTTP_SERVER
+    Traceln("RecoveryController Put");
+#endif
+    return false;
+}
+
+bool RecoveryController::Delete(EthernetClient &client, String &resource)
+{
+#ifdef DEBUG_HTTP_SERVER
+    Traceln("RecoveryController Delete");
+#endif
+    return false;
+}
+
+bool RecoveryController::Post(EthernetClient &client, String &resource, size_t contentLength, String contentType)
 {
 #ifdef DEBUG_HTTP_SERVER
     Traceln("RecoveryController Post");

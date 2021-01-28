@@ -49,7 +49,17 @@ bool SSEController::Get(EthernetClient &client, String &id)
     return true;
 }
 
-bool SSEController::Post(EthernetClient &client, String &resource)
+bool SSEController::Post(EthernetClient &client, String &resource, size_t contentLength, String contentType)
+{
+    return false;
+}
+
+bool SSEController::Put(EthernetClient &client, String &resource)
+{
+    return false;
+}
+
+bool SSEController::Delete(EthernetClient &client, String &resource)
 {
     return false;
 }

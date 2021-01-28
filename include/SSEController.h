@@ -32,7 +32,9 @@ public:
     }
 
     bool Get(EthernetClient &client, String &resource);
-    bool Post(EthernetClient &client, String &resource);
+    bool Post(EthernetClient &client, String &resource, size_t contentLength, String contentType);
+    bool Put(EthernetClient &client, String &resource);
+    bool Delete(EthernetClient &client, String &resource);
     void Init();
     bool DeleteClient(EthernetClient &client, bool stopClient);
     bool IsValidId(const String &id);

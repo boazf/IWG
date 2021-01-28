@@ -19,13 +19,17 @@ typedef struct ClientContext_
     String reqLine;
     String request;
     String lastModified;
+    size_t contentLength;
+    String contentType;
 } ClientContext, *PClientContext;
 
 enum HTTP_REQ_TYPE
 {
     HTTP_UNKNOWN,
     HTTP_GET,
-    HTTP_POST
+    HTTP_POST,
+    HTTP_PUT,
+    HTTP_DELETE
 };
 
 class HTTPServer
@@ -39,7 +43,7 @@ public:
 private:
     static void CheckForNewClients();
     static String RequestResource(String &request);
-    static bool DoController(EthernetClient &client, String &resource, HTTP_REQ_TYPE requestType);
+    static bool DoController(PClientContext context, String &resource, HTTP_REQ_TYPE requestType);
     static bool GetView(const String resource, View *&view, String &id);
     static bool HandlePostRequest(PClientContext context, const String &resource);
     static bool HandleGetRequest(PClientContext context, String &resource);

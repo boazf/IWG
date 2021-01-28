@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Files Explorer</title>
+
+    <script type="text/javascript">
+        var loadError=false;
+    </script>
+    <link onerror="loadError=true" rel="stylesheet" href="/lib/bstrap/css/bstrap.css" />
+    <link onerror="loadError=true" rel="stylesheet" href="/css/site.css" />
+    <link onerror="loadError=true" rel="stylesheet" href="/css/files.css" />
+    <link rel="icon" href="/images/ir.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/images/ir.ico" type="image/x-icon" />
+</head>
+<body onload="checkLoadError()">
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="/Index"><span class="glyphicon glyphicon-dashboard"></span> Control</a></li>
+                    <li><a href="/Settings"><span class="glyphicon glyphicon-wrench"></span> Settings</a></li>
+                    <li><a href="/History"><span class="glyphicon  glyphicon-time"></span> History</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <script onerror="loadError=true" src="/lib/jquery/jqcombo.js"></script>
+
+    <div class="container body-content">
+        
+
+
+<h2><span class="glyphicon glyphicon-folder-close"></span> Files Explorer</h2>
+
+<table class="table" style="margin-bottom:0px">
+    <tr>
+        <td>
+            <div id="dirCrumbs"></div>
+        </td>
+        <td class="narrow">
+            <span data-toggle="tooltip" title="Make Directory">
+                <span class="glyphicon glyphicon-plus" data-toggle="modal" data-target="#makeDirectory"></span>
+            </span>
+        </td>
+        <td class="narrow">
+            <label for="uploadFile"><span class="glyphicon glyphicon-upload" data-toggle="tooltip" title="Upload File"></span></label>
+            <input id="uploadFile" style="visibility: collapse; position: absolute;" type="file" onchange="uploadFile(this)">
+        </td>
+    </tr>
+</table>
+
+<div id="dirList" class="container">
+    <div class="loader"></div>
+</div>
+
+<div class="modal fade" id="makeDirectory" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Make Directory</h4>
+        </div>
+        <div class="modal-body">
+          <label for="directoryName">Directory name: </label>
+          <input type="text" id="directoryName">
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal" onclick="makeDir()">OK</button>
+            <button type="button" class="btn" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+      
+    </div>
+</div>
+
+<script type="text/javascript">
+    function addCrumb(ul, subPath, subDir) {
+        subPath += "/" + subDir;
+        var li = $("<li></li>");
+        ul.append(li);
+        var anchor = $("<a></a>");
+        anchor.attr("href", subPath);
+        anchor.append(subDir.replace(/%20/g, " "));
+        li.append(anchor);
+
+        return subPath;
+    }
+
+    async function getFiles(path) {
+        var response = await fetch(path, { method: "POST" })
+        return response.json()
+    }
+
+    $(document).ready(async function () {
+        var dir=$(document)[0].location.pathname;
+        if (dir.length < "/files/".length)
+            dir = "";
+        else
+            dir = dir.substr(7);
+        var ul = $("<ul></ul>");
+        ul.addClass("breadcrumb");
+        ul.css("margin-bottom", "0px");
+        var li = $("<li></li>");
+        ul.append(li);
+        var anchor = $("<a></a>");
+        var subPath = "/files";
+        anchor.attr("href", subPath);
+        anchor.append("~");
+        li.append(anchor);
+        var dirPart = dir;
+        var iSlash = dirPart.indexOf('/');
+        while (iSlash != -1) {
+            subDir = dirPart.substr(0, iSlash);
+            subPath = addCrumb(ul, subPath, subDir);
+            dirPart = dirPart.substr(iSlash+1);
+            iSlash = dirPart.indexOf('/');
+        }
+        if (dirPart != "")
+            addCrumb(ul, subPath, dirPart);
+        $("#dirCrumbs").append(ul);
+        var filesData = await getFiles($(document)[0].location.pathname);
+        if (filesData[0].result == 0) {
+            var table = $("<table></table>");
+            table.addClass("table");
+            table.addClass("table-striped");
+            for (var i = 0; i < filesData[1].files.length; i++)
+            {
+                var fileInfo = filesData[1].files[i];
+                var tr = $("<tr></tr>");
+                tr.addClass(i % 2 == 0 ? "gray" : "blue");
+                if (fileInfo.isDir) {
+                    tr.append("<td class=\"narrow\"><span class='glyphicon  glyphicon-trash' onclick=\"deleteDir('" + fileInfo.name + "')\" data-toggle=\"tooltip\" title=\"Remove Directory\"></span></td>");
+                    tr.append("<td class=\"narrow\"><a href='/files" + fileInfo.name + "'><span class='glyphicon  glyphicon-hand-right' data-toggle=\"tooltip\" title=\"Change Directory\"></span></a></td>");
+                } else {
+                    tr.append("<td class=\"narrow\"></span><span class='glyphicon  glyphicon-trash' onclick=\"deleteFile('" + fileInfo.name + "')\" data-toggle=\"tooltip\" title=\"Delete File\"></span></td>");
+                    tr.append("<td class=\"narrow\"><a href='/api/files" + fileInfo.name + "' download><span class='glyphicon glyphicon-download' data-toggle=\"tooltip\" title=\"Download File\"></span></a></td>");
+                }
+                td = $("<td></td>");
+                td.append(fileInfo.time);
+                tr.append(td);
+                td = $("<td></td>");
+                td.append(fileInfo.isDir ? "&#60;DIR&#62;" : "");
+                tr.append(td);
+                td = $("<td></td>");
+                td.append(fileInfo.isDir ? "" : fileInfo.size);
+                td.addClass("right");
+                tr.append(td);    
+                td = $("<td></td>");
+                td.append(fileInfo.name.substr(fileInfo.name.lastIndexOf('/') + 1));
+                tr.append(td);    
+                table.append(tr);
+            }
+            $("#dirList").replaceWith(table);
+            $('[data-toggle="tooltip"]').tooltip();
+        }
+        else
+        {
+            $("#dirList").replaceWith("<p style='background:#ffa0a0'>Error: no such directory.</p>")
+        }
+    });
+
+    async function deleteFileOrDirectory(path) {
+        var response = await fetch('/api/files' + path, {method: "DELETE"});
+        return response.status == 200;
+    }
+
+    function confirmDelete(type, path) {
+        return confirm("Are you sure that you want to " + type + " " + path.substr(path.lastIndexOf("/") + 1) + "?");
+    }
+
+    async function deleteFile(filePath) {
+        if (!confirmDelete("delete file", filePath))
+            return;
+        if (!await deleteFileOrDirectory(filePath)) {
+            alert("Failed to delete file!");
+        } else {
+            location.replace($(document)[0].location.pathname);
+        }
+    }
+
+    async function deleteDir(dirPath) {
+        if (!confirmDelete("remove directory", dirPath))
+            return;
+        if (!await deleteFileOrDirectory(dirPath)) {
+            alert("Failed to remove directory!");
+        } else {
+            location.replace($(document)[0].location.pathname);
+        }
+    }
+
+    async function makeDir() {
+        var response = await fetch('/api' + $(document)[0].location.pathname + '/' + $("#directoryName").val(), {method: "PUT"});
+        if (response.status == 200) {
+            location.replace($(document)[0].location.pathname);
+        } else {
+            alert("Failed to create directory!");
+        }
+    }
+
+    async function uploadFile(inp) {
+        let formData = new FormData();           
+        formData.append("file", inp.files[0]);
+        var response = await fetch('/api' + $(document)[0].location.pathname, {method: "POST", body: formData});
+        if (response.status != 200) {
+            alert("File upload failed!");
+        } else {
+            location.replace($(document)[0].location.pathname);
+        }
+    }
+
+    function checkLoadError() {
+        if (loadError)
+            location.replace(appBase + 'index');
+    }
+</script>
+    </div>
+    <script onerror="loadError=true" src="/lib/bstrap/js/bstrap.js"></script>
+</body>
+</html>
