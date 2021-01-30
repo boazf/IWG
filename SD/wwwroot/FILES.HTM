@@ -76,7 +76,7 @@
           <input type="text" id="directoryName">
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal" onclick="makeDir()">OK</button>
+            <button type="button" class="btn btn-primary" id="makeDirOK" data-dismiss="modal" onclick="makeDir()">OK</button>
             <button type="button" class="btn" data-dismiss="modal">Cancel</button>
         </div>
       </div>
@@ -103,6 +103,13 @@
     }
 
     $(document).ready(async function () {
+        $("#makeDirectory").on("shown.bs.modal", function() {
+            $("#directoryName")[0].focus();
+        })
+        $("#directoryName").on("keyup", function(event) {
+            if (event.keyCode == 13)
+                $("#makeDirOK")[0].click();
+        });
         var dir=$(document)[0].location.pathname;
         if (dir.length < "/files/".length)
             dir = "";
@@ -179,13 +186,17 @@
         return confirm("Are you sure that you want to " + type + " " + path.substr(path.lastIndexOf("/") + 1) + "?");
     }
 
+    function refresh() {
+        location.replace($(document)[0].location.pathname);
+    }
+
     async function deleteFile(filePath) {
         if (!confirmDelete("delete file", filePath))
             return;
         if (!await deleteFileOrDirectory(filePath)) {
             alert("Failed to delete file!");
         } else {
-            location.replace($(document)[0].location.pathname);
+            refresh()
         }
     }
 
@@ -195,14 +206,14 @@
         if (!await deleteFileOrDirectory(dirPath)) {
             alert("Failed to remove directory!");
         } else {
-            location.replace($(document)[0].location.pathname);
+            refresh()
         }
     }
 
     async function makeDir() {
         var response = await fetch('/api' + $(document)[0].location.pathname + '/' + $("#directoryName").val(), {method: "PUT"});
         if (response.status == 200) {
-            location.replace($(document)[0].location.pathname);
+            refresh()
         } else {
             alert("Failed to create directory!");
         }
@@ -215,13 +226,13 @@
         if (response.status != 200) {
             alert("File upload failed!");
         } else {
-            location.replace($(document)[0].location.pathname);
+            refresh()
         }
     }
 
     function checkLoadError() {
         if (loadError)
-            location.replace(appBase + 'index');
+            refresh();
     }
 </script>
     </div>
