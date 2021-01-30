@@ -33,10 +33,10 @@ bool FilesController::Get(EthernetClient &client, String &resource)
     while (len)
     {
         client.write(buff, len);
+        client.flush();
         len = file.read(buff, sizeof(buff));
     }
 
-    client.flush();
     file.close();
 
     return true;
