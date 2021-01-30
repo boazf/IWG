@@ -158,7 +158,7 @@
     <script type="text/javascript">
         function checkLoadError() {
             if (loadError)
-                location.replace(appBase + 'index');
+                location.replace($(document)[0].location.pathname);
         }
         $("#serverclear").click(function(){
             $("#ServerForConnectionTesting").val('');

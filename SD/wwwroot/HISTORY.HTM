@@ -65,8 +65,9 @@
 
     function checkLoadError() {
         if (loadError)
-            location.replace(appBase + 'index');
+            location.replace($(document)[0].location.pathname);
     }
+
     function setRecoveryStatus(index, status) {
         var historyItem = $("#historyItem" + index);
         var recoveryStatusElem = $("#recoveryStatus" + index)[0];
