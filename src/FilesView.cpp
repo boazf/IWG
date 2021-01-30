@@ -33,6 +33,7 @@ bool FilesView::post(EthernetClient &client, const String &resource, const Strin
             localtime_r(&fileTime, &tmFile);
             strftime(buff, sizeof(buff), "%d/%m/%Y %H:%M", &tmFile);
             resp += String(first ? "" : ",\n") + "{ \"time\": \"" + buff + "\", \"name\": \"" + file.name() + "\", \"isDir\": " + (file.isDirectory() ? "true" : "false") + ", \"size\": " + file.size() + " }";
+            file.close();
             file = dir.openNextFile(FILE_READ);
             first = false;
         }
