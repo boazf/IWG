@@ -48,6 +48,8 @@ bool HTTPServer::DoController(PClientContext context, String &resource, HTTP_REQ
         controller = resource;
     }
 
+    controller.toUpperCase();
+
 #ifdef DEBUG_HTTP_SERVER
     Trace("controller: ");
     Trace(controller.c_str());
@@ -358,12 +360,13 @@ void HTTPServer::ServiceRequest(PClientContext context)
     Traceln(context->request);
 #endif
     String resource = RequestResource(context->request);
+    String resourceOrg = resource;
     resource.toUpperCase();
     HTTP_REQ_TYPE requestType = RequestType(context->request);
 
     if (resource.startsWith("/API"))
     {
-        String controller = resource.substring(5);
+        String controller = resourceOrg.substring(5);
         if (!DoController(context, controller, requestType))
             PageNotFound(context->client);
         return;
