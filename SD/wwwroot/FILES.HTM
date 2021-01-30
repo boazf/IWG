@@ -150,7 +150,7 @@
                     tr.append("<td class=\"narrow\"><span class='glyphicon  glyphicon-trash' onclick=\"deleteDir('" + fileInfo.name + "')\" data-toggle=\"tooltip\" title=\"Remove Directory\"></span></td>");
                     tr.append("<td class=\"narrow\"><a href='/files" + fileInfo.name + "'><span class='glyphicon  glyphicon-hand-right' data-toggle=\"tooltip\" title=\"Change Directory\"></span></a></td>");
                 } else {
-                    tr.append("<td class=\"narrow\"></span><span class='glyphicon  glyphicon-trash' onclick=\"deleteFile('" + fileInfo.name + "')\" data-toggle=\"tooltip\" title=\"Delete File\"></span></td>");
+                    tr.append("<td class=\"narrow\"><span class='glyphicon  glyphicon-trash' onclick=\"deleteFile('" + fileInfo.name + "')\" data-toggle=\"tooltip\" title=\"Delete File\"></span></td>");
                     tr.append("<td class=\"narrow\"><a href='/api/files" + fileInfo.name + "' download><span class='glyphicon glyphicon-download' data-toggle=\"tooltip\" title=\"Download File\"></span></a></td>");
                 }
                 td = $("<td></td>");
