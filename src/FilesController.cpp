@@ -97,19 +97,19 @@ bool FilesController::Post(EthernetClient &client, String &resource, size_t cont
 
     bool failed = false;
     size_t boundaryLen = boundary.length() + 6;
-    size_t fileSize = contentLength - nBytes - boundaryLen;
+    size_t restOfContent = contentLength - nBytes;
     byte buff[1024];
     size_t buffSize = sizeof(buff);
-    for(;fileSize % buffSize <= boundaryLen; buffSize--);
+    for(;restOfContent % buffSize <= boundaryLen; buffSize--);
 #ifdef DEBUG_HTTP_SERVER
-    Tracef("File name: %s, File size: %lu, Boundary: %s %lu, Buff size: %lu, Reminder: %lu\n", fileName.c_str(), fileSize, boundary.c_str(), boundaryLen, buffSize, fileSize % buffSize);
+    Tracef("File name: %s, File size: %lu, Boundary: %s %lu, Buff size: %lu, Reminder: %lu\n", fileName.c_str(), restOfContent - boundaryLen, boundary.c_str(), boundaryLen, buffSize, restOfContent % buffSize);
 #endif
     nBytes = 0;
-    while (!failed && nBytes < fileSize)
+    while (!failed && nBytes < restOfContent)
     {
         size_t len = client.read(buff, buffSize);
         nBytes += len;
-        if (nBytes >= fileSize)
+        if (nBytes >= restOfContent)
             len -= boundaryLen;
         failed = file.write(buff, len) != len;
         file.flush();
