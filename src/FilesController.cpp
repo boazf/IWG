@@ -3,6 +3,7 @@
 #include <FilesController.h>
 #include <EthernetUtil.h>
 #include <SDUtil.h>
+#include <TimeUtil.h>
 
 void FilesController::normilizePath(String &path)
 {
@@ -107,11 +108,30 @@ bool FilesController::Post(EthernetClient &client, String &resource, size_t cont
     nBytes = 0;
     while (!failed && nBytes < restOfContent)
     {
+        time_t t0 = t_now;
+        while (!client.available() && t_now - t0 <= 3);
+        if (!client.available())
+        {
+#ifdef DEBUG_HTTP_SERVER
+            Tracef("File was not entirely received. Expected: %lu, received: %lu\n", restOfContent, nBytes);
+#endif
+            failed = true;
+            break;
+        }
+
         size_t len = client.read(buff, buffSize);
+
         nBytes += len;
         if (nBytes >= restOfContent)
             len -= boundaryLen;
-        failed = file.write(buff, len) != len;
+        size_t written = file.write(buff, len);
+        if (written != len)
+        {
+#ifdef DEBUG_HTTP_SERVER
+            Tracef("Written %lu bytes, expected: %lu\n", written, len);
+#endif
+            failed = true;
+        }
         file.flush();
     }
 
@@ -122,6 +142,7 @@ bool FilesController::Post(EthernetClient &client, String &resource, size_t cont
 #ifdef DEBUG_HTTP_SERVER
         Traceln("File upload failed!");
 #endif
+        SD.remove(resource + "/" + fileName);
         return false;
     }
 
