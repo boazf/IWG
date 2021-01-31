@@ -50,7 +50,7 @@
         </td>
         <td class="narrow">
             <span data-toggle="tooltip" title="Make Directory">
-                <span class="glyphicon glyphicon-plus" data-toggle="modal" data-target="#makeDirectory"></span>
+                <span id="makeDir" class="glyphicon glyphicon-plus" data-toggle="modal" data-target="#makeDirectory"></span>
             </span>
         </td>
         <td class="narrow">
@@ -173,7 +173,9 @@
         }
         else
         {
-            $("#dirList").replaceWith("<p style='background:#ffa0a0'>Error: no such directory.</p>")
+            $("#dirList").replaceWith("<div class=\"alert alert-danger\">Error: no such directory!</div>");
+            $("#makeDir").prop("disabled", true);
+            $("#uploadFile").prop("disabled", true);
         }
     });
 
