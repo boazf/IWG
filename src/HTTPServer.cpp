@@ -144,9 +144,6 @@ bool HTTPServer::HandlePostRequest(PClientContext context, const String &resourc
 bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
 {
     TRACK_FREE_MEMORY(__func__);
-#ifdef ESP32
-    AutoSD autoSD;
-#endif
     EthernetClient *client = &context->client;
     AutoPtr<View> tempView;
     View *view = NULL;
@@ -356,6 +353,9 @@ bool HTTPServer::ProcessLine(PClientContext context)
 
 void HTTPServer::ServiceRequest(PClientContext context)
 {
+#ifdef ESP32
+    AutoSD autoSD;
+#endif
 #ifdef DEBUG_HTTP_SERVER
     Traceln(context->request);
 #endif

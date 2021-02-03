@@ -74,41 +74,48 @@ static void TraceTimeStamp(SdFile logFile)
 static void FileLoggerTask(void *parameter)
 {
     bool shouldTraceTimeStamp = true;
-    AutoSD autoSD;
-    SdFile logFile = SD.open(logFileName, FILE_APPEND);
-
     while(true)
     {
-        size_t fileSize = logFile.size();
-        if (fileSize > 4 * 1024 * 1024)
+        xSemaphoreTake(logSem, portMAX_DELAY);
         {
+            AutoSD autoSD;
+            SdFile logFile = SD.open(logFileName, FILE_APPEND);
+
+            size_t fileSize = logFile.size();
+            if (fileSize > 4 * 1024 * 1024)
+            {
+                logFile.close();
+                CreateNewLogFileName();
+                logFile = SD.open(logFileName, FILE_WRITE);
+                shouldTraceTimeStamp = true;
+            }
+
+            while(xSemaphoreTake(logSem, 2000 / portTICK_PERIOD_MS ))
+            {
+                ListNode<String> *messageNode = messages.head;
+                const char *message = messageNode->value.c_str();
+                char *newLine = strchr(message, '\n');
+                while (newLine != NULL)
+                {
+                    if (shouldTraceTimeStamp)
+                        TraceTimeStamp(logFile);
+                    logFile.write((const uint8_t *)message, newLine - message + 1);
+                    shouldTraceTimeStamp = true;
+                    message = newLine + 1;
+                    newLine = strchr(message, '\n');
+                }
+                if (message[0] != '\0')
+                {
+                    if (shouldTraceTimeStamp)
+                        TraceTimeStamp(logFile);
+                    shouldTraceTimeStamp = false;
+                    logFile.write((const uint8_t *)message, strlen(message));
+                }
+                logFile.flush();
+                messages.Delete(messageNode);
+            }
             logFile.close();
-            CreateNewLogFileName();
-            logFile = SD.open(logFileName, FILE_WRITE);
-            shouldTraceTimeStamp = true;
         }
-        xSemaphoreTake(logSem, portMAX_DELAY);        
-        ListNode<String> *messageNode = messages.head;
-        const char *message = messageNode->value.c_str();
-        char *newLine = strchr(message, '\n');
-        while (newLine != NULL)
-        {
-            if (shouldTraceTimeStamp)
-                TraceTimeStamp(logFile);
-            logFile.write((const uint8_t *)message, newLine - message + 1);
-            shouldTraceTimeStamp = true;
-            message = newLine + 1;
-            newLine = strchr(message, '\n');
-        }
-        if (message[0] != '\0')
-        {
-            if (shouldTraceTimeStamp)
-                TraceTimeStamp(logFile);
-            shouldTraceTimeStamp = false;
-            logFile.write((const uint8_t *)message, strlen(message));
-        }
-        logFile.flush();
-        messages.Delete(messageNode);
     }
 }
 #endif // ESP32
