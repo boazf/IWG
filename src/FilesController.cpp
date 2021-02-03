@@ -29,13 +29,14 @@ bool FilesController::Get(EthernetClient &client, String &resource)
     client.println();
 
     byte buff[1024];
-
-    size_t len = file.read(buff, sizeof(buff));
-    while (len)
+    size_t fileSize = file.size();
+    size_t nBytes = 0;
+    while (nBytes < fileSize)
     {
+        size_t len = file.read(buff, min<size_t>(sizeof(buff), fileSize - nBytes));
+        nBytes += len;
         client.write(buff, len);
         client.flush();
-        len = file.read(buff, sizeof(buff));
     }
 
     file.close();
@@ -108,9 +109,18 @@ bool FilesController::Post(EthernetClient &client, String &resource, size_t cont
     nBytes = 0;
     while (!failed && nBytes < restOfContent)
     {
+        size_t expected = min<size_t>(buffSize, restOfContent - nBytes);
+        size_t len = 0;
         time_t t0 = t_now;
-        while (!client.available() && t_now - t0 <= 3);
-        if (!client.available())
+        
+        while(len < expected && t_now - t0 < 3)
+        {
+            size_t readRes = client.read(buff + len, buffSize - len);
+            if (readRes != 0xffffffff)
+                len += readRes;
+        }
+
+        if (len != expected)
         {
 #ifdef DEBUG_HTTP_SERVER
             Tracef("File was not entirely received. Expected: %lu, received: %lu\n", restOfContent, nBytes);
@@ -118,8 +128,6 @@ bool FilesController::Post(EthernetClient &client, String &resource, size_t cont
             failed = true;
             break;
         }
-
-        size_t len = client.read(buff, buffSize);
 
         nBytes += len;
         if (nBytes >= restOfContent)
