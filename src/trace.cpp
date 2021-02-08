@@ -71,6 +71,31 @@ static void TraceTimeStamp(SdFile logFile)
     logFile.flush();
 }
 
+static void Log(SdFile logFile, bool &shouldTraceTimeStamp)
+{
+    ListNode<String> *messageNode = messages.head;
+    const char *message = messageNode->value.c_str();
+    char *newLine = strchr(message, '\n');
+    while (newLine != NULL)
+    {
+        if (shouldTraceTimeStamp)
+            TraceTimeStamp(logFile);
+        logFile.write((const uint8_t *)message, newLine - message + 1);
+        shouldTraceTimeStamp = true;
+        message = newLine + 1;
+        newLine = strchr(message, '\n');
+    }
+    if (message[0] != '\0')
+    {
+        if (shouldTraceTimeStamp)
+            TraceTimeStamp(logFile);
+        shouldTraceTimeStamp = false;
+        logFile.write((const uint8_t *)message, strlen(message));
+    }
+    logFile.flush();
+    messages.Delete(messageNode);
+}
+
 static void FileLoggerTask(void *parameter)
 {
     bool shouldTraceTimeStamp = true;
@@ -90,29 +115,11 @@ static void FileLoggerTask(void *parameter)
                 shouldTraceTimeStamp = true;
             }
 
+            Log(logFile, shouldTraceTimeStamp);
+
             while(xSemaphoreTake(logSem, 2000 / portTICK_PERIOD_MS ))
             {
-                ListNode<String> *messageNode = messages.head;
-                const char *message = messageNode->value.c_str();
-                char *newLine = strchr(message, '\n');
-                while (newLine != NULL)
-                {
-                    if (shouldTraceTimeStamp)
-                        TraceTimeStamp(logFile);
-                    logFile.write((const uint8_t *)message, newLine - message + 1);
-                    shouldTraceTimeStamp = true;
-                    message = newLine + 1;
-                    newLine = strchr(message, '\n');
-                }
-                if (message[0] != '\0')
-                {
-                    if (shouldTraceTimeStamp)
-                        TraceTimeStamp(logFile);
-                    shouldTraceTimeStamp = false;
-                    logFile.write((const uint8_t *)message, strlen(message));
-                }
-                logFile.flush();
-                messages.Delete(messageNode);
+                Log(logFile, shouldTraceTimeStamp);
             }
             logFile.close();
         }
