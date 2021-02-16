@@ -1,14 +1,14 @@
-#ifndef HttpFillerView_h
-#define HttpFillerView_h
+#ifndef HtmlFillerView_h
+#define HtmlFillerView_h
 
 #include <View.h>
 
 typedef void (*ViewFiller)(String &fill);
 
-class HttpFillerView : public View
+class HtmlFillerView : public View
 {
 public:
-    HttpFillerView(const char *viewPath, const char *viewFilePath) :
+    HtmlFillerView(const char *viewPath, const char *viewFilePath) :
         View(viewPath, viewFilePath)
     {
     }
@@ -23,4 +23,4 @@ private:
     bool DoFill(int nFill, String &fill);
 };
 
-#endif // HttpFillerView_h
+#endif // HtmlFillerView_h

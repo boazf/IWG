@@ -4,7 +4,7 @@
 #include <EthernetUtil.h>
 
 SettingsView::SettingsView(const char *_viewName, const char *_viewFile) : 
-    HttpFillerView(_viewName, _viewFile)
+    HtmlFillerView(_viewName, _viewFile)
 {
 }
 

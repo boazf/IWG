@@ -1,9 +1,9 @@
 #ifndef IndexView_h
 #define IndexView_h
 
-#include <HttpFillerView.h>
+#include <HtmlFillerView.h>
 
-class IndexView : public HttpFillerView
+class IndexView : public HtmlFillerView
 {
 public:
     IndexView(const char *_viewName, const char *_viewFile);     

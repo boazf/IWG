@@ -1,9 +1,9 @@
 #ifndef SettingsView_h
 #define SettingsView_h
 
-#include <HttpFillerView.h>
+#include <HtmlFillerView.h>
 
-class SettingsView : public HttpFillerView
+class SettingsView : public HtmlFillerView
 {
 public:
     SettingsView(const char *_viewName, const char *_viewFile);     

@@ -1,6 +1,6 @@
-#include <HttpFillerView.h>
+#include <HtmlFillerView.h>
 
-int HttpFillerView::viewHandler(byte *buff, int buffSize)
+int HtmlFillerView::viewHandler(byte *buff, int buffSize)
 {
     for(int i = 0; i < buffSize; i++)
     {
@@ -30,6 +30,10 @@ int HttpFillerView::viewHandler(byte *buff, int buffSize)
 #endif
                 continue;
             }
+            
+            if (i + fill.length() >= buffSize)
+                return i;
+
             for(j = i; buff[j] != (byte)' '; j++)
                 buff[j] = (byte)' ';
             for (unsigned int j = 0; j < fill.length(); j++)
@@ -49,7 +53,7 @@ int HttpFillerView::viewHandler(byte *buff, int buffSize)
     return buffSize;
 }
 
-bool HttpFillerView::DoFill(int nFill, String &fill)
+bool HtmlFillerView::DoFill(int nFill, String &fill)
 {
     const ViewFiller *fillers;
     int nFillers = getFillers(fillers);
@@ -59,7 +63,7 @@ bool HttpFillerView::DoFill(int nFill, String &fill)
     return true;
 }
 
-int HttpFillerView::read()
+int HtmlFillerView::read()
 {
     memcpy(buff, buff + offset, buffSize - offset);
     offset = buffSize - offset;
