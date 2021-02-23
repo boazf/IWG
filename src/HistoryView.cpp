@@ -159,12 +159,30 @@ bool HistoryView::open(byte *buff, int buffSize)
         {
             if (buff[i] == (byte)'%')
             {
-                historyFile.write(buff + byte0, i - byte0 - 1);
-                int n;
-                sscanf((char *)(buff + i + 1), "%d", &n);
-                fillers[n - 1](historyFile);
-                for(; buff[i] != (byte)'\n'; i++);
+                if (i > 0)
+                    historyFile.write(buff + byte0, i - byte0 - 1);
+                if (i == nBytes - 1)
+                {
+#ifdef DEBUG_HTTP_SERVER
+                    Traceln("Filler resides at end of buffer, cannot process filler!");
+#endif
+                    byte0 = nBytes;
+                    continue;
+                }
+                int fillerIndex = i + 1;
+                for(; buff[i] != (byte)'\n' && i < nBytes; i++);
+                if (i == nBytes)
+                {
+#ifdef DEBUG_HTTP_SERVER
+                    Traceln("Filler resides at end of buffer, cannot process filler!");
+#endif
+                    byte0 = nBytes;
+                    continue;
+                }
                 byte0 = i + 1;
+                int n;
+                sscanf((char *)(buff + fillerIndex), "%d", &n);
+                fillers[n - 1](historyFile);
             }
         }
         historyFile.write(buff + byte0, nBytes - byte0);
