@@ -1,12 +1,12 @@
 #include <HtmlFillerView.h>
 
-int HtmlFillerView::viewHandler(byte *buff, int buffSize)
+size_t HtmlFillerView::viewHandler(byte *buff, size_t buffSize)
 {
-    for(int i = 0; i < buffSize; i++)
+    for(size_t i = 0; i < buffSize; i++)
     {
         if (buff[i] == (byte)'%')
         {
-            int j = i + 1;
+            size_t j = i + 1;
             for (; j < buffSize; j++)
                 if (buff[j] == (byte)' ')
                     break;
@@ -67,7 +67,7 @@ int HtmlFillerView::read()
 {
     memcpy(buff, buff + offset, buffSize - offset);
     offset = buffSize - offset;
-    int nBytes = file.read(buff + offset, buffSize - offset) + offset;
+    size_t nBytes = file.read(buff + offset, buffSize - offset) + offset;
     offset = viewHandler(buff, nBytes);
     return offset;
 }

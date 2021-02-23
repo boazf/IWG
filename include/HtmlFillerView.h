@@ -19,7 +19,7 @@ protected:
     virtual int getFillers(const ViewFiller *&fillers) = 0;
 
 private:
-    int viewHandler(byte *buff, int buffSize);
+    size_t viewHandler(byte *buff, size_t buffSize);
     bool DoFill(int nFill, String &fill);
 };
 
