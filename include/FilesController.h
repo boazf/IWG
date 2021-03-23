@@ -11,10 +11,10 @@ public:
     {
     }
 
-    bool Get(EthernetClient &client, String &resource);
-    bool Post(EthernetClient &client, String &resource, size_t contentLength, String contentType);
-    bool Put(EthernetClient &client, String &resource);
-    bool Delete(EthernetClient &client, String &resource);
+    bool Get(EthClient &client, String &resource);
+    bool Post(EthClient &client, String &resource, size_t contentLength, String contentType);
+    bool Put(EthClient &client, String &resource);
+    bool Delete(EthClient &client, String &resource);
 
 private:
     void normilizePath(String &path);

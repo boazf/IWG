@@ -36,7 +36,7 @@ public:
 	void PerformCycle();
     int Available();
     const HistoryStorageItem GetHistoryItem(int index);
-    time_t getLastRecovery() { return storage.getLastRecovery(); }
+    time_t getLastRecovery();
 
 private:
     static void RecoveryStateChanged(const RecoveryStateChangedParams &params, const void* context);

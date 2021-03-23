@@ -72,8 +72,7 @@ void HistoryControl::Init()
             OnConnected, 
             OnStateDoNotihng,
    			SMState<H_Message, H_State>::OnExitDoNothing,
-            connectedTrans,
-            NELEMS(connectedTrans)
+            TRANSITIONS(connectedTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "HS_Connected"
 #endif
@@ -83,8 +82,7 @@ void HistoryControl::Init()
             OnCheckingConnectivity,
             OnStateDoNotihng,
    			SMState<H_Message, H_State>::OnExitDoNothing,
-            checkingConnectivityTrans,
-            NELEMS(checkingConnectivityTrans)
+            TRANSITIONS(checkingConnectivityTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "HS_CheckingConnectivity"
 #endif
@@ -94,8 +92,7 @@ void HistoryControl::Init()
             OnRecoveringModem,
             OnStateDoNotihng,
    			SMState<H_Message, H_State>::OnExitDoNothing,
-            recoveringModemTrans,
-            NELEMS(recoveringModemTrans)
+            TRANSITIONS(recoveringModemTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "HS_RecoveringModem"
 #endif
@@ -105,8 +102,7 @@ void HistoryControl::Init()
             OnRecoveringRouter,
             OnStateDoNotihng,
    			SMState<H_Message, H_State>::OnExitDoNothing,
-            recoveringRouterTrans,
-            NELEMS(recoveringRouterTrans)
+            TRANSITIONS(recoveringRouterTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "HS_RecoveringRouter"
 #endif
@@ -116,8 +112,7 @@ void HistoryControl::Init()
             OnRecoveryFailed,
             OnStateDoNotihng,
             AddToHistory,
-            recoveryFailedTrans,
-            NELEMS(recoveryFailedTrans)
+            TRANSITIONS(recoveryFailedTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "HS_RecoveryFailed"
 #endif
@@ -127,8 +122,7 @@ void HistoryControl::Init()
             OnCheckingConnectivity, 
             OnStateDoNotihng,
             AddToHistory,
-            checkingConnectivityWhileInFailureTrans,
-            NELEMS(checkingConnectivityWhileInFailureTrans)
+            TRANSITIONS(checkingConnectivityWhileInFailureTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "HS_CheckingConnectivityWhileInFailure"
 #endif
@@ -138,8 +132,7 @@ void HistoryControl::Init()
             OnHWFailure,
             OnStateDoNotihng,
    			SMState<H_Message, H_State>::OnExitDoNothing,
-            HWFailureTrans,
-            NELEMS(HWFailureTrans)
+            TRANSITIONS(HWFailureTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "HS_HWFailure"
 #endif
@@ -156,6 +149,11 @@ void HistoryControl::Init()
 HistoryControl::~HistoryControl()
 {
     delete m_pSM;
+}
+
+time_t HistoryControl::getLastRecovery()
+{ 
+    return storage.getLastRecovery(); 
 }
 
 void HistoryControl::PerformCycle()

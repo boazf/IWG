@@ -9,7 +9,7 @@ class FilesView : public View
 {
 public:
     FilesView(const char *_viewName, const char *_viewFile);     
-    bool post(EthernetClient &client, const String &resource, const String &id);
+    bool post(EthClient &client, const String &resource, const String &id);
 };
 
 extern FilesView filesView;

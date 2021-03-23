@@ -10,7 +10,7 @@ void FilesController::normilizePath(String &path)
     path.replace("%20", " ");
 }
 
-bool FilesController::Get(EthernetClient &client, String &resource)
+bool FilesController::Get(EthClient &client, String &resource)
 {
 #ifdef DEBUG_HTTP_SERVER
     Tracef("FilesController Get %s\n", resource.c_str());
@@ -56,7 +56,7 @@ void FilesController::parseUploadHeaders(const String &header, String &boundary,
     }
 }
 
-bool FilesController::Post(EthernetClient &client, String &resource, size_t contentLength, String contentType)
+bool FilesController::Post(EthClient &client, String &resource, size_t contentLength, String contentType)
 {
     normilizePath(resource);
 #ifdef DEBUG_HTTP_SERVER
@@ -165,7 +165,7 @@ bool FilesController::Post(EthernetClient &client, String &resource, size_t cont
     return true;
 }
 
-bool FilesController::Put(EthernetClient &client, String &resource)
+bool FilesController::Put(EthClient &client, String &resource)
 {
 #ifdef DEBUG_HTTP_SERVER
     Tracef("FilesController Put %s\n", resource.c_str());
@@ -188,7 +188,7 @@ bool FilesController::Put(EthernetClient &client, String &resource)
     return true;
 }
 
-bool FilesController::Delete(EthernetClient &client, String &resource)
+bool FilesController::Delete(EthClient &client, String &resource)
 {
 #ifdef DEBUG_HTTP_SERVER
     Tracef("FilesController Delete %s\n", resource.c_str());

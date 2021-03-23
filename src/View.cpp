@@ -113,7 +113,7 @@ long View::getViewSize()
 #endif
 }
 
-bool View::redirect(EthernetClient &client, const String &id)
+bool View::redirect(EthClient &client, const String &id)
 {
     return false;
 }
@@ -199,7 +199,7 @@ CONTENT_TYPE View::getContentType()
     return CONTENT_TYPE::CT_UNKNOWN;
 }
 
-bool View::post(EthernetClient &client, const String &resource, const String &id)
+bool View::post(EthClient &client, const String &resource, const String &id)
 {
     return false;
 }

@@ -5,6 +5,8 @@
 #include <assert.h>
 #include <Common.h>
 
+#define TRANSITIONS(a) a, NELEMS(a)
+
 template<typename Verb, typename StateName>
 class Transition
 {

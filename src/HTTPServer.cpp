@@ -144,7 +144,7 @@ bool HTTPServer::HandlePostRequest(PClientContext context, const String &resourc
 bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
 {
     TRACK_FREE_MEMORY(__func__);
-    EthernetClient *client = &context->client;
+    EthClient *client = &context->client;
     AutoPtr<View> tempView;
     View *view = NULL;
     String id;
@@ -278,7 +278,7 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
     return true;
 }
 
-void HTTPServer::NotModified(EthernetClient &client)
+void HTTPServer::NotModified(EthClient &client)
 {
     client.println("HTTP/1.1 304 Not Modified");
     client.println("Content-Length: 0");
@@ -287,7 +287,7 @@ void HTTPServer::NotModified(EthernetClient &client)
     client.println();
 }
 
-void HTTPServer::PageNotFound(EthernetClient &client)
+void HTTPServer::PageNotFound(EthClient &client)
 {
     // const char *lines[] =
     // {
@@ -392,8 +392,8 @@ void HTTPServer::ServiceRequest(PClientContext context)
     }
 }
 
-#ifndef ESP32
-EthernetServer HTTPServer::server(80);
+#ifndef USE_WIFI
+EthServer HTTPServer::server(80);
 #else
 #define MAX_CLIENTS 12
 WiFiServer HTTPServer::server(80, MAX_CLIENTS);
@@ -426,7 +426,7 @@ static void PrintIP(const IPAddress &address)
 
 void HTTPServer::CheckForNewClients()
 {
-    EthernetClient client = server.accept();
+    EthClient client = server.accept();
     while (client)
     {
 #ifdef DEBUG_HTTP_SERVER
@@ -481,7 +481,7 @@ void HTTPServer::ServeClient()
     while(listNode != NULL)
     {
         PClientContext context = listNode->value;
-        EthernetClient *client = &context->client;
+        EthClient *client = &context->client;
         word remotePort;
     #ifdef ESP32
         try
@@ -508,10 +508,8 @@ void HTTPServer::ServeClient()
 #endif
         if (brokenClient || !client->connected())
         {
-#ifndef ESP32
-#endif
 #ifdef DEBUG_HTTP_SERVER
-#ifndef ESP32
+#ifndef USE_WIFI
             Trace("Client disconnected, port=");
             Traceln(listNode->value->remotePort);
 #else

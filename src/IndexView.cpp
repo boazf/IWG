@@ -24,7 +24,7 @@ ViewFiller IndexView::fillers[] =
     /*  7 */ [](String &fill) { char buff[8]; sprintf(buff, "%ld", (t_now - historyControl.getLastRecovery()) % 60); fill = buff; },
     /*  8 */ [](String &fill) { fill = historyControl.getLastRecovery() == 0 ? "false" : "true"; },
     /*  9 */ [](String &fill) { fill = recoveryControl.GetRecoveryState(); },
-    /* 10 */ [](String &fill) { IPAddress myIP = Ethernet.localIP(); fill = String("'http://") + myIP[0] + "." + myIP[1]+ "." + myIP[2] + "." + myIP[3] + "/'"; }
+    /* 10 */ [](String &fill) { IPAddress myIP = Eth.localIP(); fill = String("'http://") + myIP[0] + "." + myIP[1]+ "." + myIP[2] + "." + myIP[3] + "/'"; }
 };
 
 int IndexView::getFillers(const ViewFiller *&_fillers)
@@ -35,7 +35,7 @@ int IndexView::getFillers(const ViewFiller *&_fillers)
 
 int IndexView::id = 0;
 
-bool IndexView::redirect(EthernetClient &client, const String &_id)
+bool IndexView::redirect(EthClient &client, const String &_id)
 {
     if (_id.equals("") || !sseController.IsValidId(_id))
     {

@@ -7,7 +7,7 @@ FilesView::FilesView(const char *_viewName, const char *_viewFile) :
 {
 }
 
-bool FilesView::post(EthernetClient &client, const String &resource, const String &id)
+bool FilesView::post(EthClient &client, const String &resource, const String &id)
 {
     String normilizedPath = "/" + id;
     normilizedPath.replace("%20", " ");

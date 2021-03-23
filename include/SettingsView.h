@@ -7,7 +7,7 @@ class SettingsView : public HtmlFillerView
 {
 public:
     SettingsView(const char *_viewName, const char *_viewFile);     
-    bool post(EthernetClient &client, const String &resource, const String &id);
+    bool post(EthClient &client, const String &resource, const String &id);
     
 protected:
     int getFillers(const ViewFiller *&fillers);

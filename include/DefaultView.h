@@ -11,7 +11,7 @@ public:
     {
     }
 
-    bool redirect(EthernetClient &client, const String &id)
+    bool redirect(EthClient &client, const String &id)
     {
         client.println("HTTP/1.1 302 Found");
         client.println("Location: /index");

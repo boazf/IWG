@@ -3,8 +3,319 @@
 #include <EthernetUtil.h>
 #include <Config.h>
 #include <TimeUtil.h>
-#ifdef ESP32
+#ifdef USE_WIFI
 #include <ping.h>
+#endif
+
+#if !defined(USE_WIFI) && defined(ESP32)
+
+int EthernetClassEx::begin(uint8_t *mac, unsigned long timeout, unsigned long responseTimeout)
+{
+  Lock lock(csSpi);
+  return EthernetClass::begin(mac, timeout, responseTimeout);
+}
+
+int EthernetClassEx::maintain()
+{
+  Lock lock(csSpi);
+  return EthernetClass::maintain();
+}
+
+EthernetLinkStatus EthernetClassEx::linkStatus()
+{
+  Lock lock(csSpi);
+  return EthernetClass::linkStatus();
+}
+
+EthernetHardwareStatus EthernetClassEx::hardwareStatus()
+{
+  Lock lock(csSpi);
+  return EthernetClass::hardwareStatus();
+}
+
+// Manaul configuration
+void EthernetClassEx::begin(uint8_t *mac, IPAddress ip)
+{
+  Lock lock(csSpi);
+  EthernetClass::begin(mac, ip);
+}
+
+void EthernetClassEx::begin(uint8_t *mac, IPAddress ip, IPAddress dns)
+{
+  Lock lock(csSpi);
+  EthernetClass::begin(mac, ip, dns);
+}
+
+void EthernetClassEx::begin(uint8_t *mac, IPAddress ip, IPAddress dns, IPAddress gateway)
+{
+  Lock lock(csSpi);
+  EthernetClass::begin(mac, ip, dns, gateway);
+}
+
+void EthernetClassEx::begin(uint8_t *mac, IPAddress ip, IPAddress dns, IPAddress gateway, IPAddress subnet)
+{
+  Lock lock(csSpi);
+  EthernetClass::begin(mac, ip, dns, gateway, subnet);
+}
+
+void EthernetClassEx::init(uint8_t sspin)
+{
+  Lock lock(csSpi);
+  EthernetClass::init(sspin);
+}
+
+void EthernetClassEx::MACAddress(uint8_t *mac_address)
+{
+  Lock lock(csSpi);
+  EthernetClass::MACAddress(mac_address);
+}
+
+IPAddress EthernetClassEx::localIP()
+{
+  Lock lock(csSpi);
+  return EthernetClass::localIP();
+}
+
+IPAddress EthernetClassEx::subnetMask()
+{
+  Lock lock(csSpi);
+  return EthernetClass::subnetMask();
+}
+
+IPAddress EthernetClassEx::gatewayIP()
+{
+  Lock lock(csSpi);
+  return EthernetClass::gatewayIP();
+}
+
+IPAddress EthernetClassEx::dnsServerIP()
+{
+  Lock lock(csSpi);
+  return EthernetClass::dnsServerIP();
+}
+
+void EthernetClassEx::setMACAddress(const uint8_t *mac_address)
+{
+  Lock lock(csSpi);
+  ethernet.setMACAddress(mac_address);
+}
+
+void EthernetClassEx::setLocalIP(const IPAddress local_ip)
+{
+  Lock lock(csSpi);
+  ethernet.setLocalIP(local_ip);
+}
+
+void EthernetClassEx::setSubnetMask(const IPAddress subnet)
+{
+  Lock lock(csSpi);
+  ethernet.setSubnetMask(subnet);
+}
+
+void EthernetClassEx::setGatewayIP(const IPAddress gateway)
+{
+  Lock lock(csSpi);
+  ethernet.setGatewayIP(gateway);
+}
+
+void EthernetClassEx::setDnsServerIP(const IPAddress dns_server)
+{
+  Lock lock(csSpi);
+  ethernet.setDnsServerIP(dns_server);
+}
+
+void EthernetClassEx::setRetransmissionTimeout(uint16_t milliseconds)
+{
+  Lock lock(csSpi);
+  ethernet.setRetransmissionTimeout(milliseconds);
+}
+
+void EthernetClassEx::setRetransmissionCount(uint8_t num)
+{
+  Lock lock(csSpi);
+  ethernet.setRetransmissionCount(num);
+}
+
+EthernetClassEx EthernetEx(Ethernet);
+
+size_t EthernetClientEx::write(uint8_t byte)
+{
+  Lock lock(csSpi);
+  return client.write(byte);
+}
+
+size_t EthernetClientEx::write(const uint8_t *buf, size_t size)
+{
+  Lock lock(csSpi);
+  return client.write(buf, size);
+}
+
+EthernetClientEx::operator bool()
+{
+  Lock lock(csSpi);
+  return !!client;
+}
+
+void EthernetClientEx::stop()
+{
+  Lock lock(csSpi);
+  client.stop();
+}
+
+uint8_t EthernetClientEx::connected()
+{
+  Lock lock(csSpi);
+  return client.connected();
+}
+IPAddress EthernetClientEx::remoteIP()
+{
+  Lock lock(csSpi);
+  return client.remoteIP();
+}
+
+int EthernetClientEx::available()
+{
+  Lock lock(csSpi);
+  return client.available();
+}
+
+int EthernetClientEx::read()
+{
+  Lock lock(csSpi);
+  return client.read();
+}
+
+int EthernetClientEx::read(uint8_t *buf, size_t size)
+{
+  Lock lock(csSpi);
+  return client.read(buf, size);
+}
+
+size_t EthernetClientEx::print(const String &str)
+{
+  Lock lock(csSpi);
+  return client.print(str);
+}
+
+size_t EthernetClientEx::println(const String &str)
+{
+  Lock lock(csSpi);
+  return client.println(str);
+}
+
+size_t EthernetClientEx::print(int n)
+{
+  return print(String(n));
+}
+
+size_t EthernetClientEx::println(int n)
+{
+  return println(String(n));
+}
+
+size_t EthernetClientEx::println()
+{
+  Lock lock(csSpi);
+  return client.println();
+}
+
+void EthernetClientEx::flush()
+{
+  Lock lock(csSpi);
+  client.flush();
+}
+
+uint16_t EthernetClientEx::remotePort()
+{
+  Lock lock(csSpi);
+  return client.remotePort();
+}
+
+EthernetClientEx EthernetServerEx::available()
+{
+  Lock lock(csSpi);
+  return server->available();
+}
+
+EthernetClientEx EthernetServerEx::accept()
+{
+  Lock lock(csSpi);
+  return server->accept();
+}
+
+void EthernetServerEx:: begin()
+{
+  Lock lock(csSpi);
+  server->begin();
+}
+
+uint8_t EthernetUDPEx::begin(uint16_t port)
+{
+  Lock lock(csSpi);
+  return udp.begin(port);
+}
+
+void EthernetUDPEx::stop()
+{
+  Lock lock(csSpi);
+  udp.stop();
+}
+
+int EthernetUDPEx::beginPacket(IPAddress ip, uint16_t port)
+{
+  Lock lock(csSpi);
+  return udp.beginPacket(ip, port);
+}
+
+int EthernetUDPEx::beginPacket(const char *host, uint16_t port)
+{
+  Lock lock(csSpi);
+  return udp.beginPacket(host, port);
+}
+
+int EthernetUDPEx::endPacket()
+{
+  Lock lock(csSpi);
+  return udp.endPacket();
+}
+
+size_t EthernetUDPEx::write(const uint8_t *buffer, size_t size)
+{
+  Lock lock(csSpi);
+  return udp.write(buffer, size);
+}
+
+int EthernetUDPEx::available()
+{
+  Lock lock(csSpi);
+  return udp.available();
+}
+
+int EthernetUDPEx::read(unsigned char* buffer, size_t len)
+{
+  Lock lock(csSpi);
+  return udp.read(buffer, len);
+}
+
+int EthernetUDPEx::parsePacket()
+{
+  Lock lock(csSpi);
+  return udp.parsePacket();
+}
+
+#define RESET_P	17				// Tie the W5500 reset pin to ESP32 GPIO17 pin.
+
+static void WizReset() {
+    Trace("Resetting Wiz W5500 Ethernet Board...  ");
+    pinMode(RESET_P, OUTPUT);
+    digitalWrite(RESET_P, HIGH);
+    delay(250);
+    digitalWrite(RESET_P, LOW);
+    delay(50);
+    digitalWrite(RESET_P, HIGH);
+    delay(350);
+    Traceln("Done.");
+}
 #endif
 
 bool IsZeroIPAddress(const IPAddress &ip)
@@ -14,18 +325,15 @@ bool IsZeroIPAddress(const IPAddress &ip)
 
 void InitEthernet()
 {
-  // You can use Ethernet.init(pin) to configure the CS pin
-  //Ethernet.init(10);  // Most Arduino shields
-  //Ethernet.init(5);   // MKR ETH shield
-  //Ethernet.init(0);   // Teensy 2.0
-  //Ethernet.init(20);  // Teensy++ 2.0
-  //Ethernet.init(15);  // ESP8266 with Adafruit Featherwing Ethernet
-  //Ethernet.init(33);  // ESP32 with Adafruit Featherwing Ethernet
-
   // start the Ethernet connection:
+#if !defined(USE_WIFI) && defined(ESP32)
+    Ethernet.init(16);           // GPIO5 on the ESP32.
+    WizReset();
+#endif
+
   if (!IsZeroIPAddress(Config::ip) && !IsZeroIPAddress(Config::gateway) && !IsZeroIPAddress(Config::mask))
   {
-#ifdef ESP32
+#ifdef USE_WIFI
     WiFi.mode(WIFI_MODE_STA);
     WiFi.config(Config::ip, Config::gateway, Config::mask, Config::gateway);
     WiFi.setAutoReconnect(true);
@@ -33,7 +341,7 @@ void InitEthernet()
     Ethernet.begin(Config::mac, Config::ip, Config::gateway, Config::gateway, Config::mask);
 #endif
   }
-#ifdef ESP32
+#ifdef USE_WIFI
 #ifdef DEBUG_ETHERNET
   Trace("Connecting to: ");
   Trace(Config::ssid);
@@ -57,13 +365,13 @@ void InitEthernet()
 
 #ifdef DEBUG_ETHERNET
   Trace("My IP address: ");
-  Traceln(Ethernet.localIP());
+  Traceln(Eth.localIP());
 #endif
 }
 
 void MaintainEthernet()
 {
-#ifndef ESP32
+#ifndef USE_WIFI
 #ifdef DEBUG_ETHERNET
   int res = 
 #endif
@@ -161,5 +469,5 @@ void MaintainEthernet()
       connected = true;
     }
   }
-#endif // ESP32
+#endif // USE_WIFI
 }

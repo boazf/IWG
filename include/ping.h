@@ -1,4 +1,4 @@
-#ifdef ESP32
+#ifdef USE_WIFI
 #ifndef _PING_
 #define _PING_
 #include <Arduino.h>

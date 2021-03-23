@@ -5,7 +5,7 @@
 #include <TimeUtil.h>
 #include <SDUtil.h>
 
-EthernetServer SFT::server(765);    // The server object for TCP communication
+EthServer SFT::server(765);    // The server object for TCP communication
 #ifndef ESP32
 SdVolume SFT::vol;                  // The SD card volume
 SdFile SFT::curDir;                 // The current directory object
@@ -22,7 +22,7 @@ char SFT::curPath[MAX_PATH + 1];    // The path of the current directory
 #endif
 
 // Connect a client to the server
-void SFT::Connect(EthernetClient &client)
+void SFT::Connect(EthClient &client)
 {
 #ifdef DEBUG_SFT    
    Traceln("Connect");
@@ -34,7 +34,7 @@ void SFT::Connect(EthernetClient &client)
 
 // Wait for any information data from the client to become available
 // Waitnig for at most 2 seconds (1.5 seconds on average).
-bool SFT::WaitForClient(EthernetClient &client)
+bool SFT::WaitForClient(EthClient &client)
 {
   time_t t0 = t_now;
   while(client.available() == 0 && t_now - t0 < 2);
@@ -60,7 +60,7 @@ char *combinePath(char *dstPath, const char *srcPath1, const char *srcPath2)
 // Upload a file from the client to Arduino
 // Currently the destination file can only be put in the currect directoy.
 // It is not possible to include a path in the destination, only a file name
-void SFT::Upload(EthernetClient &client)
+void SFT::Upload(EthClient &client)
 {
 #ifdef DEBUG_SFT    
   Trace("Upload: ");
@@ -180,7 +180,7 @@ void SFT::Upload(EthernetClient &client)
 // Download a file from Arduino to the client
 // File will be looked up only in the current directory.
 // Curently the source file cannot contain path, only a file name
-void SFT::Download(EthernetClient &client)
+void SFT::Download(EthClient &client)
 {
 #ifdef DEBUG_SFT    
   Trace("Download: ");
@@ -346,7 +346,7 @@ typedef struct FILE_INFO_
 } __attribute__((__packed__)) FILE_INFO;
 
 // Send to the client information about all entries in the curernt directory
-void SFT::ListDirectory(EthernetClient &client)
+void SFT::ListDirectory(EthClient &client)
 {
 #ifndef ESP32
   SdFile org = curDir;
@@ -477,7 +477,7 @@ void SFT::ListDirectory(EthernetClient &client)
 // up (sending ..). The client can also send no direcotory, this will result in sending the
 // path of the curent directory. In any case the path of the new current directory is sent
 // back to the client
-void SFT::ChangeDirectory(EthernetClient &client)
+void SFT::ChangeDirectory(EthClient &client)
 {
   bool fail = false;
   char path[MAX_PATH + 2];
@@ -657,7 +657,7 @@ void SFT::ChangeDirectory(EthernetClient &client)
 // Curerntly it is possible to only request to create a new sub-directory
 // that is directly under the current directory. The requested directory
 // cannot contain path, only one directory name.
-void SFT::MakeDirectory(EthernetClient &client)
+void SFT::MakeDirectory(EthClient &client)
 {
 #ifndef ESP32
   SdFile org = curDir;
@@ -718,7 +718,7 @@ void SFT::MakeDirectory(EthernetClient &client)
 // Delete a file
 // Currently files can only be deleted from the current directory.
 // It is not possible to send a path to a file.
-void SFT::Delete(EthernetClient &client)
+void SFT::Delete(EthClient &client)
 {
 #ifndef ESP32
   SdFile org = curDir;
@@ -775,7 +775,7 @@ void SFT::Delete(EthernetClient &client)
 // Delete a sub-directory
 // Currently it is possibleto only delete a sub-directory of the current directory.
 // It is not possible to send a path to a directory for deletion
-void SFT::RemoveDirectory(EthernetClient &client)
+void SFT::RemoveDirectory(EthClient &client)
 {
 #ifndef ESP32
   SdFile org = curDir;
@@ -854,7 +854,7 @@ void SFT::Init()
 // See if the clien sent a request and handle it
 void SFT::DoService()
 {
-    EthernetClient client = server.available();
+    EthClient client = server.available();
     if (!client)
     {
         return;

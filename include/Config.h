@@ -8,7 +8,7 @@
 class Config
 {
 public:
-#ifndef ESP32
+#ifndef USE_WIFI
     static byte mac[6];
 #endif
     static byte ip[4];
@@ -18,7 +18,7 @@ public:
     static const char *timeServer;
     static byte modemRelay;
     static byte routerRelay;
-#ifdef ESP32
+#ifdef USE_WIFI
     static const char *ssid;
     static const char *password;
 #endif

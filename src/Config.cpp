@@ -4,7 +4,7 @@
 
 // Default MAC address
 // Newer Ethernet shields have a MAC address printed on a sticker on the shield
-#ifndef ESP32
+#ifndef USE_WIFI
 byte Config::mac[6] =  { 0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02 };
 #endif
 byte Config::ip[4] = { 0, 0, 0, 0 };
@@ -15,7 +15,7 @@ const char *Config::timeServer = "time.nist.gov";
 const char *Config::configFileName = "config.txt";
 byte Config::modemRelay = 0;
 byte Config::routerRelay = 0;
-#ifdef ESP32
+#ifdef USE_WIFI
 const char *Config::ssid; // = "Your SSID";
 const char *Config::password; // = "Your password";
 #endif
@@ -88,7 +88,7 @@ void Config::Init()
   {
     { String("TimeServer"), ParseString, &timeServer},
     { String("TimeZone"), ParseLong, &timeZone },
-  #ifndef ESP32
+  #ifndef USE_WIFI
     { String("MACAddress"), ParseMACAddress, mac },
   #endif
     { String("IP"), ParseIPAddress, ip },
@@ -96,7 +96,7 @@ void Config::Init()
     { String("Subnet"), ParseIPAddress, mask },
     { String("ModemRelay"), ParseByte, &modemRelay },
     { String("RouterRelay"), ParseByte, &routerRelay} 
-  #ifdef ESP32
+  #ifdef USE_WIFI
     , { String("SSID"), ParseString, &ssid },
     { String("Password"), ParseString, &password }
   #endif

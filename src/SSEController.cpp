@@ -5,12 +5,12 @@
 
 #define SESSION_LENGTH 300
 
-bool SSEController::Get(EthernetClient &client, String &id)
+bool SSEController::Get(EthClient &client, String &id)
 {
 #ifdef DEBUG_HTTP_SERVER
     Trace("SSEController Get, Client id=");
     Trace(id);
-#ifndef ESP32
+#ifndef USE_WIFI
     Trace(", socket=");
     Traceln(client.getSocketNumber());
 #else
@@ -49,17 +49,17 @@ bool SSEController::Get(EthernetClient &client, String &id)
     return true;
 }
 
-bool SSEController::Post(EthernetClient &client, String &resource, size_t contentLength, String contentType)
+bool SSEController::Post(EthClient &client, String &resource, size_t contentLength, String contentType)
 {
     return false;
 }
 
-bool SSEController::Put(EthernetClient &client, String &resource)
+bool SSEController::Put(EthClient &client, String &resource)
 {
     return false;
 }
 
-bool SSEController::Delete(EthernetClient &client, String &resource)
+bool SSEController::Delete(EthClient &client, String &resource)
 {
     return false;
 }
@@ -98,13 +98,13 @@ void SSEController::NotifyState(const String &id)
     {
         if (!id.equals("") && !id.equals(clientInfo->value->id))
             continue;
-        EthernetClient *client = clientInfo->value->client;
+        EthClient *client = clientInfo->value->client;
         if (client == NULL)
             continue;
 #ifdef DEBUG_HTTP_SERVER
         Trace("Notifying client id=");
         Trace(clientInfo->value->id);
-#ifndef ESP32
+#ifndef USE_WIFI
         Trace(", socket=");
         Traceln(client->getSocketNumber());
 #else
@@ -179,7 +179,7 @@ void SSEController::RouterPowerStateChanged(const PowerStateChangedParams &param
     controller->NotifyState("");
 }
 
-bool SSEController::DeleteClient(EthernetClient &client, bool stopClient)
+bool SSEController::DeleteClient(EthClient &client, bool stopClient)
 {
     for (ListNode<ClientInfo *> *clientInfo = clients.head; clientInfo != NULL; clientInfo = clientInfo->next)
     {
@@ -200,7 +200,7 @@ void SSEController::DeleteClient(ListNode<ClientInfo *> *&clientInfo, bool stopC
     {
         Trace("Deleting previous session id=");
         Trace(clientInfo->value->id);
-#ifndef ESP32
+#ifndef USE_WIFI
         Trace(", socket=");
         Traceln(clientInfo->value->client->getSocketNumber());
 #else

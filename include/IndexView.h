@@ -7,7 +7,7 @@ class IndexView : public HtmlFillerView
 {
 public:
     IndexView(const char *_viewName, const char *_viewFile);     
-    bool redirect(EthernetClient &client, const String &_id);
+    bool redirect(EthClient &client, const String &_id);
 
 protected:
     int getFillers(const ViewFiller *&fillers);

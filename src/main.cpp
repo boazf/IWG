@@ -38,4 +38,7 @@ void loop() {
   DoHTTPService();
   recoveryControl.PerformCycle();
   historyControl.PerformCycle();
+  delay(1);
 }
+
+CriticalSection csSpi;

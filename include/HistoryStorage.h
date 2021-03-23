@@ -152,7 +152,7 @@ public:
     int available();
     void resize(int maxRecords);
     const HistoryStorageItem getItem(int index);
-    time_t getLastRecovery() { return lastRecovery; }
+    time_t getLastRecovery();
 
 private:
     int maxRecords;

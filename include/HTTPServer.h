@@ -9,12 +9,12 @@
 
 typedef struct ClientContext_
 {
-    ClientContext_(EthernetClient client)
+    ClientContext_(EthClient _client)
     {
-        this->client = client;
-        this->remotePort = client.remotePort();
+        client = _client;
+        remotePort = _client.remotePort();
     }
-    EthernetClient client;
+    EthClient client;
     word remotePort;
     String reqLine;
     String request;
@@ -47,14 +47,14 @@ private:
     static bool GetView(const String resource, View *&view, String &id);
     static bool HandlePostRequest(PClientContext context, const String &resource);
     static bool HandleGetRequest(PClientContext context, String &resource);
-    static void NotModified(EthernetClient &client);
-    static void PageNotFound(EthernetClient &client);
+    static void NotModified(EthClient &client);
+    static void PageNotFound(EthClient &client);
     static HTTP_REQ_TYPE RequestType(String &request);
     static bool ProcessLine(PClientContext context);
     static void ServiceRequest(PClientContext context);
 
 private:
-    static EthernetServer server;
+    static EthServer server;
     static LinkedList<View *> views;
     static LinkedList<PClientContext> clients;
 };

@@ -3,6 +3,9 @@
 #include <NTPClient.h>
 #include <Config.h>
 #include <Common.h>
+#ifndef USE_WIFI
+#include <sys/time.h>
+#endif
 
 #ifndef ESP32
 volatile time_t t_now = 0;
@@ -14,16 +17,24 @@ void InitTime()
   Trace("Time Server: ");
   Traceln(Config::timeServer);
 #endif
-#ifdef ESP32
+#ifdef USE_WIFI
   configTime(Config::timeZone * 60, 0, Config::timeServer);
   tm tr1;
   delay(2000);
   tr1.tm_year = 0;
   getLocalTime(&tr1, 5000);
 #else
+#ifdef ESP32
+  {
+    time_t now = NTPClient::getUTC() + Config::timeZone * 60;
+    timeval tv = {now, 0};
+    settimeofday(&tv, NULL);
+  }
+#else
   t_now = NTPClient::getUTC();
   if (t_now != 0)
     t_now += Config::timeZone * 60;
+#endif
 #endif
 
 #ifdef DEBUG_TIME

@@ -7,6 +7,11 @@ HistoryStorage::HistoryStorage()
 {
 }
 
+time_t HistoryStorage::getLastRecovery()
+{ 
+    return lastRecovery; 
+}
+
 #ifdef DEBUG_HISTORY
 void HistoryStorage::ReportIntializationResult()
 {

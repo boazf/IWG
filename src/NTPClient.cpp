@@ -1,11 +1,11 @@
-#ifndef ESP32
+#ifndef USE_WIFI
 #include <NTPClient.h>
 #include <Config.h>
 
 const unsigned int NTPClient::localPort = 8888;
 const int NTPClient::NTP_PACKET_SIZE = 48;
 byte NTPClient::packetBuffer[NTP_PACKET_SIZE];
-EthernetUDP NTPClient::Udp; 
+EthUDP NTPClient::Udp; 
 
 time_t NTPClient::getUTC()
 {
@@ -49,14 +49,18 @@ time_t NTPClient::getUTC()
     unsigned long secsSince1900 = highWord << 16 | lowWord;
 
     // now convert NTP time into everyday time:
+  #ifndef ESP32
     // Arduino time starts on Jan 1 2000. In seconds, that's 3155673600:
     const unsigned long hundredYears = 3155673600UL;
-    // subtract seventy years:
     ret = (time_t) secsSince1900 - hundredYears;
+  #else
+    // Subtract seventy years:
+    ret = (time_t) secsSince1900 - 2208988800;
+  #endif
   }
 
   Udp.stop();
 
   return ret;
 }
-#endif
+#endif // USE_WIFI

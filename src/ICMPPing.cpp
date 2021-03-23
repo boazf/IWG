@@ -6,15 +6,36 @@
  * or the GNU Lesser General Public License version 2.1, both as
  * published by the Free Software Foundation.
  */
-#ifndef ESP32
+#ifndef USE_WIFI
 #include "ICMPPing.h"
 #include <util.h>
+#include <Trace.h>
 
 #ifdef ICMPPING_INSERT_YIELDS
 #define ICMPPING_DOYIELD()		delay(2)
 #else
 #define ICMPPING_DOYIELD()
 #endif
+
+class AutoSpiTrans
+{
+public:
+    AutoSpiTrans(SPISettings spiSettings = SPI_ETHERNET_SETTINGS)
+    {
+#ifdef ESP32
+        csSpi.Enter();
+#endif
+        SPI.beginTransaction(spiSettings);
+    }
+
+    ~AutoSpiTrans()
+    {
+        SPI.endTransaction();
+#ifdef ESP32
+        csSpi.Leave();
+#endif
+    }
+};
 
 inline uint16_t _makeUint16(const uint8_t& highOrder, const uint8_t& lowOrder)
 {
@@ -118,6 +139,7 @@ void ICMPPing::setPayload(uint8_t * payload)
 
 bool ICMPPing::openSocket()
 {
+    
     if (_socket == MAX_SOCK_NUM)
     {
     	uint8_t chip, maxindex=MAX_SOCK_NUM;
@@ -128,13 +150,14 @@ bool ICMPPing::openSocket()
         if (chip == 51) 
             maxindex = 4; // W5100 chip never supports more than 4 sockets
 #endif
-        SPI.beginTransaction(SPI_ETHERNET_SETTINGS);
-        _socket = 0;
-        for (; _socket < maxindex; _socket++) {
-            if (W5100Ex.readSnSR(_socket) == SnSR::CLOSED)
-                break;
+        {
+            AutoSpiTrans spiTrans;
+            _socket = 0;
+            for (; _socket < maxindex; _socket++) {
+                if (W5100Ex.readSnSR(_socket) == SnSR::CLOSED)
+                    break;
+            }
         }
-        SPI.endTransaction();
         if (_socket == maxindex)
         {
             _socket = MAX_SOCK_NUM;
@@ -146,13 +169,14 @@ bool ICMPPing::openSocket()
     Trace("Ping socket: ");
     Traceln(_socket);
 #endif
-
-    W5100Ex.writeSnIR(_socket, 0xFF);
-    W5100Ex.writeSnMR(_socket, SnMR::IPRAW);
-    W5100Ex.writeSnPROTO(_socket, IPPROTO::ICMP);
-    W5100Ex.writeSnPORT(_socket, 0);
-    W5100Ex.execCmdSn(_socket, Sock_OPEN);
-
+    {
+        AutoSpiTrans spiStrans;
+        W5100Ex.writeSnIR(_socket, 0xFF);
+        W5100Ex.writeSnMR(_socket, SnMR::IPRAW);
+        W5100Ex.writeSnPROTO(_socket, IPPROTO::ICMP);
+        W5100Ex.writeSnPORT(_socket, 0);
+        W5100Ex.execCmdSn(_socket, Sock_OPEN);
+    }
     return true;
 }
 
@@ -182,8 +206,11 @@ void ICMPPing::operator()(const IPAddress& addr, int nRetries, ICMPEchoReply& re
         }
     }
    
-    W5100Ex.execCmdSn(_socket, Sock_CLOSE);
-    W5100Ex.writeSnIR(_socket, 0xFF);
+    {
+        AutoSpiTrans spiTrans;
+        W5100Ex.execCmdSn(_socket, Sock_CLOSE);
+        W5100Ex.writeSnIR(_socket, 0xFF);
+    }
 }
 
 ICMPEchoReply ICMPPing::operator()(const IPAddress& addr, int nRetries)
@@ -195,6 +222,8 @@ ICMPEchoReply ICMPPing::operator()(const IPAddress& addr, int nRetries)
 
 Status ICMPPing::sendEchoRequest(const IPAddress& addr, const ICMPEcho& echoReq)
 {
+    AutoSpiTrans spiTrans;
+
     // I wish there were a better way of doing this, but if we use the uint32_t
     // cast operator, we're forced to (1) cast away the constness, and (2) deal
     // with an endianness nightmare.
@@ -227,6 +256,8 @@ Status ICMPPing::sendEchoRequest(const IPAddress& addr, const ICMPEcho& echoReq)
 
 void ICMPPing::receiveEchoReply(const ICMPEcho& echoReq, const IPAddress& addr, ICMPEchoReply& echoReply)
 {
+    AutoSpiTrans spiTrans;
+
     icmp_time_t start = millis();
     while (millis() - start < ping_timeout)
     {
@@ -265,38 +296,36 @@ void ICMPPing::receiveEchoReply(const ICMPEcho& echoReq, const IPAddress& addr, 
 		// Since there aren't any ports in ICMP, we need to manually inspect the response
 		// to see if it originated from the request we sent out.
 		switch (echoReply.data.icmpHeader.type) {
-		case ICMP_ECHOREP: {
-			if (echoReply.data.id == echoReq.id
-					&& echoReply.data.seq == echoReq.seq) {
-				echoReply.status = SUCCESS;
-				return;
-			}
-			break;
-		}
-		case TIME_EXCEEDED: {
-			uint8_t * sourceIpHeader = echoReply.data.payload;
-			unsigned int ipHeaderSize = (sourceIpHeader[0] & 0x0F) * 4u;
-			uint8_t * sourceIcmpHeader = echoReply.data.payload + ipHeaderSize;
+            case ICMP_ECHOREP: {
+                if (echoReply.data.id == echoReq.id
+                        && echoReply.data.seq == echoReq.seq) {
+                    echoReply.status = SUCCESS;
+                    return;
+                }
+                break;
+            }
+            case TIME_EXCEEDED: {
+                uint8_t * sourceIpHeader = echoReply.data.payload;
+                unsigned int ipHeaderSize = (sourceIpHeader[0] & 0x0F) * 4u;
+                uint8_t * sourceIcmpHeader = echoReply.data.payload + ipHeaderSize;
 
-			// The destination ip address in the originating packet's IP header.
-			IPAddress sourceDestAddress(sourceIpHeader + ipHeaderSize - 4);
+                // The destination ip address in the originating packet's IP header.
+                IPAddress sourceDestAddress(sourceIpHeader + ipHeaderSize - 4);
 
-			if (!(sourceDestAddress == addr))
-				continue;
+                if (!(sourceDestAddress == addr))
+                    continue;
 
-			uint16_t sourceId = ntohs(*(uint16_t * )(sourceIcmpHeader + 4));
-			uint16_t sourceSeq = ntohs(*(uint16_t * )(sourceIcmpHeader + 6));
+                uint16_t sourceId = ntohs(*(uint16_t * )(sourceIcmpHeader + 4));
+                uint16_t sourceSeq = ntohs(*(uint16_t * )(sourceIcmpHeader + 6));
 
-			if (sourceId == echoReq.id && sourceSeq == echoReq.seq) {
-				echoReply.status = BAD_RESPONSE;
-				return;
-			}
-			break;
-		}
-		}
-
-
-    }
+                if (sourceId == echoReq.id && sourceSeq == echoReq.seq) {
+                    echoReply.status = BAD_RESPONSE;
+                    return;
+                }
+                break;
+            }
+        }
+	}
     echoReply.status = NO_RESPONSE;
 }
 
@@ -332,6 +361,7 @@ bool ICMPPing::asyncSend(ICMPEchoReply& result)
     result.status = _asyncstatus; // set the result, in case the ICMPEchoReply is checked
     return sendSuccess; // return success of send op
 }
+
 bool ICMPPing::asyncStart(const IPAddress& addr, int nRetries, ICMPEchoReply& result)
 {
 	if (!openSocket())
@@ -362,7 +392,14 @@ bool ICMPPing::asyncComplete(ICMPEchoReply& result)
 	}
 
 
-	if (W5100Ex.getRXReceivedSize(_socket))
+    uint16_t rxSize;
+    {
+        AutoSpiTrans spiTrans;
+
+        rxSize = W5100Ex.getRXReceivedSize(_socket);
+    }
+
+	if (rxSize)
 	{
 		// ooooh, we've got a pending reply
 	    ICMPEcho echoReq(ICMP_ECHOREQ, _id, _curSeq, _payload);
@@ -400,8 +437,7 @@ bool ICMPPing::asyncComplete(ICMPEchoReply& result)
 
 	// have yet to time out, will wait some more:
 	return false; // results still not in
-
 }
 
 #endif	/* ICMPPING_ASYNCH_ENABLE */
-#endif // ESP32
+#endif // USE_WIFI

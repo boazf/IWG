@@ -7,10 +7,11 @@
  * published by the Free Software Foundation.
  */
 
-#ifndef ESP32
+#ifndef USE_WIFI
 #include <SPI.h>
-#include <Ethernet.h>
+#include <EthernetUtil.h>
 #include <w5100ex.h>
+#include <Common.h>
 
 #define REQ_DATASIZE 64
 #define ICMP_ECHOREPLY 0
@@ -142,6 +143,7 @@ public:
     {
         if (_socket != MAX_SOCK_NUM)
         {
+            Lock lock(csSpi);
         	SPI.beginTransaction(SPI_ETHERNET_SETTINGS);
 	        W5100Ex.execCmdSn(_socket, Sock_CLOSE);
             SPI.endTransaction();
@@ -307,4 +309,4 @@ private:
 };
 
 #pragma pack(1)
-#endif // ESP32
+#endif // USE_WIFI

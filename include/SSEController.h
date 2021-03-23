@@ -8,7 +8,7 @@
 struct ClientInfo
 {
 public:
-    ClientInfo(const String &_id, EthernetClient &_client, time_t _timeToDie) :
+    ClientInfo(const String &_id, EthClient &_client, time_t _timeToDie) :
         id(_id),
         client(&_client)
     {
@@ -21,7 +21,7 @@ public:
     }
 
     const String id;
-    EthernetClient *client;
+    EthClient *client;
 };
 
 class SSEController : public Controller
@@ -31,12 +31,12 @@ public:
     {
     }
 
-    bool Get(EthernetClient &client, String &resource);
-    bool Post(EthernetClient &client, String &resource, size_t contentLength, String contentType);
-    bool Put(EthernetClient &client, String &resource);
-    bool Delete(EthernetClient &client, String &resource);
+    bool Get(EthClient &client, String &resource);
+    bool Post(EthClient &client, String &resource, size_t contentLength, String contentType);
+    bool Put(EthClient &client, String &resource);
+    bool Delete(EthClient &client, String &resource);
     void Init();
-    bool DeleteClient(EthernetClient &client, bool stopClient);
+    bool DeleteClient(EthClient &client, bool stopClient);
     bool IsValidId(const String &id);
     void AddClient(const String &id);
 

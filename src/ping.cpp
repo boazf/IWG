@@ -56,7 +56,7 @@
 * This file is part of the lwIP TCP/IP stack.
 *
 */
-#ifdef ESP32
+#ifdef USE_WIFI
 #include <Arduino.h>
 
 #include <math.h>
@@ -365,4 +365,4 @@ bool ping_regist_sent(struct ping_option *ping_opt, ping_sent_function ping_sent
 	ping_opt->sent_function = ping_sent;
 	return true;
 }
-#endif // ESP32
+#endif // USE_WIFI

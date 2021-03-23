@@ -12,10 +12,10 @@ public:
     {
     }
 
-    virtual bool Get(EthernetClient &client, String &resource) = 0;
-    virtual bool Post(EthernetClient &client, String &resource, size_t contentLength, String contentType) = 0;
-    virtual bool Put(EthernetClient &client, String &resource) = 0;
-    virtual bool Delete(EthernetClient &client, String &resource) = 0;
+    virtual bool Get(EthClient &client, String &resource) = 0;
+    virtual bool Post(EthClient &client, String &resource, size_t contentLength, String contentType) = 0;
+    virtual bool Put(EthClient &client, String &resource) = 0;
+    virtual bool Delete(EthClient &client, String &resource) = 0;
 
     const String name;
 };

@@ -104,7 +104,7 @@ void SettingsView::SetConfigValue(const String &pair, bool &autoRecovery, bool &
         AppConfig::setMaxHistory(parseInt(val));
 }
 
-bool SettingsView::post(EthernetClient &client, const String &resource, const String &id)
+bool SettingsView::post(EthClient &client, const String &resource, const String &id)
 {
     String pair = "";
     bool autoRecovery = false;

@@ -1,19 +1,18 @@
 #include <SPI.h>
-#include <EthernetUtil.h>
 #include <RecoveryControl.h>
 #include <Observers.h>
 #include <Common.h>
 #include <Config.h>
-#ifndef ESP32
+#ifndef USE_WIFI
 #include <Dns.h>
 #include <ICMPPing.h>
 #else
 #include <ping.h>
+#include <EthernetUtil.h>
 #endif
 #include <AppConfig.h>
 #include <TimeUtil.h>
 #include <HistoryControl.h>
-#include <EthernetUtil.h>
 
 RecoveryControl::RecoveryControl() :
 	m_currentRecoveryState(RecoveryTypes::NoRecovery)
@@ -125,8 +124,7 @@ void RecoveryControl::Init()
 			OnEnterCheckConnectivity, 
 			OnCheckConnectivity, 
 			DecideRecoveryPath, 
-			checkConnecticityTrans, 
-			NELEMS(checkConnecticityTrans)
+			TRANSITIONS(checkConnecticityTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "CheckConnectivity"
 #endif
@@ -136,8 +134,7 @@ void RecoveryControl::Init()
 			OnEnterWaitConnectionPeriod, 
 			OnWaitConnectionTestPeriod, 
 			SMState<Message, State>::OnExitDoNothing, 
-			waitWhileConnectedTrans , 
-			NELEMS(waitWhileConnectedTrans)
+			TRANSITIONS(waitWhileConnectedTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "WaitWhileConnected"
 #endif
@@ -147,8 +144,7 @@ void RecoveryControl::Init()
 			SMState<Message, State>::OnEnterDoNothing, 
 			OnStartCheckConnectivity, 
 			SMState<Message, State>::OnExitDoNothing, 
-			startCheckConnectivityTrans, 
-			NELEMS(startCheckConnectivityTrans)
+			TRANSITIONS(startCheckConnectivityTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "StartCheckConnectivity"
 #endif
@@ -158,8 +154,7 @@ void RecoveryControl::Init()
 			OnEnterDisconnectRouter, 
 			OnDisconnectRouter, 
 			SMState<Message, State>::OnExitDoNothing, 
-			disconnectRouterTrans, 
-			NELEMS(disconnectRouterTrans)
+			TRANSITIONS(disconnectRouterTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "DisconnectRouter"
 #endif
@@ -169,8 +164,7 @@ void RecoveryControl::Init()
 			OnEnterWaitWhileRecovering, 
 			OnWaitWhileRecovering, 
 			SMState<Message, State>::OnExitDoNothing, 
-			waitAfterRouterRecoveryTrans, 
-			NELEMS(waitAfterRouterRecoveryTrans)
+			TRANSITIONS(waitAfterRouterRecoveryTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "WaitAfterRouterRecovery"
 #endif
@@ -180,8 +174,7 @@ void RecoveryControl::Init()
 			OnEnterCheckConnectivity, 
 			OnCheckConnectivity, 
 			UpdateRecoveryState, 
-			checkConnectivityAfterRouterRecoveryTrans, 
-			NELEMS(checkConnectivityAfterRouterRecoveryTrans)
+			TRANSITIONS(checkConnectivityAfterRouterRecoveryTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "CheckConnectivityAfterRouterRecovery"
 #endif
@@ -191,8 +184,7 @@ void RecoveryControl::Init()
 			SMState<Message, State>::OnEnterDoNothing, 
 			OnCheckRouterRecoveryTimeout, 
 			SMState<Message, State>::OnExitDoNothing, 
-			checkRouterRecoveryTimeoutTrans, 
-			NELEMS(checkRouterRecoveryTimeoutTrans)
+			TRANSITIONS(checkRouterRecoveryTimeoutTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "CheckRouterRecoveryTimeout"
 #endif
@@ -202,8 +194,7 @@ void RecoveryControl::Init()
 			OnEnterDisconnectModem, 
 			OnDisconnectModem, 
 			SMState<Message, State>::OnExitDoNothing, 
-			disconnectModemTrans, 
-			NELEMS(disconnectModemTrans)
+			TRANSITIONS(disconnectModemTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "DisconnectModem"
 #endif
@@ -213,8 +204,7 @@ void RecoveryControl::Init()
 			OnEnterWaitWhileRecovering, 
 			OnWaitWhileRecovering, 
 			SMState<Message, State>::OnExitDoNothing, 
-			waitAfterModemRecoveryTrans, 
-			NELEMS(waitAfterModemRecoveryTrans)
+			TRANSITIONS(waitAfterModemRecoveryTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "WaitAfterModemRecovery"
 #endif
@@ -224,8 +214,7 @@ void RecoveryControl::Init()
 			OnEnterCheckConnectivity, 
 			OnCheckConnectivity, 
 			UpdateRecoveryState, 
-			checkConnectivityAfterModemRecoveryTrans, 
-			NELEMS(checkConnectivityAfterModemRecoveryTrans)
+			TRANSITIONS(checkConnectivityAfterModemRecoveryTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "CheckConnectivityAfterModemRecovery"
 #endif
@@ -235,8 +224,7 @@ void RecoveryControl::Init()
 			SMState<Message, State>::OnEnterDoNothing, 
 			OnCheckModemRecoveryTimeout, 
 			SMState<Message, State>::OnExitDoNothing, 
-			checkModemRecoveryTimeoutTrans, 
-			NELEMS(checkModemRecoveryTimeoutTrans)
+			TRANSITIONS(checkModemRecoveryTimeoutTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "CheckModemRecoveryTimeout"
 #endif
@@ -246,8 +234,7 @@ void RecoveryControl::Init()
 			SMState<Message, State>::OnEnterDoNothing, 
 			OnCheckMaxCyclesExceeded, 
 			SMState<Message, State>::OnExitDoNothing, 
-			checkMaxCyclesExceededTrans, 
-			NELEMS(checkMaxCyclesExceededTrans)
+			TRANSITIONS(checkMaxCyclesExceededTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "CheckMaxCyclesExceeded"
 #endif
@@ -257,8 +244,7 @@ void RecoveryControl::Init()
 			OnEnterCheckConnectivity, 
 			OnCheckConnectivity, 
 			UpdateRecoveryState, 
-			checkConnectivityAfterRecoveryFailureTrans, 
-			NELEMS(checkConnectivityAfterRecoveryFailureTrans)
+			TRANSITIONS(checkConnectivityAfterRecoveryFailureTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "CheckConnectivityAfterRecoveryFailure"
 #endif
@@ -268,8 +254,7 @@ void RecoveryControl::Init()
 			OnEnterWaitConnectionPeriod, 
 			OnWaitConnectionTestPeriod, 
 			SMState<Message, State>::OnExitDoNothing, 
-			waitWhileRecoveryFailureTrans,
-			NELEMS(waitWhileRecoveryFailureTrans)
+			TRANSITIONS(waitWhileRecoveryFailureTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "WaitWhileRecoveryFailure"
 #endif
@@ -279,8 +264,7 @@ void RecoveryControl::Init()
 			SMState<Message, State>::OnEnterDoNothing, 
 			OnHWError, 
 			SMState<Message, State>::OnExitDoNothing, 
-			hwErrorTrans, 
-			NELEMS(hwErrorTrans)
+			TRANSITIONS(hwErrorTrans)
 #ifdef DEBUG_STATE_MACHINE
 			, "HWError"
 #endif
@@ -345,7 +329,7 @@ class CheckConnectivityStateParam
 {
 public:
 	CheckConnectivityStateParam() :
-#ifndef ESP32
+#ifndef USE_WIFI
 		ping(MAX_SOCK_NUM, 1),
 #else
 		attempts(0),
@@ -356,7 +340,7 @@ public:
 	}
 
 public:
-#ifndef ESP32
+#ifndef USE_WIFI
 	ICMPPing ping;
 	ICMPEchoReply pingResult;
 #else
@@ -371,7 +355,7 @@ static bool TryGetHostAddress(IPAddress &address, String server)
 {
 	if (server.equals(""))
 		return false;
-#ifdef ESP32
+#ifdef USE_WIFI
 	if (WiFi.hostByName(server.c_str(), address) != 1)
 #else
 	DNSClient dns;
@@ -447,7 +431,7 @@ void RecoveryControl::OnEnterCheckConnectivity(void *param)
 		Trace(".");
 		Traceln(address[3]);
 #endif
-#ifndef ESP32
+#ifndef USE_WIFI
 		stateParam->ping.asyncStart(address, MAX_PING_ATTEMPTS, stateParam->pingResult);
 #else
 		stateParam->address = address;
@@ -464,10 +448,11 @@ Message RecoveryControl::OnCheckConnectivity(void *param)
 
 	if (stateParam->stage != ChecksCompleted)
 	{
-#ifndef ESP32
+#ifndef USE_WIFI
 		if (!stateParam->ping.asyncComplete(stateParam->pingResult))
-			return Message::None;
+		 	return Message::None;
 
+		//status = Message::M_Connected;
 		status = stateParam->pingResult.status == SUCCESS ? Message::M_Connected : Message::M_Disconnected;
 #else
 		if (stateParam->attempts < MAX_PING_ATTEMPTS)
@@ -486,7 +471,7 @@ Message RecoveryControl::OnCheckConnectivity(void *param)
 #endif
 #ifdef DEBUG_RECOVERY_CONTROL
 		Trace("Ping result: ");
-#ifndef ESP32
+#ifndef USE_WIFI
 		Traceln((unsigned int)stateParam->pingResult.status);
 #else
 		Traceln(status == Message::M_Connected ? "OK" : "Failed");

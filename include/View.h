@@ -48,12 +48,12 @@ public:
     const String viewFilePath;
     virtual bool open(byte *buff, int buffSize);
     virtual void close();
-    virtual bool redirect(EthernetClient &client, const String &id);
+    virtual bool redirect(EthClient &client, const String &id);
     bool getLastModifiedTime(String &lastModifiedtimeStr);
     virtual CONTENT_TYPE getContentType();
     virtual long getViewSize();
     virtual int read();
-    virtual bool post(EthernetClient &client, const String &resource, const String &id);
+    virtual bool post(EthClient &client, const String &resource, const String &id);
 
 protected:
     bool openWWWROOT(SdFile &dir);

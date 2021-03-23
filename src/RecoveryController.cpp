@@ -2,7 +2,7 @@
 #include <RecoveryControl.h>
 #include <EthernetUtil.h>
 
-bool RecoveryController::Get(EthernetClient &client, String &resource)
+bool RecoveryController::Get(EthClient &client, String &resource)
 {
 #ifdef DEBUG_HTTP_SERVER
     Traceln("RecoveryController Get");
@@ -10,7 +10,7 @@ bool RecoveryController::Get(EthernetClient &client, String &resource)
     return false;
 }
 
-bool RecoveryController::Put(EthernetClient &client, String &resource)
+bool RecoveryController::Put(EthClient &client, String &resource)
 {
 #ifdef DEBUG_HTTP_SERVER
     Traceln("RecoveryController Put");
@@ -18,7 +18,7 @@ bool RecoveryController::Put(EthernetClient &client, String &resource)
     return false;
 }
 
-bool RecoveryController::Delete(EthernetClient &client, String &resource)
+bool RecoveryController::Delete(EthClient &client, String &resource)
 {
 #ifdef DEBUG_HTTP_SERVER
     Traceln("RecoveryController Delete");
@@ -26,7 +26,7 @@ bool RecoveryController::Delete(EthernetClient &client, String &resource)
     return false;
 }
 
-bool RecoveryController::Post(EthernetClient &client, String &resource, size_t contentLength, String contentType)
+bool RecoveryController::Post(EthClient &client, String &resource, size_t contentLength, String contentType)
 {
 #ifdef DEBUG_HTTP_SERVER
     Traceln("RecoveryController Post");

@@ -1,4 +1,4 @@
-#ifndef ESP32
+#ifndef USE_WIFI
 #include <Arduino.h>
 #include <w5100ex.h>
 
@@ -62,4 +62,4 @@ void W5100ClassEx::read_data(SOCKET s, volatile uint16_t src, volatile uint8_t *
 }
 
 W5100ClassEx W5100Ex;
-#endif // ESP32
+#endif // USE_WIFI
