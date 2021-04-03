@@ -5,6 +5,8 @@
 #include <TimeUtil.h>
 #ifdef USE_WIFI
 #include <ping.h>
+#else
+#include <Dns.h>
 #endif
 
 #if !defined(USE_WIFI) && defined(ESP32)
@@ -356,7 +358,7 @@ void InitEthernet()
 #endif      
   }
 #ifdef DEBUG_ETHERNET
-    Traceln(" Connected!");
+  Traceln(" Connected!");
 #endif      
 #else
   else
@@ -470,4 +472,27 @@ void MaintainEthernet()
     }
   }
 #endif // USE_WIFI
+}
+
+bool TryGetHostAddress(IPAddress &address, String server)
+{
+	if (server.equals(""))
+		return false;
+#ifdef USE_WIFI
+	if (WiFi.hostByName(server.c_str(), address) != 1)
+#else
+	DNSClient dns;
+	dns.begin(Config::gateway);
+
+	if (dns.getHostByName(server.c_str(), address) != 1)
+#endif
+	{
+#ifdef DEBUG_ETHERNET
+		Trace("Failed to get host address for ");
+		Traceln(server.c_str());
+#endif
+		return false;
+	}
+
+	return true;
 }

@@ -126,6 +126,14 @@ public:
 
     RecoveryStatus &recoveryStatus() { return data.recoveryStatus; }
 
+    time_t recoveryTime() 
+    { 
+        if (data.recoveryStatus == RecoveryStatus::RecoverySuccess)
+            return data.endTime == INT32_MAX ? data.startTime : data.endTime;
+        else
+            return INT32_MAX;
+    }
+
 private:
     struct HistoryStorageItemData
     {

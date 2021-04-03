@@ -50,7 +50,7 @@ void HistoryStorage::init(int _maxRecords)
         {
             HistoryStorageItem historyStorageItem;
             historyStorageItem.get(startIndex - 1);
-            lastRecovery = historyStorageItem.endTime();
+            lastRecovery = historyStorageItem.recoveryTime();
         }
         else
             lastRecovery = INT32_MAX;
@@ -63,7 +63,7 @@ void HistoryStorage::init(int _maxRecords)
     time_t minT = INT32_MAX;
     startIndex = 0;
     bool first = true;
-    lastRecovery = 0;
+    lastRecovery = INT32_MAX;
 
     for (int i = 0; i < maxRecords; i++)
     {
@@ -77,18 +77,9 @@ void HistoryStorage::init(int _maxRecords)
             if (!first)
                 break;
         }
-        time_t endTime = historyStorageItem.endTime();
-        if (endTime != INT32_MAX && lastRecovery < endTime)
-        {
-            if (historyStorageItem.recoveryStatus() == RecoveryFailure)
-                lastRecovery = 0;
-            else
-                lastRecovery = endTime;
-        }
+        lastRecovery = historyStorageItem.recoveryTime();
         first = false;
     }
-    if (lastRecovery == 0)
-        lastRecovery = INT32_MAX;
 
 #ifdef DEBUG_HISTORY
         ReportIntializationResult();

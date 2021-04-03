@@ -4,7 +4,6 @@
 #include <Common.h>
 #include <Config.h>
 #ifndef USE_WIFI
-#include <Dns.h>
 #include <ICMPPing.h>
 #else
 #include <ping.h>
@@ -15,12 +14,18 @@
 #include <HistoryControl.h>
 
 RecoveryControl::RecoveryControl() :
-	m_currentRecoveryState(RecoveryTypes::NoRecovery)
+	m_currentRecoveryState(RecoveryTypes::ConnectivityCheck)
 {
 }
 
 void RecoveryControl::Init()
 {
+	Transition<Message, State> initTrans[] =
+	{
+		{ Message::M_Connected, State::CheckConnectivity },
+		{ Message::M_Disconnected , State::CheckConnectivity }
+	};
+
 	Transition<Message, State> checkConnecticityTrans[] =
 	{
 		{ Message::M_Disconnected, State::WaitWhileRecoveryFailure },
@@ -119,6 +124,16 @@ void RecoveryControl::Init()
 
 	SMState<Message, State> states[]
 	{
+		SMState<Message, State>(
+			State::Init, 
+			OnEnterInit, 
+			OnInit, 
+			UpdateRecoveryState, 
+			TRANSITIONS(initTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "Init"
+#endif
+			),
 		SMState<Message, State>(
 			State::CheckConnectivity, 
 			OnEnterCheckConnectivity, 
@@ -351,34 +366,6 @@ public:
 	CheckConnectivityStages stage;
 };
 
-static bool TryGetHostAddress(IPAddress &address, String server)
-{
-	if (server.equals(""))
-		return false;
-#ifdef USE_WIFI
-	if (WiFi.hostByName(server.c_str(), address) != 1)
-#else
-	DNSClient dns;
-	dns.begin(Config::gateway);
-
-	if (dns.getHostByName(server.c_str(), address) != 1)
-#endif
-	{
-#ifdef DEBUG_RECOVERY_CONTROL
-		Trace("Failed to get host address for ");
-		Traceln(server.c_str());
-#endif
-		return false;
-	}
-
-#ifdef DEBUG_RECOVERY_CONTROL
-	Trace("About to ping ");
-	Traceln(server.c_str());
-#endif
-
-	return true;
-}
-
 #define MAX_PING_ATTEMPTS 5
 
 void RecoveryControl::OnEnterCheckConnectivity(void *param)
@@ -419,6 +406,14 @@ void RecoveryControl::OnEnterCheckConnectivity(void *param)
 			stateParam->stage = ChecksCompleted;
 	}	
 
+#ifdef DEBUG_RECOVERY_CONTROL
+	if (stateParam->stage == CheckServer1 || stateParam->stage == CheckServer2)
+	{
+		Trace("About to ping ");
+		Traceln(server.c_str());
+	}
+#endif
+
 	if (stateParam->stage != ChecksCompleted)
 	{
 #ifdef DEBUG_RECOVERY_CONTROL
@@ -438,6 +433,40 @@ void RecoveryControl::OnEnterCheckConnectivity(void *param)
 		stateParam->attempts = 0;
 #endif
 	}
+}
+
+void RecoveryControl::OnEnterInit(void *param)
+{
+	SMParam *smParam = (SMParam *)param;
+	smParam->t0 = max<int>(AppConfig::getRReconnect(), AppConfig::getMReconnect()) * 1000 + millis();
+}
+
+Message RecoveryControl::OnInit(void *param)
+{
+	SMParam *smParam = (SMParam *)param;
+
+	if (millis() > smParam->t0)
+	{
+#ifdef DEBUG_RECOVERY_CONTROL
+		Traceln("Timeout: could not establish connectivity upon initialization, starting recovery cycles");
+#endif
+		return M_Disconnected;
+	}
+
+	if (millis() > 1000 * smParam->cycles)
+	{
+		String server = AppConfig::getServer1().isEmpty() ? AppConfig::getServer2() : AppConfig::getServer1();
+		IPAddress address;
+
+		if (TryGetHostAddress(address, server))
+		{
+			smParam->cycles = 0;
+			return M_Connected;
+		}
+		smParam->cycles++;
+	}
+
+	return None;
 }
 
 Message RecoveryControl::OnCheckConnectivity(void *param)

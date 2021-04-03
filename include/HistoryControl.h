@@ -18,6 +18,7 @@ enum H_Message
 
 enum H_State
 {
+    HS_Init,
     HS_Connected,
     HS_CheckingConnectivity,
     HS_RecoveringRouter,
@@ -41,6 +42,7 @@ public:
 private:
     static void RecoveryStateChanged(const RecoveryStateChangedParams &params, const void* context);
     static void MaxHistoryChanged(const MaxHistoryRecordChangedParams &params, const void* context);
+    static H_Message OnInit(void *param);
     static void OnConnected(void *param);
     static void OnCheckingConnectivity(void *param);
     static void OnRecoveringModem(void *param);

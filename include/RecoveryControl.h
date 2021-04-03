@@ -25,6 +25,7 @@ enum Message
 
 enum State
 {
+	Init,
 	CheckConnectivity,
 	StartCheckConnectivity,
 	WaitWhileConnected,
@@ -198,6 +199,8 @@ private:
 	RecoveryTypes m_currentRecoveryState;
 
 private:
+	static void OnEnterInit(void *param);
+	static Message OnInit(void *param);
 	static void OnEnterCheckConnectivity(void *param);
 	static Message OnCheckConnectivity(void *param);
 	static void OnEnterWaitConnectionPeriod(void *param);

@@ -127,5 +127,6 @@ private:
 void InitEthernet();
 void MaintainEthernet();
 bool IsZeroIPAddress(const IPAddress &address);
+bool TryGetHostAddress(IPAddress &address, String server);
 
 #endif // EthernetUtil_h

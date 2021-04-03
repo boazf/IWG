@@ -13,6 +13,12 @@ void HistoryControl::Init()
     recoveryControl.GetRecoveryStateChanged().addObserver(RecoveryStateChanged, this);
     maxHistory = AppConfig::getMaxHistory();
     recoveryControl.GetMaxHistoryRecordsChanged().addObserver(MaxHistoryChanged, this);
+
+    Transition<H_Message, H_State> initTrans[] =
+    {
+        { HM_RecoverySuccess, HS_Connected }
+    };
+
     Transition<H_Message, H_State> connectedTrans[] =
     {
         { HM_RecoverySuccess, HS_Connected },
@@ -67,6 +73,16 @@ void HistoryControl::Init()
 
     SMState<H_Message, H_State> states[] =
     {
+        SMState<H_Message, H_State>(
+            HS_Init, 
+            SMState<H_Message, H_State>::OnEnterDoNothing, 
+            OnInit,
+   			SMState<H_Message, H_State>::OnExitDoNothing,
+            TRANSITIONS(initTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "HS_Init"
+#endif
+			),
         SMState<H_Message, H_State>(
             HS_Connected, 
             OnConnected, 
@@ -164,6 +180,10 @@ void HistoryControl::PerformCycle()
 void HistoryControl::RecoveryStateChanged(const RecoveryStateChangedParams &params, const void* context)
 {
     HistoryControl *historyControl = (HistoryControl *)context;
+
+    if (historyControl->m_pSM->current()->State() == HS_Init)
+        return;
+
     historyControl->byUser = params.m_byUser;
 
     switch(params.m_recoveryType)
@@ -189,6 +209,14 @@ void HistoryControl::RecoveryStateChanged(const RecoveryStateChangedParams &para
     case Disconnected:
         break;
     }
+}
+
+H_Message HistoryControl::OnInit(void *param)
+{
+    if (recoveryControl.GetRecoveryState() == NoRecovery)
+        return HM_RecoverySuccess;
+    
+    return HM_None;
 }
 
 void HistoryControl::MaxHistoryChanged(const MaxHistoryRecordChangedParams &params, const void* context)
