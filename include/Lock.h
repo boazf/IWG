@@ -1,7 +1,6 @@
 #ifndef Lock_h
 #define Lock_h
 
-#ifdef ESP32
 #include <Arduino.h>
 
 class Lock;
@@ -53,6 +52,4 @@ public:
 private:
     CriticalSection &_cs;
 };
-#endif // ESP32
-
 #endif // Lock_h

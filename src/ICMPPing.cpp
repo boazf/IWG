@@ -22,18 +22,14 @@ class AutoSpiTrans
 public:
     AutoSpiTrans(SPISettings spiSettings = SPI_ETHERNET_SETTINGS)
     {
-#ifdef ESP32
         csSpi.Enter();
-#endif
         SPI.beginTransaction(spiSettings);
     }
 
     ~AutoSpiTrans()
     {
         SPI.endTransaction();
-#ifdef ESP32
         csSpi.Leave();
-#endif
     }
 };
 

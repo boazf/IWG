@@ -1,4 +1,3 @@
-#ifdef ESP32
 #ifndef FilesController_h
 #define FilesController_h
 
@@ -24,4 +23,3 @@ private:
 extern FilesController filesController;
 
 #endif // FilesController_h
-#endif // ESP32

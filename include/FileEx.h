@@ -1,4 +1,3 @@
-#ifdef ESP32
 #ifndef FileEx_h
 #define FileEx_h
 
@@ -37,4 +36,3 @@ protected:
 };
 
 #endif // FileEx_h
-#endif // ESP32

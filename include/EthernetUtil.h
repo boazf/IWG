@@ -5,9 +5,7 @@
 #include <WiFi.h>
 #else
 #include <Ethernet.h>
-#ifdef ESP32
 #include <EthernetUdp.h>
-#endif
 #endif
 
 #ifdef USE_WIFI
@@ -15,7 +13,6 @@
 #define EthClient WiFiClient
 #define EthServer WiFiServer
 #else
-#ifdef ESP32
 class EthernetClassEx
 {
 public:
@@ -116,12 +113,6 @@ private:
 #define EthClient EthernetClientEx
 #define EthServer EthernetServerEx
 #define EthUDP EthernetUDPEx
-#else
-#define Eth Etherne
-#define EthClient EthernetClient
-#define EthServer EthernetServer
-#define EthUDP EthernetUDP
-#endif // ESP32
 #endif // USE_WIFI
 
 void InitEthernet();

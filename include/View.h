@@ -34,11 +34,7 @@ public:
 
     virtual ~View()
     {
-#ifndef ESP32
-        if (file.isOpen())
-#else
         if (file)
-#endif
             file.close();
         buff = NULL;
         buffSize = 0;

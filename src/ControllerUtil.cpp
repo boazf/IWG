@@ -13,9 +13,7 @@ void InitControllers()
     sseController.Init();
     HTTPServer::AddController(&sseController);
     HTTPServer::AddController(&recoveryController);
-#ifdef ESP32
     HTTPServer::AddController(&filesController);
-#endif
 }
 
 void PerformControllersCycles()

@@ -14,10 +14,6 @@ public:
 
 private:
     static EthServer server;
-#ifndef ESP32
-    static SdVolume vol;
-    static SdFile curDir;
-#endif
     static char curPath[MAX_PATH + 1];
 
 private:

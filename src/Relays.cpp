@@ -40,12 +40,12 @@ PowerState GetModemPowerState()
 
 void SetModemPowerState(PowerState state)
 {
-    modemPowerState = state;
+    modemPowerState = PowerState::POWER_ON; // state;
     digitalWrite(modemRelay, PowerStateToLineState(modemPowerState));
 }
 
 void SetRouterPowerState(PowerState state)
 {
-    routerPowerState = state;
+    routerPowerState = PowerState::POWER_ON; // state;
     digitalWrite(routerRelay, PowerStateToLineState(routerPowerState));
 }

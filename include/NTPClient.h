@@ -19,4 +19,4 @@ private:
 };
 
 #endif // NTPClient_h
-#endif // ESP32
+#endif // USE_WIFI

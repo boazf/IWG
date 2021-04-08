@@ -1,4 +1,3 @@
-#ifdef ESP32
 #include <Common.h>
 #include <FilesView.h>
 
@@ -55,4 +54,3 @@ bool FilesView::post(EthClient &client, const String &resource, const String &id
 }
 
 FilesView filesView("/FILES", "/FILES.HTM");
-#endif // ESP32

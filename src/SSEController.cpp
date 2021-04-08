@@ -1,6 +1,5 @@
 #include <SSEController.h>
 #include <Relays.h>
-#include <MemUtil.h>
 #include <TimeUtil.h>
 
 #define SESSION_LENGTH 300
@@ -29,10 +28,8 @@ bool SSEController::Get(EthClient &client, String &id)
         }
         clientInfo = clientInfo->next;
     }
-#ifdef ESP32
 #ifdef DEBUG_HTTP_SERVER
     Tracef("Adding SSE client: id=%s, IP=%s, port=%d, object=%lx\n", id.c_str(), client.remoteIP().toString().c_str(), client.remotePort(), (ulong)&client);
-#endif
 #endif
     clients.Insert(new ClientInfo(id, client, t_now + SESSION_LENGTH));
     client.println("HTTP/1.1 200 OK");
@@ -66,8 +63,6 @@ bool SSEController::Delete(EthClient &client, String &resource)
 
 void SSEController::NotifyState(const String &id)
 {
-    TRACK_FREE_MEMORY(__func__);
-
     UpdateStateLastRecoveryTime();
 
     String event("data:{");

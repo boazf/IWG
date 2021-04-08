@@ -1,4 +1,3 @@
-#ifdef ESP32
 #include <Common.h>
 #include <FileEx.h>
 
@@ -113,4 +112,3 @@ void FileEx::rewindDirectory(void)
     Lock lock(csSpi);
     file.rewindDirectory();
 }
-#endif // ESP32

@@ -49,11 +49,6 @@ extern SDExClass SDEx;
 
 void InitSD();
 
-#ifdef ESP32
 #define SdFile FileEx
-#else
-extern Sd2Card card;
-extern SdVolume vol;
-#endif
 
 #endif // SDUtil_h

@@ -1,4 +1,3 @@
-#ifdef ESP32
 #ifndef FilesView_h
 #define FilesView_h
 
@@ -15,4 +14,3 @@ public:
 extern FilesView filesView;
 
 #endif // FilesView_h
-#endif // ESP32

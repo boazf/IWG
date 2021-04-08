@@ -6,20 +6,12 @@
 #include <SDUtil.h>
 
 EthServer SFT::server(765);    // The server object for TCP communication
-#ifndef ESP32
-SdVolume SFT::vol;                  // The SD card volume
-SdFile SFT::curDir;                 // The current directory object
-#endif
 char SFT::curPath[MAX_PATH + 1];    // The path of the current directory
 
 #define SERVER_MAJOR_VERSION 1
 #define SERVER_MINOR_VERSION 0
 
-#ifdef ESP32
 #define PATH_SEP_CHAR "/"
-#else
-#define PATH_SEP_CHAR "\\"
-#endif
 
 // Connect a client to the server
 void SFT::Connect(EthClient &client)
@@ -44,7 +36,6 @@ bool SFT::WaitForClient(EthClient &client)
 #define FILE_TRANSFER_BUFF_SIZE 256     // Size for the send and receive buffers over TCP
 #define MAKE_LONG(b0, b1, b2, b3) ((long)(b0) | ((long)(b1)) << 8 | ((long)(b2)) << 16) | ((long)(b3) << 24)
 
-#ifdef ESP32
 char *combinePath(char *dstPath, const char *srcPath1, const char *srcPath2)
 {
   if (strlen(srcPath1) + strlen(srcPath2) + (srcPath1[1] != '\0') > MAX_PATH)
@@ -55,7 +46,6 @@ char *combinePath(char *dstPath, const char *srcPath1, const char *srcPath2)
   strcat(dstPath, srcPath2);
   return dstPath;
 }
-#endif
 
 // Upload a file from the client to Arduino
 // Currently the destination file can only be put in the currect directoy.
@@ -81,7 +71,6 @@ void SFT::Upload(EthClient &client)
   // Open the file
   SdFile file;
   uint8_t res;
-#ifdef ESP32
   char filePath[MAX_PATH];
   if (combinePath(filePath, curPath, fileName) == NULL)
     res = 0;
@@ -90,11 +79,6 @@ void SFT::Upload(EthClient &client)
     file = SD.open(filePath, FILE_WRITE);
     res = file;
   }
-#else
-  SdFile org = curDir;
-  res = file.open(curDir, fileName, O_CREAT | O_WRITE);
-  curDir = org; // For some unknown reason file.open changes the directory object passed to it
-#endif
 
   // Send status indicating whether the file could be opened
   buff[0] = res == 1 ? 220 : 100;
@@ -107,18 +91,9 @@ void SFT::Upload(EthClient &client)
     Traceln("Failed to receive first buffer");
 #endif
     file.close();
-#ifdef ESP32
     SD.remove(filePath);
-#else
-    file.remove();
-#endif
     return;
   }
-
-#ifndef ESP32
-  // Erase file content
-  file.truncate(0); 
-#endif
 
   // Loop through the blocks with file content
   long offset = 0;
@@ -154,11 +129,7 @@ void SFT::Upload(EthClient &client)
   if (offset != length)
   {
     file.close();
-  #ifdef ESP32
     SD.remove(filePath);
-  #else
-    file.remove();
-  #endif
     return;
   }
 
@@ -198,7 +169,6 @@ void SFT::Download(EthClient &client)
   // Try to open the file
   SdFile file;
   uint8_t ores;
-#ifdef ESP32
   {
     char filePath[MAX_PATH + 1];
     if (combinePath(filePath, curPath, fileName) == NULL)
@@ -209,11 +179,6 @@ void SFT::Download(EthClient &client)
       ores = file;
     }
   }
-#else
-  SdFile org = curDir;
-  ores = file.open(curDir, fileName, O_READ);
-  curDir = org;
-#endif
   if (ores == 0)
   {
     // Send indication that the file could not be opened
@@ -223,12 +188,7 @@ void SFT::Download(EthClient &client)
   }
 
   // Send status indicating the file is opened and the file size
-  long size = 
-  #ifdef ESP32
-    file.size();
-  #else
-  	file.fileSize();
-  #endif
+  long size = file.size();
   byte ret[5];
   ret[0] = 220;
   *((long *)(ret + 1)) = size;
@@ -326,11 +286,7 @@ void SFT::Download(EthClient &client)
   delay(1);
 }
 
-#ifdef ESP32
 #define MAX_FILE_NAME 128
-#else
-#define MAX_FILE_NAME 13
-#endif
 // File information sent to client
 typedef struct FILE_INFO_
 {
@@ -348,83 +304,34 @@ typedef struct FILE_INFO_
 // Send to the client information about all entries in the curernt directory
 void SFT::ListDirectory(EthClient &client)
 {
-#ifndef ESP32
-  SdFile org = curDir;
-  dir_t dir;
-#endif
 #ifdef DEBUG_SFT
   Traceln("List directory...");
 #endif
   bool fail = false;
   // Loop through the directory entries
-#ifdef ESP32
   File dir = SD.open(curPath);
   File file = dir.openNextFile();
   while (file)
-#else
-  while (curDir.readDir(&dir)>0)
-#endif
   {
     FILE_INFO fileInfo;
     fileInfo.signature[0] = 222;
     fileInfo.signature[1] = 0;
-#ifdef ESP32
     char filePath[MAX_PATH + 1];
     strcpy(filePath, file.name());
     char *slash = strrchr(filePath, *PATH_SEP_CHAR);
     strncpy(fileInfo.name, slash + 1, MAX_FILE_NAME);
-#else
-    SdFile::dirName(dir, fileInfo.name);
-#endif
-    fileInfo.isDir = 
-#ifdef ESP32
-      file.isDirectory();
-#else
-      DIR_IS_SUBDIR(&dir);
-#endif
-    long size = 
-#ifdef ESP32
-      file.size();
-#else
-      dir.fileSize;
-#endif
+    fileInfo.isDir = file.isDirectory();
+    long size = file.size();
     memcpy(&fileInfo.size, &size, 4);
-#ifdef ESP32
     time_t fileTime = file.getLastWrite();
     tm tr;
     localtime_r(&fileTime, &tr);
-#endif
-    fileInfo.day = 
-#ifdef ESP32
-      tr.tm_mday;
-#else
-      FAT_DAY(dir.lastWriteDate);
-#endif
-    fileInfo.month = 
-#ifdef ESP32
-      tr.tm_mon + 1;
-#else
-      FAT_MONTH(dir.lastWriteDate);
-#endif
-    word year =
-#ifdef ESP32
-      tr.tm_year + 1900;
-#else
-      FAT_YEAR(dir.lastWriteDate);
-#endif
+    fileInfo.day = tr.tm_mday;
+    fileInfo.month = tr.tm_mon + 1;
+    word year = tr.tm_year + 1900;
     memcpy(&fileInfo.year, &year, 2);
-    fileInfo.hour =
-#ifdef ESP32
-      tr.tm_hour;
-#else
-      FAT_HOUR(dir.lastWriteTime);
-#endif
-    fileInfo.minute = 
-#ifdef ESP32
-      tr.tm_min;
-#else
-    FAT_MINUTE(dir.lastWriteTime);
-#endif
+    fileInfo.hour = tr.tm_hour;
+    fileInfo.minute = tr.tm_min;
     // Send the file information to the client
     int res = client.write((byte *)&fileInfo, sizeof(fileInfo));
     if (res != sizeof(fileInfo))
@@ -453,22 +360,15 @@ void SFT::ListDirectory(EthClient &client)
       fail = true;
       break;
     }
-#ifdef ESP32
     file.close();
     file = dir.openNextFile();
-#endif
   }
 
-#ifdef ESP32
   dir.close();
-#endif
   // Send finalizing indication
   byte ret = fail ? 100 : 220;
   client.write(&ret, 1);
   delay(1);
-#ifndef ESP32
-  curDir = org; // Restore the root directory objet since enumeratin directory entries modifies the directory file object
-#endif
 }
 
 // Change curent directory
@@ -527,75 +427,11 @@ void SFT::ChangeDirectory(EthClient &client)
             // We should go up one directory to the root directory.
             curPath[1] = '\0';
           
-#ifndef ESP32
-          // Open the root directory
-          curDir.close();
-          curDir.openRoot(vol);
-          if (curPath[1] != '\0')
-          {
-            // We should now go down each time one sub-directory down the path
-            // Copy the path to a temporary buffer, not including the first backslash
-            char pathCopy[MAX_PATH];
-            strcpy(pathCopy, curPath + 1);
-            // Point to the name of the first sub-directory
-            char *inCurPath = pathCopy;
-            // Find the next backslash in the path.
-            backSlash = strchr(inCurPath, *PATH_SEP_CHAR);
-            while (!fail && backSlash != NULL)
-            {
-              // Change the backslash it to null character (aka '\0')
-              *backSlash = '\0';
-              // Open the sub-directory
-              SdFile subDir;
-              int res = subDir.open(curDir, inCurPath, O_READ);
-              if (res == 0)
-              {
-                // Failed to open sub-directory
-#ifdef DEBUG_SFT    
-                Traceln("Failed to open directory: ");
-                Traceln(inCurPath);
-#endif
-                fail = true;
-                break;
-              }
-              else
-              {
-                // Close the current directory object
-                curDir.close();
-                // Set the current directory to be the sub-directory
-                curDir = subDir;
-                // Find the next backslash in the path
-                inCurPath = backSlash + 1;
-                backSlash = strchr(inCurPath, *PATH_SEP_CHAR);
-              }
-            }
-            if (!fail)
-            {
-              // Open the last sub-directory in the path
-              SdFile subDir;
-              int res = subDir.open(curDir, inCurPath, O_READ);
-              if (res == 0)
-              {
-#ifdef DEBUG_SFT    
-                Traceln("Failed to open directory: ");
-                Traceln(inCurPath);
-#endif
-                fail = true;
-              }
-              else
-              {
-                curDir.close();
-                curDir = subDir;
-              }
-            }
-          }
-#endif
         }
       }
       else
       {
         // Verify that the path length will not exceed the maximum
-#ifdef ESP32   
         char tempPath[MAX_PATH + 1];
         if (combinePath(tempPath, curPath, path) != NULL)
         {
@@ -608,30 +444,6 @@ void SFT::ChangeDirectory(EthClient &client)
               newPath.close();
           }
         }
-#else
-        if (strlen(curPath) + strlen(path) + (strlen(curPath) > 1) <= MAX_PATH)
-        {
-          // Try to open the sub-directory
-          SdFile subDir, org = curDir;
-          if (subDir.open(curDir, path, O_READ) == 0)
-          {
-            // Failed to open the sub-directory, it is porbably either not a directory,
-            // or it doesn't exist
-            curDir = org;
-            fail = true;
-          }
-          else
-          {
-            // Concatinate the new sub-directory to the path
-            if (strlen(curPath) > 1)
-                strcat(curPath, PATH_SEP_CHAR);
-            strcat(curPath, path);
-            // Change current directory object to point to the new directory
-            curDir.close();
-            curDir = subDir;
-          }
-        }
-#endif
         else
         {
             // Path will become too long, we do not allow it
@@ -659,9 +471,6 @@ void SFT::ChangeDirectory(EthClient &client)
 // cannot contain path, only one directory name.
 void SFT::MakeDirectory(EthClient &client)
 {
-#ifndef ESP32
-  SdFile org = curDir;
-#endif
   bool fail = false;
   char path[MAX_PATH];
   memset(path, 0, sizeof(path));
@@ -683,36 +492,14 @@ void SFT::MakeDirectory(EthClient &client)
   }
   else
   {
-#ifdef ESP32
     char newPath[MAX_PATH + 1];
     fail = combinePath(newPath, curPath, path) == NULL || !SD.mkdir(newPath);
-#else
-    // Create the new sub-directory
-    SdFile subDir;
-    if (subDir.makeDir(curDir, path) == 0)
-    {
-      // sub-directory creation failed.
-      // Probably a sub-directory with the same name already exist
-#ifdef DEBUG_SFT    
-      Traceln("Failed to create directory");
-#endif
-      fail = true;
-    }
-    else
-    {
-      // Close the sub-directory object
-      subDir.close();
-    }
-  #endif
   }
   
   // Send pass/fail indication to the client
   byte ret = fail ? 100 : 220;
   client.write(&ret, 1);
   delay(1);
-#ifndef ESP32
-  curDir = org;
-#endif
 }
 
 // Delete a file
@@ -720,9 +507,6 @@ void SFT::MakeDirectory(EthClient &client)
 // It is not possible to send a path to a file.
 void SFT::Delete(EthClient &client)
 {
-#ifndef ESP32
-  SdFile org = curDir;
-#endif
   bool fail = false;
   char path[MAX_PATH];
   memset(path, 0, sizeof(path));
@@ -743,17 +527,8 @@ void SFT::Delete(EthClient &client)
   }
   else
   {
-#ifdef ESP32
     char tempPath[MAX_PATH + 1];
     fail = combinePath(tempPath, curPath, path) == NULL || !SD.remove(tempPath);
-#else
-    // Try to delete the file
-    if (SdFile::remove(curDir, path) == 0)
-    {
-      // File deletion failed
-      fail = true;
-    }
-#endif
 #ifdef DEBUG_SFT    
     if (fail)
     {   
@@ -767,9 +542,6 @@ void SFT::Delete(EthClient &client)
   byte ret = fail ? 100 : 220;
   client.write(&ret, 1);
   delay(1);
-#ifndef ESP32
-  curDir = org;
-#endif
 }
 
 // Delete a sub-directory
@@ -777,9 +549,6 @@ void SFT::Delete(EthClient &client)
 // It is not possible to send a path to a directory for deletion
 void SFT::RemoveDirectory(EthClient &client)
 {
-#ifndef ESP32
-  SdFile org = curDir;
-#endif
   bool fail = false;
   char path[MAX_PATH];
   memset(path, 0, sizeof(path));
@@ -801,20 +570,8 @@ void SFT::RemoveDirectory(EthClient &client)
   }
   else
   {
-  #ifdef ESP32
     char tempPath[MAX_PATH + 1];
     fail = combinePath(tempPath, curPath, path) == NULL || !SD.rmdir(tempPath);
-  #else
-    // Try to delete the sub-directory
-    SdFile subDir;
-
-    subDir.open(curDir, path, O_READ);
-    if (subDir.rmDir() == 0)
-    {
-      // Failed to delete the sub-directory
-      fail = true;
-    }
-#endif
   }
 #ifdef DEBUG_SFT    
   if (fail)
@@ -828,9 +585,6 @@ void SFT::RemoveDirectory(EthClient &client)
   byte ret = fail ? 100 : 220;
   client.write(&ret, 1);
   delay(1);
-#ifndef ESP32
-  curDir = org;
-#endif
 }
 
 // Initialize the server
@@ -842,10 +596,6 @@ void SFT::Init()
   // Set current path to the root directory
   memset(curPath, 0, sizeof(curPath));
   curPath[0] = *PATH_SEP_CHAR;
-#ifndef ESP32
-  vol.init(card);
-  curDir.openRoot(vol);
-#endif
 #ifdef DEBUG_SFT    
   Traceln("SFT Initialized");
 #endif
@@ -860,16 +610,9 @@ void SFT::DoService()
         return;
     }
 #ifdef DEBUG_SFT    
-#ifdef ESP32
     Traceln("New client");
-#else
-    Trace("New client on socket ");
-    Traceln(client.getSocketNumber());
 #endif
-#endif
-#ifdef ESP32
     AutoSD autoSD;
-#endif
     while (client.connected())
     {
         if (!client.available())

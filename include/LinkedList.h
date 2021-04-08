@@ -41,9 +41,7 @@ public:
 
     ListNode<T> *Insert(T value)
     {
-#ifdef ESP32
         Lock lock(cs);
-#endif
 
         ListNode<T> *newNode = new ListNode<T>(value);
         if (head == NULL)
@@ -63,9 +61,7 @@ public:
 
     ListNode<T> *Delete(ListNode<T> *node)
     {
-#ifdef ESP32
         Lock lock(cs);
-#endif
 
         ListNode<T> *ret = NULL;
 
@@ -107,9 +103,7 @@ public:
 
     void ClearAll()
     {
-#ifdef ESP32
         Lock lock(cs);
-#endif
 
         while(head != NULL)
         {
@@ -123,9 +117,7 @@ public:
 
     void ScanNodes(bool (*action)(const T &value, const void *param), const void *param)
     {
-#ifdef ESP32
         Lock lock(cs);
-#endif
 
         ListNode<T> *node = head;
         while(node != NULL)
@@ -140,10 +132,8 @@ public:
     ListNode<T> *head;
     ListNode<T> *tail;
 
-#ifdef ESP32
 private:
     CriticalSection cs;
-#endif
 };
 
 #endif // LinkedList_h

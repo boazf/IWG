@@ -49,14 +49,8 @@ time_t NTPClient::getUTC()
     unsigned long secsSince1900 = highWord << 16 | lowWord;
 
     // now convert NTP time into everyday time:
-  #ifndef ESP32
-    // Arduino time starts on Jan 1 2000. In seconds, that's 3155673600:
-    const unsigned long hundredYears = 3155673600UL;
-    ret = (time_t) secsSince1900 - hundredYears;
-  #else
     // Subtract seventy years:
     ret = (time_t) secsSince1900 - 2208988800;
-  #endif
   }
 
   Udp.stop();

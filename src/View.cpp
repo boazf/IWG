@@ -4,92 +4,23 @@
 #include <Common.h>
 #include <Config.h>
 
-#ifndef ESP32
-bool View::openWWWROOT(SdFile &dir)
-{
-    SdFile root;
-    if (root.openRoot(vol) == 0)
-    {
-#ifdef DEBUG_HTTP_SERVER
-        Traceln("Faield to open root directory");
-#endif
-        return false;
-    }
-
-    if (dir.open(root, "wwwroot", O_READ) == 0)
-    {
-#ifdef DEBUG_HTTP_SERVER
-        Traceln("Failed to open wwwroot directory");
-#endif
-        root.close();
-        return false;
-    }
-
-    root.close();
-    
-    return true;
-}
-#endif
-
 bool View::open(byte *_buff, int _buffSize)
 {
     buff = _buff;
     buffSize = _buffSize;
     offset = buffSize;
 
-#ifndef ESP32
-    SdFile dir;
-    if (!openWWWROOT(dir))
-        return false;
-
-    String dirName;
-    int index = 1;
-    int slash;
-    while((slash = viewFilePath.indexOf('/', index)) != -1)
-    {
-        String dirName = viewFilePath.substring(index, slash);
-        SdFile subDir;
-        if (subDir.open(dir, dirName.c_str(), O_READ) == 0)
-        {
-#ifdef DEBUG_HTTP_SERVER
-            Trace("Faield to open directory ");
-            Traceln(dirName.c_str());
-#endif
-            dir.close();
-            return false;
-        }
-        dir.close();
-        dir = subDir;
-        index = slash + 1;
-    }
-#endif
-
     String fileName;
-#ifndef ESP32
-    fileName = viewFilePath.substring(index);
-#else
     fileName = "/wwwroot" + viewFilePath;
-#endif
-#ifndef ESP32
-    if (file.open(dir, fileName.c_str(), O_READ) == 0)
-#else
     file = SD.open(fileName, FILE_READ);
     if (!file)
-#endif
     {
 #ifdef DEBUG_HTTP_SERVER
         Trace("Failed to open file ");
         Traceln(fileName.c_str());
 #endif
-#ifndef ESP32
-        dir.close();
-#endif
         return false;
     }
-
-#ifndef ESP32
-    dir.close();
-#endif
 
     return true;
 }
@@ -106,11 +37,7 @@ int View::read()
 
 long View::getViewSize()
 {
-#ifndef ESP32
-    return file.fileSize();
-#else
     return file.size();
-#endif
 }
 
 bool View::redirect(EthClient &client, const String &id)
@@ -120,41 +47,8 @@ bool View::redirect(EthClient &client, const String &id)
 
 bool View::getLastModifiedTime(String &lastModifiedTimeStr)
 {
-#ifndef ESP32
-    dir_t dirEntry;
-    memset(&dirEntry, 0, sizeof(dirEntry));
-    if (file.dirEntry(dirEntry) == 0)
-    {
-#ifdef DEBUG_HTTP_SERVER
-        Trace(__func__);
-        Traceln(": failed in file.dirEntry()");
-#endif
-        return false;
-    }
-    uint16_t lastWriteTime = dirEntry.lastWriteTime;
-    uint16_t lastWriteDate = dirEntry.lastWriteDate;
-    tm tr;
-    memset(&tr, 0, sizeof(tr));
-    tr.tm_hour = FAT_HOUR(lastWriteTime);
-    tr.tm_min = FAT_MINUTE(lastWriteTime);
-    tr.tm_sec = FAT_SECOND(lastWriteTime);
-    tr.tm_year = FAT_YEAR(lastWriteDate) - 1900;
-    tr.tm_mon = FAT_MONTH(lastWriteDate) - 1;
-    tr.tm_mday = FAT_DAY(lastWriteDate);
-    time_t fileTime = mktime(&tr);
-    if (fileTime == (time_t)-1)
-    {
-#ifdef DEBUG_HTTP_SERVER
-        Trace(__func__);
-        Traceln(": failed in mktime");
-#endif
-        return false;
-    }
-    fileTime = fileTime - Config::timeZone * 60; // Set to GMT
-#else
     tm tr;
     time_t fileTime = file.getLastWrite();
-#endif
     gmtime_r(&fileTime, &tr);
     char lastModifiedTime[64];
     // Last-Modified: Sun, 21 Jun 2020 14:33:06 GMT

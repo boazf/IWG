@@ -95,61 +95,25 @@ static bool fillJS(SdFile &file)
     return true;
 }
 
-#ifdef ESP32
 #define TEMP_HISTORY_FILE_DIR "/wwwroot/temp"
 #define TEMP_HISTORY_FILE_PATH TEMP_HISTORY_FILE_DIR "/history.htm"
-#endif
 
 bool HistoryView::open(byte *buff, int buffSize)
 {
     if (!View::open(buff, buffSize))
         return false;
 
-#ifndef ESP32
-    SdFile dir;
-
-    if (!openWWWROOT(dir))
-        return false;
-
-    SdFile tempDir;
-
-    if (!tempDir.open(dir, "TEMP", O_READ))
-    {
-        if (!tempDir.makeDir(dir, "TEMP"))
-        {
-#ifdef DEBUG_HTTP_SERVER
-            Traceln("Failed to open TEMP directory");
-#endif            
-            dir.close();
-            return false;
-        }
-    }
-
-    dir.close();
-#endif
-
     SdFile historyFile;
-#ifndef ESP32
-    if (!historyFile.open(tempDir, "HISTORY.HTM", O_WRITE | O_READ | O_CREAT | O_TRUNC))
-#else
     if (!SD.exists(TEMP_HISTORY_FILE_DIR))
         SD.mkdir(TEMP_HISTORY_FILE_DIR);
     historyFile = SD.open(TEMP_HISTORY_FILE_PATH, FILE_WRITE);
     if (!historyFile)
-#endif
     {
 #ifdef DEBUG_HTTP_SERVER
         Traceln("Failed to open HISTORY.HTM file");
 #endif
-#ifndef ESP32            
-        tempDir.close();
-#endif
         return false;
     }
-
-#ifndef ESP32            
-    tempDir.close();
-#endif
 
     fillFile fillers[] = { fillAlerts, fillJS };
     for (int nBytes = file.read(buff, buffSize); nBytes; nBytes = file.read(buff, buffSize))
@@ -189,13 +153,8 @@ bool HistoryView::open(byte *buff, int buffSize)
     }
 
     file.close();
-#ifndef ESP32
-    file = historyFile;
-    file.seekSet(0);
-#else
     historyFile.close();
     file = SD.open(TEMP_HISTORY_FILE_PATH, FILE_READ);
-#endif
 
     return true;
 }

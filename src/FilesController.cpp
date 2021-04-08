@@ -1,4 +1,3 @@
-#ifdef ESP32
 #include <Common.h>
 #include <FilesController.h>
 #include <EthernetUtil.h>
@@ -243,4 +242,3 @@ bool FilesController::Delete(EthClient &client, String &resource)
 }
 
 FilesController filesController;
-#endif // ESP32

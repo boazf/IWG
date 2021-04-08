@@ -9,7 +9,7 @@
 #include <Dns.h>
 #endif
 
-#if !defined(USE_WIFI) && defined(ESP32)
+#ifndef USE_WIFI
 
 int EthernetClassEx::begin(uint8_t *mac, unsigned long timeout, unsigned long responseTimeout)
 {
@@ -308,7 +308,9 @@ int EthernetUDPEx::parsePacket()
 #define RESET_P	17				// Tie the W5500 reset pin to ESP32 GPIO17 pin.
 
 static void WizReset() {
+#ifdef DEBUG_ETHERNET
     Trace("Resetting Wiz W5500 Ethernet Board...  ");
+#endif
     pinMode(RESET_P, OUTPUT);
     digitalWrite(RESET_P, HIGH);
     delay(250);
@@ -328,8 +330,8 @@ bool IsZeroIPAddress(const IPAddress &ip)
 void InitEthernet()
 {
   // start the Ethernet connection:
-#if !defined(USE_WIFI) && defined(ESP32)
-    Ethernet.init(16);           // GPIO5 on the ESP32.
+#ifndef USE_WIFI
+    Eth.init(16);           // GPIO5 on the ESP32.
     WizReset();
 #endif
 
@@ -340,15 +342,10 @@ void InitEthernet()
     WiFi.config(Config::ip, Config::gateway, Config::mask, Config::gateway);
     WiFi.setAutoReconnect(true);
 #else
-    Ethernet.begin(Config::mac, Config::ip, Config::gateway, Config::gateway, Config::mask);
+    Eth.begin(Config::mac, Config::ip, Config::gateway, Config::gateway, Config::mask);
 #endif
   }
 #ifdef USE_WIFI
-#ifdef DEBUG_ETHERNET
-  Trace("Connecting to: ");
-  Trace(Config::ssid);
-  Trace(' ');
-#endif
   WiFi.begin(Config::ssid, Config::password);
   while(WiFi.waitForConnectResult() != WL_CONNECTED)
   {
@@ -362,7 +359,7 @@ void InitEthernet()
 #endif      
 #else
   else
-    Ethernet.begin(Config::mac);  
+    Eth.begin(Config::mac);  
 #endif
 
 #ifdef DEBUG_ETHERNET
@@ -377,7 +374,7 @@ void MaintainEthernet()
 #ifdef DEBUG_ETHERNET
   int res = 
 #endif
-  Ethernet.maintain();
+  Eth.maintain();
 #ifdef DEBUG_ETHERNET
   switch (res) {
     case 1:
@@ -390,7 +387,7 @@ void MaintainEthernet()
       Traceln("Renewed success");
       //print your local IP address:
       Trace("My IP address: ");
-      Traceln(Ethernet.localIP());
+      Traceln(Eth.localIP());
       break;
 
     case 3:
@@ -403,7 +400,7 @@ void MaintainEthernet()
       Traceln("Rebind success");
       //print your local IP address:
       Trace("My IP address: ");
-      Traceln(Ethernet.localIP());
+      Traceln(Eth.localIP());
       break;
 
     default:
@@ -482,17 +479,21 @@ bool TryGetHostAddress(IPAddress &address, String server)
 	if (WiFi.hostByName(server.c_str(), address) != 1)
 #else
 	DNSClient dns;
-	dns.begin(Config::gateway);
+  {
+    Lock lock(csSpi);
+    
+	  dns.begin(Config::gateway);
 
-	if (dns.getHostByName(server.c_str(), address) != 1)
+	  if (dns.getHostByName(server.c_str(), address) != 1)
 #endif
-	{
+  	{
 #ifdef DEBUG_ETHERNET
-		Trace("Failed to get host address for ");
-		Traceln(server.c_str());
+      Trace("Failed to get host address for ");
+      Traceln(server.c_str());
 #endif
-		return false;
-	}
+      return false;
+    }
+  }
 
 	return true;
 }

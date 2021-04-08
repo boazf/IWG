@@ -35,14 +35,12 @@ void HistoryStorage::init(int _maxRecords)
 #endif
     maxRecords = _maxRecords;
     getAvailableRecords();
-#ifdef ESP32
     if (availableRecords == -1)
     {
         // Reset history on first time the board is running
         availableRecords = 0;
         putAvailableRecords();
     }
-#endif
     if (availableRecords < maxRecords)
     {
         startIndex = availableRecords;
@@ -99,9 +97,7 @@ void HistoryStorage::addHistory(HistoryStorageItem &item)
         lastRecovery = INT32_MAX;
     else
         lastRecovery = item.endTime();
-#ifdef ESP32
     EEPROM.commit();
-#endif
 }
 
 void HistoryStorage::resize(int _maxRecords)
@@ -181,9 +177,7 @@ void HistoryStorage::resize(int _maxRecords)
         availableRecords = maxRecords;
         putAvailableRecords();
     }
-#ifdef ESP32
     EEPROM.commit();
-#endif
 }
 
 int HistoryStorage::available()

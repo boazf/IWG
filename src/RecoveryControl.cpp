@@ -455,7 +455,15 @@ Message RecoveryControl::OnInit(void *param)
 
 	if (millis() > 1000 * smParam->cycles)
 	{
-		String server = AppConfig::getServer1().isEmpty() ? AppConfig::getServer2() : AppConfig::getServer1();
+		String server;
+		if (AppConfig::getServer1().isEmpty() || AppConfig::getServer2().isEmpty())
+		{
+			server = AppConfig::getServer1().isEmpty() ? AppConfig::getServer2() : AppConfig::getServer1();
+		}
+		else
+		{
+			server = (smParam->cycles % 2 == 0) ? AppConfig::getServer1() : AppConfig::getServer2();
+		}
 		IPAddress address;
 
 		if (TryGetHostAddress(address, server))

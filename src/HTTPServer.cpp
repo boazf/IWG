@@ -8,7 +8,6 @@
 #include <time.h>
 #include <FileView.h>
 #include <SSEController.h>
-#include <MemUtil.h>
 
 String HTTPServer::RequestResource(String &request)
 {
@@ -143,7 +142,6 @@ bool HTTPServer::HandlePostRequest(PClientContext context, const String &resourc
 
 bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
 {
-    TRACK_FREE_MEMORY(__func__);
     EthClient *client = &context->client;
     AutoPtr<View> tempView;
     View *view = NULL;
@@ -353,9 +351,7 @@ bool HTTPServer::ProcessLine(PClientContext context)
 
 void HTTPServer::ServiceRequest(PClientContext context)
 {
-#ifdef ESP32
     AutoSD autoSD;
-#endif
 #ifdef DEBUG_HTTP_SERVER
     Traceln(context->request);
 #endif
@@ -409,37 +405,13 @@ void HTTPServer::Init()
 
 LinkedList<PClientContext> HTTPServer::clients;
 
-#ifdef DEBUG_HTTP_SERVER
-#ifndef ESP32
-static void PrintIP(const IPAddress &address)
-{
-    Trace(address[0]);
-    Trace(",");
-    Trace(address[1]);
-    Trace(",");
-    Trace(address[2]);
-    Trace(",");
-    Trace(address[3]);
-}
-#endif
-#endif
-
 void HTTPServer::CheckForNewClients()
 {
     EthClient client = server.accept();
     while (client)
     {
 #ifdef DEBUG_HTTP_SERVER
-#ifndef ESP32
-        Trace("New client, socket=");
-        Trace(client.getSocketNumber());
-        Trace(", IP=");
-        PrintIP(client.remoteIP());
-        Trace(", port=");
-        Traceln(client.remotePort());
-#else 
         Tracef("New client: IP=%s, port=%d\n", client.remoteIP().toString().c_str(), client.remotePort());
-#endif
 #endif
         PClientContext context = new ClientContext(client);
         clients.Insert(context);
@@ -483,7 +455,6 @@ void HTTPServer::ServeClient()
         PClientContext context = listNode->value;
         EthClient *client = &context->client;
         word remotePort;
-    #ifdef ESP32
         try
         {
             remotePort = client->remotePort();
@@ -492,9 +463,6 @@ void HTTPServer::ServeClient()
         {
             remotePort = 0;
         }
-    #else
-        remotePort = client->remotePort();
-    #endif
 
         bool brokenClient = listNode->value->remotePort != remotePort;
 #ifdef DEBUG_HTTP_SERVER

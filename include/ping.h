@@ -31,4 +31,4 @@ void ping(const char *name, int count, int interval, int size, int timeout);
 bool ping_start(IPAddress adr, int count, int interval, int size, int timeout);
 
 #endif // _PING_
-#endif // ESP32
+#endif // USE_WIFI

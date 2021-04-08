@@ -18,9 +18,7 @@ AppConfigStore AppConfig::store;
 
 void AppConfig::init()
 {
-#ifdef ESP32
     EEPROM.begin(1024);
-#endif
     if (isInitialized())
     {
         setAutoRecovery(internalGetAutoRecovery());
@@ -257,9 +255,7 @@ void AppConfig::commit()
 
     if (dirty)
     {
-#ifdef ESP32
         EEPROM.commit();
-#endif
         appConfigChanged.callObservers(AppConfigChangedParam());
     }
 }
@@ -394,15 +390,9 @@ void AppConfig::internalSetLANAddr(const IPAddress &value)
 
 bool AppConfig::isInitialized()
 {
-#ifndef ESP32
-    bool value = false;
-    getField<bool>(offsetof(AppConfigStore, initialized), value);
-    return value;
-#else
     byte value = 0;
     getField<byte>(offsetof(AppConfigStore, initialized), value);
     return value != 255;
-#endif
 }
 
 void AppConfig::setInitialized(bool isInitialized)

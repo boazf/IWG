@@ -14,9 +14,7 @@ void InitViews()
     HTTPServer::AddView(&dummyView);
     HTTPServer::AddView(&defaultView);
     HTTPServer::AddView(&historyView);
-#ifdef ESP32
     HTTPServer::AddView(&filesView);
-#endif
 }
 
 DummyView dummyView("/DUMMY", "");

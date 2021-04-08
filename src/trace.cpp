@@ -8,7 +8,6 @@
 #include <TimeUtil.h>
 #include <LinkedList.h>
 
-
 static char logFileName[80];
 
 #define LOG_DIR "/logs"
@@ -33,6 +32,15 @@ static time_t GetFileTimeFromFileName(SdFile file)
     tmFile.tm_year -= 1900;
     tmFile.tm_mon -= 1;
     return mktime(&tmFile);
+}
+
+static vprintf_like_t esp_log_func = NULL;
+size_t Tracevf(const char *format, va_list valist);
+
+static int esp_log_to_file(const char *format, va_list valist)
+{
+    Tracevf(format, valist);
+    return esp_log_func(format, valist);
 }
 #endif // ESP32
 
@@ -121,6 +129,7 @@ static void FileLoggerTask(void *parameter)
             {
                 Log(logFile, shouldTraceTimeStamp);
             }
+
             logFile.close();
         }
     }
@@ -154,6 +163,7 @@ void InitFileTrace()
         CreateNewLogFileName();
     }
     logDir.close();
+    esp_log_func = esp_log_set_vprintf(esp_log_to_file);
     xTaskCreatePinnedToCore(
         FileLoggerTask,
         "FileLoggerTask",
@@ -177,10 +187,8 @@ size_t Trace(const char *message)
     return ret;
 };
 
-size_t Tracef(const char *format, ...)
+size_t Tracevf(const char *format, va_list valist)
 {
-    va_list valist;
-    va_start(valist, format);
     char buff[81];
 
     int len = vsnprintf(buff, sizeof(buff), format, valist);
@@ -194,4 +202,12 @@ size_t Tracef(const char *format, ...)
     }
 
     return Trace(buff);
+}
+
+size_t Tracef(const char *format, ...)
+{
+    va_list valist;
+    va_start(valist, format);
+
+    return Tracevf(format, valist);
 }

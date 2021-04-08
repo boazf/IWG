@@ -74,9 +74,7 @@ bool Config::ParseByte(const String &configValue, void *parsedByte)
 
 void Config::Init()
 {
-#ifdef ESP32
   AutoSD autoSD;
-#endif  
   struct ConfigLineParser
   {
     String configVarName;
@@ -104,26 +102,14 @@ void Config::Init()
 
   SdFile config;
 
-#ifdef ESP32
   String configFilePath = String("/") + configFileName;
 #ifdef DEBUG_CONFIG
   Trace("Config file: ");
   Traceln(configFilePath);
 #endif
   config = SD.open(configFilePath);
-#else
-  SdFile root;
 
-  root.openRoot(vol);
-
-  config.open(root, configFileName, O_READ);
-#endif
-
-#ifdef ESP32
   if (!config)
-#else
-  if (!config.isOpen())
-#endif
   {
 #ifdef DEBUG_CONFIG
     Traceln("Failed to open configuration file");
@@ -208,9 +194,6 @@ void Config::Init()
 
   } while (!eof);
 
-#ifndef ESP32
-  root.close();
-#endif
   config.close();
 }
 
