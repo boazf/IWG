@@ -6,6 +6,7 @@
 #include <time.h>
 #include <Relays.h>
 #include <AppConfig.h>
+#include <Lock.h>
 
 enum Message
 {
@@ -119,6 +120,7 @@ public:
 		maxHistory(AppConfig::getMaxHistory()),
 		stateParam(NULL)
 	{
+		waitSem = xSemaphoreCreateBinary();
 	}
 
 	RecoveryControl *m_recoveryControl;
@@ -134,6 +136,8 @@ public:
 	bool autoRecovery;
 	int maxHistory;
 	void *stateParam;
+    xSemaphoreHandle waitSem;
+	CriticalSection csLock;
 };
 
 class RecoveryControl
@@ -203,12 +207,10 @@ private:
 	static Message OnInit(void *param);
 	static void OnEnterCheckConnectivity(void *param);
 	static Message OnCheckConnectivity(void *param);
-	static void OnEnterWaitConnectionPeriod(void *param);
 	static Message OnWaitConnectionTestPeriod(void *param);
 	static Message OnStartCheckConnectivity(void *param);
 	static void OnEnterDisconnectRouter(void *param);
 	static Message OnDisconnectRouter(void *param);
-	static void OnEnterWaitWhileRecovering(void *param);
 	static Message OnWaitWhileRecovering(void *param);
 	static Message OnCheckRouterRecoveryTimeout(void *param);
 	static void OnEnterDisconnectModem(void *param);
@@ -221,6 +223,7 @@ private:
 	static Message UpdateRecoveryState(Message message, void *param);
 	void RaiseRecoveryStateChanged(RecoveryTypes recoveryType, bool byUser);
 	static void AppConfigChanged(const AppConfigChangedParam &param, const void *context);
+	static void RecoveryControlTask(void *param);
 };
 
 extern RecoveryControl recoveryControl;

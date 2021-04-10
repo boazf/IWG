@@ -19,6 +19,5 @@ void InitControllers()
 void PerformControllersCycles()
 {
     manualControl.PerformCycle();
-    recoveryControl.PerformCycle();
     historyControl.PerformCycle();
 }

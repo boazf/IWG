@@ -146,7 +146,7 @@ void RecoveryControl::Init()
 			),
 		SMState<Message, State>(
 			State::WaitWhileConnected, 
-			OnEnterWaitConnectionPeriod, 
+			SMState<Message, State>::OnEnterDoNothing,
 			OnWaitConnectionTestPeriod, 
 			SMState<Message, State>::OnExitDoNothing, 
 			TRANSITIONS(waitWhileConnectedTrans)
@@ -176,7 +176,7 @@ void RecoveryControl::Init()
 			),
 		SMState<Message, State>(
 			State::WaitAfterRouterRecovery, 
-			OnEnterWaitWhileRecovering, 
+			SMState<Message, State>::OnEnterDoNothing, 
 			OnWaitWhileRecovering, 
 			SMState<Message, State>::OnExitDoNothing, 
 			TRANSITIONS(waitAfterRouterRecoveryTrans)
@@ -216,7 +216,7 @@ void RecoveryControl::Init()
 			),
 		SMState<Message, State>(
 			State::WaitAfterModemRecovery, 
-			OnEnterWaitWhileRecovering, 
+			SMState<Message, State>::OnEnterDoNothing, 
 			OnWaitWhileRecovering, 
 			SMState<Message, State>::OnExitDoNothing, 
 			TRANSITIONS(waitAfterModemRecoveryTrans)
@@ -266,7 +266,7 @@ void RecoveryControl::Init()
 			),
 		SMState<Message, State>(
 			State::WaitWhileRecoveryFailure, 
-			OnEnterWaitConnectionPeriod, 
+			SMState<Message, State>::OnEnterDoNothing, 
 			OnWaitConnectionTestPeriod, 
 			SMState<Message, State>::OnExitDoNothing, 
 			TRANSITIONS(waitWhileRecoveryFailureTrans)
@@ -293,7 +293,24 @@ void RecoveryControl::Init()
 #endif
       );
 
+    xTaskCreatePinnedToCore(
+        RecoveryControlTask,
+        "RecoveryControlTask",
+        1024*16,
+        this,
+        1,
+        NULL,
+        1 - xPortGetCoreID());
+
 	AppConfig::getAppConfigChanged().addObserver(AppConfigChanged, this);
+}
+
+void RecoveryControl::RecoveryControlTask(void *param)
+{
+	while(true)
+	{
+		((RecoveryControl *)param)->PerformCycle();
+	}
 }
 
 RecoveryControl::~RecoveryControl()
@@ -619,32 +636,39 @@ void RecoveryControl::RaiseRecoveryStateChanged(RecoveryTypes recoveryType, bool
 	m_recoveryStateChanged.callObservers(params);
 }
 
-void RecoveryControl::OnEnterWaitConnectionPeriod(void *param)
+Message RecoveryControl::OnWaitConnectionTestPeriod(void *param)
 {
-	SMParam *smParam = (SMParam *)param;
-	smParam->t0 = t_now;
 #ifdef DEBUG_RECOVERY_CONTROL
 	Trace(__func__);
 	Trace(": Waiting for ");
 	Trace(AppConfig::getConnectionTestPeriod());
 	Traceln(" Sec.");
 #endif
-}
-
-Message RecoveryControl::OnWaitConnectionTestPeriod(void *param)
-{
 	SMParam *smParam = (SMParam *)param;
-	Message requestedRecovery = Message::M_Done;
-	if (smParam->requestedRecovery != Message::M_Done)
+	Message requestedRecovery = Message::None;
 	{
-		requestedRecovery = smParam->requestedRecovery;
-		smParam->requestedRecovery = Message::M_Done;
-		smParam->m_byUser = true;
+		Lock lock(smParam->csLock);
+		xSemaphoreTake(smParam->waitSem, 0);
+		if (smParam->requestedRecovery != M_Done)
+		{
+			requestedRecovery = smParam->requestedRecovery;
+			smParam->requestedRecovery = M_Done;
+			smParam->m_byUser = true;
 
-		return requestedRecovery;
+			return requestedRecovery;
+		}
 	}
 
-	return t_now - smParam->t0 >= static_cast<time_t>(AppConfig::getConnectionTestPeriod()) ? Message::M_Done : Message::None;
+	xSemaphoreTake(smParam->waitSem, (AppConfig::getConnectionTestPeriod() * 1000) / portTICK_PERIOD_MS);
+	{
+		Lock lock(smParam->csLock);
+		requestedRecovery = smParam->requestedRecovery;
+		smParam->requestedRecovery = Message::M_Done;
+	}
+	
+	smParam->m_byUser = requestedRecovery != M_Done;
+
+	return requestedRecovery;
 }
 
 Message RecoveryControl::OnStartCheckConnectivity(void *param)
@@ -682,15 +706,10 @@ Message RecoveryControl::OnDisconnectRouter(void *param)
 	return Message::M_Done;
 }
 
-void RecoveryControl::OnEnterWaitWhileRecovering(void *param)
-{
-	SMParam *smParam = (SMParam *)param;
-	smParam->t0 = t_now;
-}
 Message RecoveryControl::OnWaitWhileRecovering(void *param)
 {
-	SMParam *smParam = (SMParam *)param;
-	return t_now - smParam->t0 >= 5 ? Message::M_Done : Message::None;
+	delay(5000);
+	return Message::M_Done;
 }
 
 Message RecoveryControl::OnCheckRouterRecoveryTimeout(void *param)
@@ -764,6 +783,8 @@ Message RecoveryControl::OnHWError(void *param)
 
 void RecoveryControl::StartRecoveryCycles(RecoveryTypes recoveryType)
 {
+	Lock lock(m_param->csLock);
+
 	if (m_param->requestedRecovery != Message::M_Done)
 		return;
 
@@ -782,6 +803,8 @@ void RecoveryControl::StartRecoveryCycles(RecoveryTypes recoveryType)
 		default:
 			break;
 	}
+	
+	xSemaphoreGive(m_param->waitSem);
 }
 
 RecoveryControl recoveryControl;
