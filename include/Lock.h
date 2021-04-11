@@ -3,8 +3,6 @@
 
 #include <Arduino.h>
 
-class Lock;
-
 class CriticalSection
 {
 public:

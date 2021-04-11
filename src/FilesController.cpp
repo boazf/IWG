@@ -30,14 +30,20 @@ bool FilesController::Get(EthClient &client, String &resource)
     byte buff[1024];
     size_t fileSize = file.size();
     size_t nBytes = 0;
+
     while (nBytes < fileSize)
     {
         size_t len = file.read(buff, min<size_t>(sizeof(buff), fileSize - nBytes));
         nBytes += len;
         client.write(buff, len);
+#ifdef USE_WIFI
         client.flush();
+#endif
     }
 
+#ifndef USE_WIFI
+    client.flush();
+#endif
     file.close();
 
     return true;
