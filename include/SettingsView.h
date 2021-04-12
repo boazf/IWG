@@ -19,7 +19,7 @@ private:
     bool parseBool(const String &val);
     IPAddress parseIPAddress(const String &val);
     int parseInt(const String &val);
-    void SetConfigValue(const String &pair, bool &autoRecovery, bool &limitCycles);
+    void SetConfigValue(const String &pair, bool &autoRecovery, bool &limitCycles, bool &DST);
 };
 
 extern SettingsView settingsView;

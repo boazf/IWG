@@ -59,6 +59,7 @@
                             <label class="col-xs-9 col-sm-6 col-md-5 col-lg-4" for="LANAddressForConnectionTesting">LAN Address for Connection Testing</label>
                             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-4">
                                 <input class="form-control input-sm" maxlength="15" size="15" type="text" data-val="true" data-val-maxlength="The field LAN Address for Connection Testing must be a string or array type with a maximum length of &#x27;15&#x27;." data-val-maxlength-max="15" data-val-regex="LAN Address should be a valid IP address" data-val-regex-pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" id="LANAddressForConnectionTesting" name="LANAddressForConnectionTesting" value=%1                  
+                                <span id="lanclear" class="clearbtn glyphicon glyphicon-remove-circle"></span> 
                             </div>
                         </div>
                         <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="LANAddressForConnectionTesting" data-valmsg-replace="true"></span>
@@ -134,6 +135,14 @@
                             </div>
                             <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="RecoveryCycles" data-valmsg-replace="true"></span>
                         </div>
+                        <div class="form-group row">
+                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3"  for="DaylightSavingTime">Daylight Saving Time</label>
+                            <span class="col-xs-3 col-md-2 col-lg-1" style="margin-right:12px"></span>
+                            <label class="switch small">
+                                <input type="checkbox" data-val="true" data-val-required="The EnableAutoRecovery field is required." id="DaylightSavingTime" name="DaylightSavingTime" value="true" %13                         
+                                <span class="slider round small"></span>
+                            </label>
+                        </div>
                     </div>
                     <div id="History" class="tab-pane fade">
                         <div class="form-group row" style="margin-top:10px">
@@ -156,12 +165,16 @@
                 <input name="__RequestVerificationToken" type="hidden" value="CfDJ8NBvSMe0yQlKq92kcrI4pZ5DV-ogiZC2-nBJTWQ5_mrihCAcKbLVZ-rRvU78OWLH6JXMD5IgxezmXPXzMtdqAjTwcEYQV3RkqbiakfFCZ_YEt4T_fxpX5ASvgp6iQVlHPycaSVHLuBsbgn-hMhj6WLo" />
                 <input name="EnableAutoRecovery" type="hidden" value="false">
                 <input name="LimitRecoveryCycles" type="hidden" value="false" />
+                <input name="DaylightSavingTime" type="hidden" value="false" />
             </form>
             <script type="text/javascript">
                 function checkLoadError() {
                     if (loadError)
                         location.replace(document.location.pathname);
                 }
+                $("#lanclear").click(function(){
+                    $("#LANAddressForConnectionTesting").val('');
+                });
                 $("#serverclear").click(function(){
                     $("#ServerForConnectionTesting").val('');
                 });

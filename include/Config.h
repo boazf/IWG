@@ -15,6 +15,7 @@ public:
     static byte gateway[4];
     static byte mask[4];
     static long timeZone;
+    static long DST;
     static const char *timeServer;
     static byte modemRelay;
     static byte routerRelay;

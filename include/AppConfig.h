@@ -33,6 +33,7 @@ typedef struct AppConfigStore_
     time_t connectionTestPeriod;
     bool autoRecovery;
     int maxHistory;
+    bool DST;
     bool initialized;
 } AppConfigStore;
 
@@ -64,6 +65,8 @@ public:
     static void setAutoRecovery(bool value);
     static int getMaxHistory();
     static void setMaxHistory(int value);
+    static bool getDST();
+    static void setDST(bool value);
     static Observers<AppConfigChangedParam> &getAppConfigChanged()
     {
         return appConfigChanged;
@@ -101,6 +104,8 @@ private:
     static void internalSetAutoRecovery(bool value);
     static int internalGetMaxHistory();
     static void internalSetMaxHistory(int value);
+    static bool internalGetDST();
+    static void internalSetDST(bool value);
     template<typename T>
     static T &getField(int offset, T &value)
     {

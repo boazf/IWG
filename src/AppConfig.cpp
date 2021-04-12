@@ -15,6 +15,7 @@ AppConfigStore AppConfig::store;
 #define DEFAULT_ROUTER_RECONNECT 180
 #define DEFAULT_SERVER1 "google.com"
 #define DEFAULT_SERVER2 "yahoo.com"
+#define DEFAULT_DST false
 
 void AppConfig::init()
 {
@@ -33,6 +34,7 @@ void AppConfig::init()
         setRReconnect(internalGetRReconnect());
         setServer1(internalGetServer1());
         setServer2(internalGetServer2());
+        setDST(internalGetDST());
     }
     else
     {
@@ -48,6 +50,7 @@ void AppConfig::init()
         setRReconnect(DEFAULT_ROUTER_RECONNECT);
         setServer1(DEFAULT_SERVER1);
         setServer2(DEFAULT_SERVER2);
+        setDST(DEFAULT_DST);
         setInitialized(true);
         commit();
     }
@@ -155,6 +158,7 @@ void AppConfig::setConnectionTestPeriod(time_t value)
 {
     store.connectionTestPeriod = value;
 }
+
 bool AppConfig::getAutoRecovery()
 {
     return store.autoRecovery;
@@ -173,6 +177,16 @@ int AppConfig::getMaxHistory()
 void AppConfig::setMaxHistory(int value)
 {
     store.maxHistory = value;
+}
+
+bool AppConfig::getDST()
+{
+    return store.DST;
+}
+
+void AppConfig::setDST(bool value)
+{
+    store.DST = value;
 }
 
 Observers<AppConfigChangedParam> AppConfig::appConfigChanged;
@@ -250,6 +264,12 @@ void AppConfig::commit()
     if (String(store.server2) != internalGetServer2())
     {
         internalSetServer2(store.server2);
+        dirty = true;
+    }
+
+    if (store.DST != internalGetDST())
+    {
+        internalSetDST(store.DST);
         dirty = true;
     }
 
@@ -431,6 +451,17 @@ int AppConfig::internalGetMaxHistory()
 void AppConfig::internalSetMaxHistory(int value)
 {
     putField<int>(offsetof(AppConfigStore, maxHistory), value);
+}
+
+bool AppConfig::internalGetDST()
+{
+    bool value = false;
+    return getField<bool>(offsetof(AppConfigStore, DST), value);
+}
+
+void AppConfig::internalSetDST(bool value)
+{
+    putField<bool>(offsetof(AppConfigStore, DST), value);
 }
 
 void InitAppConfig()

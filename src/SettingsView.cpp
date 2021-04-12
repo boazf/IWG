@@ -27,7 +27,8 @@ ViewFiller SettingsView::fillers[] =
     /*  9 */ [](String &fill){ fill = AppConfig::getLimitCycles() ? "checked=\"checked\" />" : " />"; },
     /* 10 */ [](String &fill){ fill = String("\"") + AppConfig::getRecoveryCycles() + "\" />"; },
     /* 11 */ [](String &fill){ fill = String("\"") + AppConfig::getMaxHistory() + "\" />"; },
-    /* 12 */ [](String &fill){ fill = AppConfig::getLimitCycles() ? "'True'" : "'False'"; }
+    /* 12 */ [](String &fill){ fill = AppConfig::getLimitCycles() ? "'True'" : "'False'"; },
+    /* 13 */ [](String &fill){ fill = AppConfig::getDST() ? "checked=\"checked\" />" : " />"; }
 };
 
 int SettingsView::getFillers(const ViewFiller *&_fillers)
@@ -61,7 +62,7 @@ int SettingsView::parseInt(const String &val)
     return ret;
 }
 
-void SettingsView::SetConfigValue(const String &pair, bool &autoRecovery, bool &limitCycles)
+void SettingsView::SetConfigValue(const String &pair, bool &autoRecovery, bool &limitCycles, bool &DST)
 {
     if (pair.equals(""))
         return;
@@ -100,6 +101,12 @@ void SettingsView::SetConfigValue(const String &pair, bool &autoRecovery, bool &
     }
     else if (var.equals("RecoveryCycles"))
         AppConfig::setRecoveryCycles(parseInt(val));
+    else if (var.equals("DaylightSavingTime"))
+    {
+        if (!DST)
+            AppConfig::setDST(parseBool(val));
+        DST = true;
+    }
     else if (var.equals("MaxHistoryRecords"))
         AppConfig::setMaxHistory(parseInt(val));
 }
@@ -109,6 +116,7 @@ bool SettingsView::post(EthClient &client, const String &resource, const String 
     String pair = "";
     bool autoRecovery = false;
     bool limitCycles = false;
+    bool DST = false;
 
     while(client.available())
     {
@@ -119,11 +127,11 @@ bool SettingsView::post(EthClient &client, const String &resource, const String 
             continue;
         }
 
-        SetConfigValue(pair, autoRecovery, limitCycles);
+        SetConfigValue(pair, autoRecovery, limitCycles, DST);
         pair = "";
     }
 
-    SetConfigValue(pair, autoRecovery, limitCycles);
+    SetConfigValue(pair, autoRecovery, limitCycles, DST);
     AppConfig::commit();
 
     client.println("HTTP/1.1 302 Found");

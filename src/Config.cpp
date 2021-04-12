@@ -11,6 +11,7 @@ byte Config::ip[4] = { 0, 0, 0, 0 };
 byte Config::gateway[4] = { 0, 0, 0, 0, };
 byte Config::mask[4] = { 0, 0, 0, 0 };
 long Config::timeZone = 0;
+long Config::DST = 0;
 const char *Config::timeServer = "time.nist.gov";
 const char *Config::configFileName = "config.txt";
 byte Config::modemRelay = 0;
@@ -86,6 +87,7 @@ void Config::Init()
   {
     { String("TimeServer"), ParseString, &timeServer},
     { String("TimeZone"), ParseLong, &timeZone },
+    { String("DST"), ParseLong, &DST },
   #ifndef USE_WIFI
     { String("MACAddress"), ParseMACAddress, mac },
   #endif
