@@ -493,7 +493,9 @@ bool TryGetHostAddress(IPAddress &address, String server)
 #endif
       return false;
     }
+#ifndef USE_WIFI
   }
+#endif
 
 	return true;
 }
