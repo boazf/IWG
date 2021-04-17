@@ -393,6 +393,7 @@ void ManualControl::OnEnterUnlock(void *param)
     ledState opiState = opi.get();
     OnEnterState(param);
     opi.set(opiState);
+    uli.set(LED_OFF);
 }
 
 MC_Message ManualControl::OnUnlock(void *param)
@@ -401,10 +402,8 @@ MC_Message ManualControl::OnUnlock(void *param)
         
     if (millis() - mc->t0 < 1000)
     {
-        if (ul.state() == BUTTON_OFF)
+        if (ul.state() == BUTTON_OFF || rr.state() == BUTTON_ON || mr.state() == BUTTON_ON)
             return MCM_Connected;
-
-        uli.set(LED_OFF);
     }
     else if (millis() - mc->t0 < 4000)
     {
