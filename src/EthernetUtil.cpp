@@ -306,6 +306,7 @@ int EthernetUDPEx::parsePacket()
 }
 
 #define RESET_P	17				// Tie the W5500 reset pin to ESP32 GPIO17 pin.
+#define CS_P 16
 
 static void WizReset() {
 #ifdef DEBUG_ETHERNET
@@ -331,7 +332,7 @@ void InitEthernet()
 {
   // start the Ethernet connection:
 #ifndef USE_WIFI
-    Eth.init(16);           // GPIO5 on the ESP32.
+    Eth.init(CS_P);           // GPIO5 on the ESP32.
     WizReset();
 #endif
 
