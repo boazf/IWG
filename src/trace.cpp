@@ -177,6 +177,8 @@ void InitFileTrace()
 
 size_t Trace(const char *message) 
 { 
+    LOCK_TRACE();
+    
     size_t ret = Serial.print(message);
 
 #ifdef ESP32
@@ -189,6 +191,8 @@ size_t Trace(const char *message)
 
 size_t Tracevf(const char *format, va_list valist)
 {
+    LOCK_TRACE();
+
     char buff[81];
 
     int len = vsnprintf(buff, sizeof(buff), format, valist);
@@ -206,8 +210,13 @@ size_t Tracevf(const char *format, va_list valist)
 
 size_t Tracef(const char *format, ...)
 {
+    LOCK_TRACE();
+
     va_list valist;
     va_start(valist, format);
 
     return Tracevf(format, valist);
 }
+
+CriticalSection csTraceLock;
+

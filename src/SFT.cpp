@@ -52,16 +52,17 @@ char *combinePath(char *dstPath, const char *srcPath1, const char *srcPath2)
 // It is not possible to include a path in the destination, only a file name
 void SFT::Upload(EthClient &client)
 {
-#ifdef DEBUG_SFT    
-  Trace("Upload: ");
-#endif
   byte buff[FILE_TRANSFER_BUFF_SIZE];
 
   // Read the file name
   unsigned int len = client.read(buff, sizeof(buff));
   char *fileName = (char *)buff;
 #ifdef DEBUG_SFT    
-  Traceln(fileName);
+  {
+		LOCK_TRACE();
+    Trace("Upload: ");
+    Traceln(fileName);
+  }
 #endif
   int fileNameLen = strlen(fileName);
 
@@ -101,14 +102,20 @@ void SFT::Upload(EthClient &client)
   {
     offset += len;
 #ifdef DEBUG_SFT    
-    Trace("Receiving file ");
-    Traceln(offset);
+    {
+      LOCK_TRACE();
+      Trace("Receiving file ");
+      Traceln(offset);
+    }
 #endif
     // Write file content
     size_t res = file.write(buff, len);
 #ifdef DEBUG_SFT    
-    Trace("Written to file: ");
-    Traceln(res);
+    {
+      LOCK_TRACE();
+      Trace("Written to file: ");
+      Traceln(res);
+    }
 #endif
 
     // Send indication whether the block could successfully be written
@@ -141,8 +148,11 @@ void SFT::Upload(EthClient &client)
   // Completion sequence
   char c = client.read();
 #ifdef DEBUG_SFT    
-  Trace("Completion: ");
-  Traceln((char)c);
+  {
+		LOCK_TRACE();
+    Trace("Completion: ");
+    Traceln((char)c);
+  }
 #endif
   buff[0] = c == 'u' ? 220 : 100;
   client.write(buff, 1);
@@ -153,9 +163,6 @@ void SFT::Upload(EthClient &client)
 // Curently the source file cannot contain path, only a file name
 void SFT::Download(EthClient &client)
 {
-#ifdef DEBUG_SFT    
-  Trace("Download: ");
-#endif
   byte buff[FILE_TRANSFER_BUFF_SIZE];
   memset(buff, 0, sizeof(buff));
 
@@ -163,7 +170,11 @@ void SFT::Download(EthClient &client)
   client.read(buff, sizeof(buff));
   char *fileName = (char *)buff;
 #ifdef DEBUG_SFT    
-  Traceln(fileName);
+  {
+		LOCK_TRACE();
+    Trace("Download: ");
+    Traceln(fileName);
+  }
 #endif
 
   // Try to open the file
@@ -203,10 +214,13 @@ void SFT::Download(EthClient &client)
     // Loop through the file content blocks
     offset += rres;
 #ifdef DEBUG_SFT    
-    Trace("Read file: ");
-    Trace(offset);
-    Trace(" bytes out of ");
-    Traceln(size);
+    {
+      LOCK_TRACE();
+      Trace("Read file: ");
+      Trace(offset);
+      Trace(" bytes out of ");
+      Traceln(size);
+    }
 #endif
     // Wait for handshake
     if (!WaitForClient(client))
@@ -223,6 +237,7 @@ void SFT::Download(EthClient &client)
     if (reqRes != 1 && req != (byte)'w')
     {
 #ifdef DEBUG_SFT    
+  		LOCK_TRACE();
       Trace("Enexpected buffer request: res = ");
       Trace(reqRes);
       Trace(", data = ");
@@ -236,6 +251,7 @@ void SFT::Download(EthClient &client)
     if (sres != (size_t)rres)
     {
 #ifdef DEBUG_SFT    
+  		LOCK_TRACE();
       Trace("Failed to write file content to client, write result: ");
       Trace(sres);
       Trace(", sent bytes: ");
@@ -274,12 +290,15 @@ void SFT::Download(EthClient &client)
 #endif
   client.read(ret, sizeof(ret));
 #ifdef DEBUG_SFT    
-  Trace("Completion: len = ");
-  Trace(len);
-  Trace(" content: ");
-  for (int i = 0; i < len; i++)
-    Trace((char)ret[i]);
-  Traceln();
+  {
+		LOCK_TRACE();
+    Trace("Completion: len = ");
+    Trace(len);
+    Trace(" content: ");
+    for (int i = 0; i < len; i++)
+      Trace((char)ret[i]);
+    Traceln();
+  }
 #endif
   buff[0] = ret[0] == (byte)'?' ? 220 : 100;
   client.write(buff, 1);
@@ -382,22 +401,23 @@ void SFT::ChangeDirectory(EthClient &client)
   bool fail = false;
   char path[MAX_PATH + 2];
   memset(path, 0, sizeof(path));
-#ifdef DEBUG_SFT  
-  Trace("Change directory: ");
-#endif
   // Read the requested new directory
   int len = client.read((byte *)path, sizeof(path));
   if (len == 0)
   {
 #ifdef DEBUG_SFT  
-    Traceln("path was not received");
+    Traceln("Change directory: path was not received");
 #endif
     fail = true;
   }
   else
   {
 #ifdef DEBUG_SFT  
-    Traceln(path);
+    {
+      LOCK_TRACE();
+      Trace("Change directory: ");
+      Traceln(path);
+    }
 #endif
 
     if (path[0] != '\0')
@@ -457,8 +477,11 @@ void SFT::ChangeDirectory(EthClient &client)
   path[0] = fail ? 100 : 220;
   strcpy(path+1, curPath);
 #ifdef DEBUG_SFT  
-  Trace("Current path: ");
-  Traceln(curPath);
+  {
+    LOCK_TRACE();
+    Trace("Current path: ");
+    Traceln(curPath);
+  }
 #endif
   // Send finalizing indication to the client
   client.write(path, strlen(path));
@@ -474,13 +497,14 @@ void SFT::MakeDirectory(EthClient &client)
   bool fail = false;
   char path[MAX_PATH];
   memset(path, 0, sizeof(path));
-#ifdef DEBUG_SFT    
-  Trace("Make directory: ");
-#endif
   // Read the name of the requested sub-directory
   int len = client.read((byte *)path, sizeof(path));
 #ifdef DEBUG_SFT    
-  Traceln(path);
+  {
+    LOCK_TRACE();
+    Trace("Make directory: ");
+    Traceln(path);
+  }
 #endif
   if (len == 0)
   {
@@ -510,13 +534,14 @@ void SFT::Delete(EthClient &client)
   bool fail = false;
   char path[MAX_PATH];
   memset(path, 0, sizeof(path));
-#ifdef DEBUG_SFT    
-  Trace("Delete file: ");
-#endif
   // Read the file name to be deleted
   int len = client.read((byte *)path, sizeof(path));
 #ifdef DEBUG_SFT    
-  Traceln(path);
+  {
+    LOCK_TRACE();
+    Trace("Delete file: ");
+    Traceln(path);
+  }
 #endif
   if (len == 0)
   {
@@ -532,6 +557,7 @@ void SFT::Delete(EthClient &client)
 #ifdef DEBUG_SFT    
     if (fail)
     {   
+      LOCK_TRACE();
       Trace("Failed to delete file: ");
       Traceln(path);
     }
@@ -552,13 +578,14 @@ void SFT::RemoveDirectory(EthClient &client)
   bool fail = false;
   char path[MAX_PATH];
   memset(path, 0, sizeof(path));
-#ifdef DEBUG_SFT    
-  Trace("Remove directory: ");
-#endif
   // Read the name of the sub-directory to be deleted
   int len = client.read((byte *)path, sizeof(path));
 #ifdef DEBUG_SFT    
-  Traceln(path);
+  {
+    LOCK_TRACE();
+    Traceln(path);
+    Trace("Remove directory: ");
+  }
 #endif
   if (len == 0)
   {
@@ -576,8 +603,9 @@ void SFT::RemoveDirectory(EthClient &client)
 #ifdef DEBUG_SFT    
   if (fail)
   {
-      Trace("Failed to remove directory: ");
-      Traceln(path);
+    LOCK_TRACE();
+    Trace("Failed to remove directory: ");
+    Traceln(path);
   }
 #endif
   

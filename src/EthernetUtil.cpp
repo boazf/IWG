@@ -310,6 +310,7 @@ int EthernetUDPEx::parsePacket()
 
 static void WizReset() {
 #ifdef DEBUG_ETHERNET
+    LOCK_TRACE();
     Trace("Resetting Wiz W5500 Ethernet Board...  ");
 #endif
     pinMode(RESET_P, OUTPUT);
@@ -319,7 +320,9 @@ static void WizReset() {
     delay(50);
     digitalWrite(RESET_P, HIGH);
     delay(350);
+#ifdef DEBUG_ETHERNET
     Traceln("Done.");
+#endif
 }
 #endif
 
@@ -364,8 +367,11 @@ void InitEthernet()
 #endif
 
 #ifdef DEBUG_ETHERNET
-  Trace("My IP address: ");
-  Traceln(Eth.localIP());
+  {
+    LOCK_TRACE();
+    Trace("My IP address: ");
+    Traceln(Eth.localIP());
+  }
 #endif
 }
 
@@ -380,28 +386,42 @@ void MaintainEthernet()
   switch (res) {
     case 1:
       //renewed fail
+#ifdef DEBUG_ETHERNET
       Traceln("Error: renewed fail");
+#endif
       break;
 
     case 2:
-      //renewed success
-      Traceln("Renewed success");
-      //print your local IP address:
-      Trace("My IP address: ");
-      Traceln(Eth.localIP());
+#ifdef DEBUG_ETHERNET
+      {
+        LOCK_TRACE();
+        //renewed success
+        Traceln("Renewed success");
+        //print your local IP address:
+        Trace("My IP address: ");
+        Traceln(Eth.localIP());
+      }
+#endif
       break;
 
     case 3:
       //rebind fail
+#ifdef DEBUG_ETHERNET
       Traceln("Error: rebind fail");
+#endif
       break;
 
     case 4:
-      //rebind success
-      Traceln("Rebind success");
-      //print your local IP address:
-      Trace("My IP address: ");
-      Traceln(Eth.localIP());
+#ifdef DEBUG_ETHERNET
+      {
+        LOCK_TRACE();
+        //rebind success
+        Traceln("Rebind success");
+        //print your local IP address:
+        Trace("My IP address: ");
+        Traceln(Eth.localIP());
+      }
+#endif
       break;
 
     default:
@@ -489,6 +509,7 @@ bool TryGetHostAddress(IPAddress &address, String server)
 #endif
   	{
 #ifdef DEBUG_ETHERNET
+      LOCK_TRACE();
       Trace("Failed to get host address for ");
       Traceln(server.c_str());
 #endif

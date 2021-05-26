@@ -52,8 +52,11 @@ static void appConfigChanged(const AppConfigChangedParam &param, const void *con
 void InitTime()
 {
 #ifdef DEBUG_TIME
-  Trace("Time Server: ");
-  Traceln(Config::timeServer);
+  {
+    LOCK_TRACE();
+    Trace("Time Server: ");
+    Traceln(Config::timeServer);
+  }
 #endif
   DST = AppConfig::getDST();
   setTime();

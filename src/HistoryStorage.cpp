@@ -15,6 +15,7 @@ time_t HistoryStorage::getLastRecovery()
 #ifdef DEBUG_HISTORY
 void HistoryStorage::ReportIntializationResult()
 {
+    LOCK_TRACE();
     Trace("startIndex=");
     Traceln(startIndex);
     tm tr;
@@ -189,6 +190,7 @@ void HistoryStorage::putAvailableRecords()
 {
     EEPROM.put<int>(HISTORY_EEPROM_START_ADDRESS, availableRecords);
 #ifdef DEBUG_HISTORY
+    LOCK_TRACE();
     Trace("Stored availableRecords: ");
     Traceln(availableRecords);
 #endif
@@ -198,6 +200,7 @@ void HistoryStorage::getAvailableRecords()
 {
     availableRecords = EEPROM.get<int>(HISTORY_EEPROM_START_ADDRESS, availableRecords);
 #ifdef DEBUG_HISTORY
+    LOCK_TRACE();
     Trace("availableRecords: ");
     Traceln(availableRecords);
 #endif

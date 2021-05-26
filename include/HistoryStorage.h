@@ -73,6 +73,7 @@ private:
     void put(int i) const
     {
 #ifdef DEBUG_HISTORY
+        Lock lock(csTraceLock);
         Trace("Put History(");
         Trace(i);
         Trace("): source=");
@@ -95,6 +96,7 @@ private:
     {
         EEPROM.get<HistoryStorageItemData>(HISTORY_EEPROM_START_ADDRESS + sizeof(int) + sizeof(HistoryStorageItemData) * i, data);
 #ifdef DEBUG_HISTORY
+        Lock lock(csTraceLock);
         Trace("Get History(");
         Trace(i);
         Trace("): source=");

@@ -7,14 +7,17 @@
 bool SSEController::Get(EthClient &client, String &id)
 {
 #ifdef DEBUG_HTTP_SERVER
-    Trace("SSEController Get, Client id=");
-    Trace(id);
+    {
+        LOCK_TRACE();
+        Trace("SSEController Get, Client id=");
+        Trace(id);
 #ifndef USE_WIFI
-    Trace(", socket=");
-    Traceln(client.getSocketNumber());
+        Trace(", socket=");
+        Traceln(client.getSocketNumber());
 #else
-    Traceln();
+        Traceln();
 #endif
+    }
 #endif
 
 
@@ -86,7 +89,7 @@ void SSEController::NotifyState(const String &id)
     event += state.seconds;
     event += "}\n";
 #ifdef DEBUG_HTTP_SERVER
-    Traceln(event);
+    Trace(event);
 #endif
 
     for (ListNode<ClientInfo *> *clientInfo = clients.head; clientInfo != NULL; clientInfo = clientInfo->next)
@@ -97,14 +100,17 @@ void SSEController::NotifyState(const String &id)
         if (client == NULL)
             continue;
 #ifdef DEBUG_HTTP_SERVER
-        Trace("Notifying client id=");
-        Trace(clientInfo->value->id);
+        {
+            LOCK_TRACE();
+            Trace("Notifying client id=");
+            Trace(clientInfo->value->id);
 #ifndef USE_WIFI
-        Trace(", socket=");
-        Traceln(client->getSocketNumber());
+            Trace(", socket=");
+            Traceln(client->getSocketNumber());
 #else
-        Traceln();
+            Traceln();
 #endif
+        }
 #endif
         client->print(event);
         client->println();
@@ -152,8 +158,11 @@ void SSEController::RecoveryStateChanged(const RecoveryStateChangedParams &param
 void SSEController::AutoRecoveryStateChanged(const AutoRecoveryStateChangedParams &params, const void *context)
 {
 #ifdef DEBUG_HTTP_SERVER
-    Trace("AutoRecoveryStateChanged: ");
-    Traceln(params.m_autoRecovery);
+    {
+        LOCK_TRACE();
+        Trace("AutoRecoveryStateChanged: ");
+        Traceln(params.m_autoRecovery);
+    }
 #endif
     SSEController *controller = (SSEController *)context;
     controller->state.autoRecovery = params.m_autoRecovery;
@@ -193,6 +202,7 @@ void SSEController::DeleteClient(ListNode<ClientInfo *> *&clientInfo, bool stopC
 #ifdef DEBUG_HTTP_SERVER
     if (clientInfo->value->client != NULL)
     {
+        LOCK_TRACE();
         Trace("Deleting previous session id=");
         Trace(clientInfo->value->id);
 #ifndef USE_WIFI

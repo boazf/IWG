@@ -8,8 +8,8 @@ class CriticalSection
 public:
     CriticalSection()
     {
-        _binarySem = xSemaphoreCreateBinary();
-        xSemaphoreGive(_binarySem);
+        _binarySem = xSemaphoreCreateRecursiveMutex();
+        xSemaphoreGiveRecursive(_binarySem);
     }
 
     ~CriticalSection()
@@ -20,13 +20,13 @@ public:
     void Enter()
     {
         //portENTER_CRITICAL(&mux);
-        xSemaphoreTake(_binarySem, portMAX_DELAY);
+        xSemaphoreTakeRecursive(_binarySem, portMAX_DELAY);
     }
 
     void Leave()
     {
         //portEXIT_CRITICAL(&mux);
-        xSemaphoreGive(_binarySem);
+        xSemaphoreGiveRecursive(_binarySem);
     }
 
 private:

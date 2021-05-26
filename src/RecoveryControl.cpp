@@ -426,6 +426,7 @@ void RecoveryControl::OnEnterCheckConnectivity(void *param)
 #ifdef DEBUG_RECOVERY_CONTROL
 	if (stateParam->stage == CheckServer1 || stateParam->stage == CheckServer2)
 	{
+		LOCK_TRACE();
 		Trace("About to ping ");
 		Traceln(server.c_str());
 	}
@@ -434,14 +435,17 @@ void RecoveryControl::OnEnterCheckConnectivity(void *param)
 	if (stateParam->stage != ChecksCompleted)
 	{
 #ifdef DEBUG_RECOVERY_CONTROL
-		Trace("Pinging address: ");
-		Trace(address[0]);
-		Trace(".");
-		Trace(address[1]);
-		Trace(".");
-		Trace(address[2]);
-		Trace(".");
-		Traceln(address[3]);
+		{
+			LOCK_TRACE();
+			Trace("Pinging address: ");
+			Trace(address[0]);
+			Trace(".");
+			Trace(address[1]);
+			Trace(".");
+			Trace(address[2]);
+			Trace(".");
+			Traceln(address[3]);
+		}
 #endif
 #ifndef USE_WIFI
 		stateParam->ping.asyncStart(address, MAX_PING_ATTEMPTS, stateParam->pingResult);
@@ -524,12 +528,15 @@ Message RecoveryControl::OnCheckConnectivity(void *param)
 		}
 #endif
 #ifdef DEBUG_RECOVERY_CONTROL
-		Trace("Ping result: ");
+		{
+			LOCK_TRACE();
+			Trace("Ping result: ");
 #ifndef USE_WIFI
-		Traceln((unsigned int)stateParam->pingResult.status);
+			Traceln((unsigned int)stateParam->pingResult.status);
 #else
-		Traceln(status == Message::M_Connected ? "OK" : "Failed");
+			Traceln(status == Message::M_Connected ? "OK" : "Failed");
 #endif
+		}
 #endif
 	}
 
@@ -639,10 +646,13 @@ void RecoveryControl::RaiseRecoveryStateChanged(RecoveryTypes recoveryType, bool
 Message RecoveryControl::OnWaitConnectionTestPeriod(void *param)
 {
 #ifdef DEBUG_RECOVERY_CONTROL
-	Trace(__func__);
-	Trace(": Waiting for ");
-	Trace(AppConfig::getConnectionTestPeriod());
-	Traceln(" Sec.");
+	{
+		LOCK_TRACE();
+		Trace(__func__);
+		Trace(": Waiting for ");
+		Trace(AppConfig::getConnectionTestPeriod());
+		Traceln(" Sec.");
+	}
 #endif
 	SMParam *smParam = (SMParam *)param;
 	Message requestedRecovery = Message::None;

@@ -39,16 +39,22 @@ bool RecoveryController::Post(EthClient &client, String &resource, size_t conten
     }
 
 #ifdef DEBUG_HTTP_SERVER
-    Trace("RecoveryController::Post: ");
-    Traceln(content);
+    {
+		LOCK_TRACE();
+        Trace("RecoveryController::Post: ");
+        Traceln(content);
+    }
 #endif
 
     RecoveryTypes recoveryType;
     sscanf(content.c_str(), "{\"recoveryType\":%d}", reinterpret_cast<int*>(&recoveryType));
 
 #ifdef DEBUG_HTTP_SERVER
-    Trace("RecoveryType: ");
-    Traceln(recoveryType);
+    {
+		LOCK_TRACE();
+        Trace("RecoveryType: ");
+        Traceln(recoveryType);
+    }
 #endif
 
     recoveryControl.StartRecoveryCycles(recoveryType);

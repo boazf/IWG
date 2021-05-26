@@ -16,6 +16,7 @@ bool View::open(byte *_buff, int _buffSize)
     if (!file)
     {
 #ifdef DEBUG_HTTP_SERVER
+        LOCK_TRACE();
         Trace("Failed to open file ");
         Traceln(fileName.c_str());
 #endif

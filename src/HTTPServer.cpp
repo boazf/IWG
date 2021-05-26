@@ -50,10 +50,13 @@ bool HTTPServer::DoController(PClientContext context, String &resource, HTTP_REQ
     controller.toUpperCase();
 
 #ifdef DEBUG_HTTP_SERVER
-    Trace("controller: ");
-    Trace(controller.c_str());
-    Trace(" id=");
-    Traceln(id);
+    {
+        LOCK_TRACE();
+        Trace("controller: ");
+        Trace(controller.c_str());
+        Trace(" id=");
+        Traceln(id);
+    }
 #endif
 
     ListNode<Controller *> *controllerNode = controllers.head;
@@ -157,12 +160,15 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
     }
 
 #ifdef DEBUG_HTTP_SERVER
-    Trace("View=");
-    Trace(view->viewPath);
-    Trace(", id=");
-    Trace(id);
-    Trace(", Path=");
-    Traceln(view->viewFilePath);
+    {
+        LOCK_TRACE();
+        Trace("View=");
+        Trace(view->viewPath);
+        Trace(", id=");
+        Trace(id);
+        Trace(", Path=");
+        Traceln(view->viewFilePath);
+    }
 #endif
 
     if (view->redirect(*client, id))
@@ -182,10 +188,13 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
         if (context->lastModified.equals(lastModifiedTime))
         {
 #ifdef DEBUG_HTTP_SERVER
-            Trace("Resource: ");
-            Trace(resource);
-            Trace(" File was not modified. ");
-            Traceln(context->lastModified);
+            {
+                LOCK_TRACE();
+                Trace("Resource: ");
+                Trace(resource);
+                Trace(" File was not modified. ");
+                Traceln(context->lastModified);
+            }
 #endif
             NotModified(*client);
             view->close();
@@ -264,11 +273,14 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
     }
 
 #ifdef DEBUG_HTTP_SERVER
-    Trace("Done sending ");
-    Trace(view->viewFilePath.c_str());
-    Trace(" Sent ");
-    Trace(bytesSent);
-    Traceln(" bytes");
+    {
+        LOCK_TRACE();
+        Trace("Done sending ");
+        Trace(view->viewFilePath.c_str());
+        Trace(" Sent ");
+        Trace(bytesSent);
+        Traceln(" bytes");
+    }
 #endif
 
     view->close();
@@ -426,30 +438,6 @@ void HTTPServer::ServeClient()
 
     ListNode<PClientContext> *listNode = clients.head;
 
-#if 0 //TRACK_MEMORY
-    static bool empty = false;
-    if (listNode == NULL)
-    {
-        if (!empty)
-        {
-            Traceln("List is empty");
-            Trace("Free mem: ");
-            Traceln(freeMemory());
-        }
-        empty = true;
-    }
-    else
-    {
-        if (empty)
-        {
-            Traceln("List is not empty");
-            Trace("Free mem: ");
-            Traceln(freeMemory());
-        }
-        empty = false;
-    }
-#endif
-    
     while(listNode != NULL)
     {
         PClientContext context = listNode->value;
@@ -468,6 +456,7 @@ void HTTPServer::ServeClient()
 #ifdef DEBUG_HTTP_SERVER
         if (brokenClient)
         {
+            LOCK_TRACE();
             Trace("Broken client: port=");
             Trace(listNode->value->remotePort);
             Trace(", ");
@@ -478,8 +467,11 @@ void HTTPServer::ServeClient()
         {
 #ifdef DEBUG_HTTP_SERVER
 #ifndef USE_WIFI
-            Trace("Client disconnected, port=");
-            Traceln(listNode->value->remotePort);
+            {
+                LOCK_TRACE();
+                Trace("Client disconnected, port=");
+                Traceln(listNode->value->remotePort);
+            }
 #else
             if (!brokenClient)
                 Tracef("Client disconnected, IP=%s, port=%d\n", client->remoteIP().toString().c_str(), client->remotePort());

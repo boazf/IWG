@@ -162,8 +162,11 @@ bool ICMPPing::openSocket()
     }
 
 #ifdef DEBUG_ETHERNET
-    Trace("Ping socket: ");
-    Traceln(_socket);
+    {
+        LOCK_TRACE();
+        Trace("Ping socket: ");
+        Traceln(_socket);
+    }
 #endif
     {
         AutoSpiTrans spiStrans;

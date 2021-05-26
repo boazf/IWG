@@ -106,8 +106,11 @@ void Config::Init()
 
   String configFilePath = String("/") + configFileName;
 #ifdef DEBUG_CONFIG
-  Trace("Config file: ");
-  Traceln(configFilePath);
+  {
+    LOCK_TRACE();
+    Trace("Config file: ");
+    Traceln(configFilePath);
+  }
 #endif
   config = SD.open(configFilePath);
 
@@ -150,13 +153,17 @@ void Config::Init()
       continue;
     }
 #ifdef DEBUG_CONFIG
-    Trace("Config line:");
-    Traceln(configLine.c_str());
+    {
+      LOCK_TRACE();
+      Trace("Config line:");
+      Traceln(configLine.c_str());
+    }
 #endif
     int sepIndex = configLine.indexOf('=');
     if (sepIndex == -1)
     {
 #ifdef DEBUG_CONFIG
+      LOCK_TRACE();
       Trace("Invalid configuration line: ");
       Traceln(configLine.c_str());
 #endif
@@ -167,6 +174,7 @@ void Config::Init()
     if (configName.equals("") || configValue.equals(""))
     {
 #ifdef DEBUG_CONFIG
+      LOCK_TRACE();
       Trace("Invalid configuration line: ");
       Traceln(configLine.c_str());
 #endif
@@ -180,6 +188,7 @@ void Config::Init()
     if (i == NELEMS(parsers))
     {
 #ifdef DEBUG_CONFIG
+      LOCK_TRACE();
       Trace("Unrecognized configuration variable: ");
       Traceln(configName);
 #endif
@@ -188,6 +197,7 @@ void Config::Init()
     if (!parsers[i].parser(configValue, parsers[i].param))
     {
 #ifdef DEBUG_CONFIG
+      LOCK_TRACE();
       Trace("Failed to parse configuration value for configuration line: ");
       Traceln(configLine.c_str());
 #endif
