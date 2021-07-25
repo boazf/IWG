@@ -310,6 +310,7 @@ void RecoveryControl::RecoveryControlTask(void *param)
 	while(true)
 	{
 		((RecoveryControl *)param)->PerformCycle();
+		delay(1);
 	}
 }
 

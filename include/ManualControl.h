@@ -65,10 +65,6 @@ private:
     static MC_Message CheckButtons(void *param);
 
 private:
-    void blink(Indicator &indicator);
-    void blink(Indicator *indicators, int count);
-
-private:
 	StateMachine<MC_Message, MC_State> *m_pSM;
     unsigned long t0;
     buttonState mrState;

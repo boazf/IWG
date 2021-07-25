@@ -277,34 +277,12 @@ MC_Message ManualControl::OnConnected(void *param)
 void ManualControl::OnEnterCheckConnectivity(void *param)
 {
     OnEnterState(param);
-    opi.set(LED_OFF);
-}
-
-void ManualControl::blink(Indicator &indicator)
-{
-    blink(&indicator, 1);
-}
-
-void ManualControl::blink(Indicator *indicators, int count)
-{
-    if (millis() - t0 > 250)
-    {
-        for (int i = 0; i < count; i++, indicators++)
-        {
-            indicators->get() == LED_ON ? indicators->set(LED_OFF) : indicators->set(LED_ON);
-        }
-        t0 = millis();
-    }
-
+    opi.set(LED_BLINK);
 }
 
 MC_Message ManualControl::OnCheckConnectivity(void *param)
 {
     DO_TRANSITION(MCS_CheckConnectivity);
-
-    ManualControl *mc = (ManualControl *)param;
-    mc->blink(opi);
-
     return MCM_None;
 }
 
@@ -321,14 +299,12 @@ void ManualControl::OnEnterRecovery(void *param)
 void ManualControl::OnEnterModemRecovery(void *param)
 {
     OnEnterRecovery(param);
+    mri.set(LED_BLINK);
 }
 
 MC_Message ManualControl::OnModemRecovery(void *param)
 {
     DO_TRANSITION(MCS_ModemRecovery);
-
-    ManualControl *mc = (ManualControl *)param;
-    mc->blink(mri);
 
     return MCM_None;
 }
@@ -336,14 +312,12 @@ MC_Message ManualControl::OnModemRecovery(void *param)
 void ManualControl::OnEnterRouterRecovery(void *param)
 {
     OnEnterRecovery(param);
+    rri.set(LED_BLINK);
 }
 
 MC_Message ManualControl::OnRouterRecovery(void *param)
 {
     DO_TRANSITION(MCS_RouterRecovery);
-
-    ManualControl *mc = (ManualControl *)param;
-    mc->blink(rri);
 
     return MCM_None;
 }
@@ -369,9 +343,8 @@ void ManualControl::OnEnterHWFailure(void *param)
 MC_Message ManualControl::OnHWFailure(void *param)
 {
     DO_TRANSITION(MCS_HWFailure);
-    ManualControl *mc = (ManualControl *)param;
-    Indicator indicators[] = { mri, rri };
-    mc->blink(indicators, NELEMS(indicators));
+    mri.set(LED_BLINK);
+    rri.set(LED_BLINK);
     return MCM_None;
 }
 

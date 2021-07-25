@@ -59,9 +59,26 @@ public:
         return newNode;
     }
 
+    ListNode<T> *Find(T val)
+    {
+        Lock lock(cs);
+        ListNode<T> *n;
+
+        for(n = head; n != NULL; n = n->next)
+        {
+            if (n->value == val)
+                return n;
+        }
+
+        return NULL;
+    }
+
     ListNode<T> *Delete(ListNode<T> *node)
     {
         Lock lock(cs);
+
+        if (node == NULL)
+            return NULL;
 
         ListNode<T> *ret = NULL;
 
@@ -99,6 +116,19 @@ public:
         delete node;
 
         return ret;
+    }
+
+
+    ListNode<T> *Delete(T val)
+    {
+        Lock lock(cs);
+        return Delete(Find(val));
+    }
+
+    bool IsEmpty()
+    {
+        Lock lock(cs);
+        return head == NULL;
     }
 
     void ClearAll()

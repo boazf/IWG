@@ -7,6 +7,7 @@
 #include <ping.h>
 #else
 #include <Dns.h>
+#include <AppConfig.h>
 #endif
 
 #ifndef USE_WIFI
@@ -324,19 +325,18 @@ static void WizReset() {
     Traceln("Done.");
 #endif
 }
-#endif
+#endif // !USE_WIFI
 
 bool IsZeroIPAddress(const IPAddress &ip)
 {
   return ip == IPAddress(0, 0, 0, 0);
 }
 
-void InitEthernet()
+bool InitEthernet()
 {
   // start the Ethernet connection:
 #ifndef USE_WIFI
-    Eth.init(CS_P);           // GPIO5 on the ESP32.
-    WizReset();
+    Eth.init(CS_P);
 #endif
 
   if (!IsZeroIPAddress(Config::ip) && !IsZeroIPAddress(Config::gateway) && !IsZeroIPAddress(Config::mask))
@@ -361,10 +361,13 @@ void InitEthernet()
 #ifdef DEBUG_ETHERNET
   Traceln(" Connected!");
 #endif      
-#else
+#else // USE_WIFI
   else
-    Eth.begin(Config::mac);  
-#endif
+  {
+    WizReset();
+    Eth.begin(Config::mac);
+  }
+#endif // USE_WIFI
 
 #ifdef DEBUG_ETHERNET
   {
@@ -373,7 +376,50 @@ void InitEthernet()
     Traceln(Eth.localIP());
   }
 #endif
+  return true;
 }
+
+#ifndef USE_WIFI
+bool WaitForDNS()
+{
+  // Wait for successful DNS queries.
+  #define EXPECT_SEQ_SUCCESS 5
+  IPAddress addrSrv;
+  unsigned long t0 = millis();
+#ifdef DEBUG_ETHERNET
+  Traceln("Waiting for DNS availability...");
+#endif
+  int i;
+  do
+  {
+    while(!TryGetHostAddress(addrSrv, AppConfig::getServer1()) &&
+          !TryGetHostAddress(addrSrv, AppConfig::getServer2()) &&
+          millis() - t0 < Config::dnsAvailTimeSec * 60 * 1000)
+      delay(1000);
+    if (millis() - t0 > Config::dnsAvailTimeSec * 60 * 1000)
+      break;
+    // Expect several sequential successful queries
+    i = 0;
+    do
+    {
+      if (!TryGetHostAddress(addrSrv, AppConfig::getServer1()) &&
+          !TryGetHostAddress(addrSrv, AppConfig::getServer2()))
+        break;
+      delay(500);
+      i++;
+    } while (i < EXPECT_SEQ_SUCCESS);
+  } while (i < EXPECT_SEQ_SUCCESS);
+  bool success = TryGetHostAddress(addrSrv, AppConfig::getServer1()) ||
+                 TryGetHostAddress(addrSrv, AppConfig::getServer2());
+#ifdef DEBUG_ETHERNET
+  if (!success)
+    Traceln("No DNS!");
+  else
+    Traceln("DNS is available.");
+#endif
+  return success;
+}
+#endif // !USE_WIFI
 
 void MaintainEthernet()
 {

@@ -113,9 +113,11 @@ private:
 #define EthClient EthernetClientEx
 #define EthServer EthernetServerEx
 #define EthUDP EthernetUDPEx
+
+bool WaitForDNS();
 #endif // USE_WIFI
 
-void InitEthernet();
+bool InitEthernet();
 void MaintainEthernet();
 bool IsZeroIPAddress(const IPAddress &address);
 bool TryGetHostAddress(IPAddress &address, String server);

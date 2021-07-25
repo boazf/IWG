@@ -2,12 +2,14 @@
 #define Indicators_h
 
 #include <Arduino.h>
+#include <LinkedList.h>
 
 enum ledState
 {
     LED_ON,
     LED_IDLE,
-    LED_OFF
+    LED_OFF,
+    LED_BLINK
 };
 
 class Indicator
@@ -16,6 +18,18 @@ public:
     Indicator(uint8_t _channel, uint8_t pin);
     void set(ledState state);
     ledState get() { return currState; }
+
+private:
+    static bool Blink(Indicator *const &indicator, const void *param);
+    static void BlinkerTask(void *param);
+
+private:
+    static LinkedList<Indicator *> blinkingIndicators;
+    static TaskHandle_t blinkerTaskHandle;
+
+private:
+    void Blink();
+    void setInternal(ledState state);
 
 private:
     const uint8_t channel;
