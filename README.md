@@ -17,6 +17,6 @@ Edit the content of file config.txt on the SD card. The content is pretty much s
 <br/><br/>
 The project is designed so that it is possible to connect to the LAN using the ESP32's WiFi, or using a wired Ethernet adapter. In case WiFi is used, then the configuration file should also contain the SSID and password to connect to the LAN.
 <br/><br/>
-There are also four pushbuttons with an LED in each of them. the pushbuttons are used to initiate connectivity checks and recovery cycles manually. The LEDs are used to report the status of the box, such as normal status when imternet is available, or whether a recovery cycle is on-going.
+There are also four pushbuttons with a LED in each of them. the pushbuttons are used to initiate connectivity checks and recovery cycles manually. The LEDs are used to report the status of the box, such as normal status when imternet is available, or whether a recovery cycle is on-going.
 <br/><br/>
 For much more information read the Wiki
