@@ -17,7 +17,7 @@ static void setTime(bool ignoreFailure)
   tm tr1;
   delay(2000);
   tr1.tm_year = 0;
-  getLocalTime(&tr1, 5000);
+  getLocalTime(&tr1, 5 * 60 * 1000);
 #else
   {
     unsigned long t0 = millis();
