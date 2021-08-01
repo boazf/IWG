@@ -44,10 +44,8 @@ void setup() {
   initProgress();
   InitEthernet();
   initProgress();
-#ifndef USE_WIFI
   WaitForDNS();
   initProgress();
-#endif
   InitTime();
   initProgress();
   InitFileTrace();

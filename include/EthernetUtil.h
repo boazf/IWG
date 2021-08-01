@@ -113,9 +113,9 @@ private:
 #define EthClient EthernetClientEx
 #define EthServer EthernetServerEx
 #define EthUDP EthernetUDPEx
+#endif // USE_WIFI
 
 bool WaitForDNS();
-#endif // USE_WIFI
 
 bool InitEthernet();
 void MaintainEthernet();

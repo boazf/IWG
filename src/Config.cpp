@@ -7,9 +7,9 @@
 #ifndef USE_WIFI
 byte Config::mac[6] =  { 0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02 };
 long Config::routerInitTimeSec = 10;
-long Config::dnsAvailTimeSec = 5 * 60; // 5 Minutes
 long Config::timeUpdatePeriodMin = 20;
 #endif
+long Config::dnsAvailTimeSec = 5 * 60; // 5 Minutes
 byte Config::ip[4] = { 0, 0, 0, 0 };
 byte Config::gateway[4] = { 0, 0, 0, 0, };
 byte Config::mask[4] = { 0, 0, 0, 0 };
@@ -91,10 +91,10 @@ void Config::Init()
     { String("TimeServer"), ParseString, &timeServer},
     { String("TimeZone"), ParseLong, &timeZone },
     { String("DST"), ParseLong, &DST },
+    { String("DNSAvailTimeSec"), ParseLong, &dnsAvailTimeSec },
   #ifndef USE_WIFI
     { String("MACAddress"), ParseMACAddress, mac },
     { String("RouterInitTimeSec"), ParseLong, &routerInitTimeSec },
-    { String("DNSAvailTimeSec"), ParseLong, &dnsAvailTimeSec },
     { String("TimeUpdatePriodMin"), ParseLong, &timeUpdatePeriodMin },
   #endif
     { String("IP"), ParseIPAddress, ip },

@@ -11,9 +11,9 @@ public:
 #ifndef USE_WIFI
     static byte mac[6];
     static long routerInitTimeSec;
-    static long dnsAvailTimeSec;
     static long timeUpdatePeriodMin;
 #endif
+    static long dnsAvailTimeSec;
     static byte ip[4];
     static byte gateway[4];
     static byte mask[4];

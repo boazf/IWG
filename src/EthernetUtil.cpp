@@ -3,11 +3,11 @@
 #include <EthernetUtil.h>
 #include <Config.h>
 #include <TimeUtil.h>
+#include <AppConfig.h>
 #ifdef USE_WIFI
 #include <ping.h>
 #else
 #include <Dns.h>
-#include <AppConfig.h>
 #endif
 
 #ifndef USE_WIFI
@@ -379,7 +379,6 @@ bool InitEthernet()
   return true;
 }
 
-#ifndef USE_WIFI
 bool WaitForDNS()
 {
   // Wait for successful DNS queries.
@@ -419,7 +418,6 @@ bool WaitForDNS()
 #endif
   return success;
 }
-#endif // !USE_WIFI
 
 void MaintainEthernet()
 {
