@@ -41,7 +41,6 @@ public:
     static void AddController(Controller *controller);
 
 private:
-    static void CheckForNewClients();
     static String RequestResource(String &request);
     static bool DoController(PClientContext context, String &resource, HTTP_REQ_TYPE requestType);
     static bool GetView(const String resource, View *&view, String &id);
@@ -52,11 +51,11 @@ private:
     static HTTP_REQ_TYPE RequestType(String &request);
     static bool ProcessLine(PClientContext context);
     static void ServiceRequest(PClientContext context);
+    static void RequestTask(void *params);
 
 private:
     static EthServer server;
     static LinkedList<View *> views;
-    static LinkedList<PClientContext> clients;
 };
 
 void InitHTTPServer();

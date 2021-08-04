@@ -415,10 +415,9 @@ void HTTPServer::Init()
 #endif
 }
 
-LinkedList<PClientContext> HTTPServer::clients;
-
-void HTTPServer::CheckForNewClients()
+void HTTPServer::ServeClient()
 {
+    // listen for incoming clients
     EthClient client = server.accept();
     while (client)
     {
@@ -426,22 +425,21 @@ void HTTPServer::CheckForNewClients()
         Tracef("New client: IP=%s, port=%d\n", client.remoteIP().toString().c_str(), client.remotePort());
 #endif
         PClientContext context = new ClientContext(client);
-        clients.Insert(context);
+        TaskHandle_t requestTaskHandle;
+        xTaskCreate(RequestTask, "RequestTask", 16*1024, context, tskIDLE_PRIORITY, &requestTaskHandle);
         client = server.accept();
     }
 }
 
-void HTTPServer::ServeClient()
+void HTTPServer::RequestTask(void *params)
 {
-    // listen for incoming clients
-    CheckForNewClients();
 
-    ListNode<PClientContext> *listNode = clients.head;
+    PClientContext context = (PClientContext)params;
+    EthClient *client = &context->client;
 
-    while(listNode != NULL)
+    do
     {
-        PClientContext context = listNode->value;
-        EthClient *client = &context->client;
+        delay(1);
         word remotePort;
         try
         {
@@ -452,13 +450,13 @@ void HTTPServer::ServeClient()
             remotePort = 0;
         }
 
-        bool brokenClient = listNode->value->remotePort != remotePort;
+        bool brokenClient = context->remotePort != remotePort;
 #ifdef DEBUG_HTTP_SERVER
         if (brokenClient)
         {
             LOCK_TRACE();
             Trace("Broken client: port=");
-            Trace(listNode->value->remotePort);
+            Trace(context->remotePort);
             Trace(", ");
             Traceln(remotePort);
         }
@@ -470,7 +468,7 @@ void HTTPServer::ServeClient()
             {
                 LOCK_TRACE();
                 Trace("Client disconnected, port=");
-                Traceln(listNode->value->remotePort);
+                Traceln(context->remotePort);
             }
 #else
             if (!brokenClient)
@@ -482,14 +480,11 @@ void HTTPServer::ServeClient()
                 client->stop();
             }
 
-            delete listNode->value;
-            listNode->value = NULL;
-            listNode = clients.Delete(listNode);
-            continue;
+            delete context;
+            vTaskDelete(NULL);
         }
         if (!client->available()) 
         {
-            listNode = listNode->next;
             continue;
         }
         char c = client->read();
@@ -501,8 +496,8 @@ void HTTPServer::ServeClient()
         }
         else
             context->reqLine += c;
-        listNode = listNode->next;
     }
+    while(true);
 }
 
 void InitHTTPServer()
