@@ -50,7 +50,6 @@ private:
     void DeleteClient(ListNode<ClientInfo*> *&clientInfo, bool stopClient);
 
 private:
-    static int id;
     LinkedList<ClientInfo *> clients;
 
     class SSEControllerState
