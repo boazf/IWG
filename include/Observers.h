@@ -14,13 +14,7 @@ public:
 
     ~Observers()
     {
-        ListNode<ObserverData *> *node = m_observers.head;
-        while (node != NULL)
-        {
-            delete node->value;
-            node->value = NULL;
-            node = node->next;
-        }
+        m_observers.ClearAll();
     }
 
 	typedef void(*Handler)(const EventData &data, const void *context);
@@ -49,13 +43,18 @@ private:
             *this = other;
         }
 
-        ObserverData &operator=(ObserverData &other)
+        ObserverData &operator=(const ObserverData &other)
         {
             this->m_token = other.m_token;
             this->m_handler = other.m_handler;
             this->m_context = other.m_context;
 
             return *this;
+        }
+
+        bool operator==(const ObserverData &o) const
+        {
+            return m_token == o.m_token;
         }
 
         int m_token;
@@ -66,43 +65,27 @@ private:
 public:
 	int addObserver(Handler h, const void *context = NULL)
 	{
-        ObserverData *observer = new ObserverData(++m_token, h, context);
-		m_observers.Insert(observer);
+		m_observers.Insert(ObserverData(++m_token, h, context));
         return m_token;
 	}
 
 	bool removeObserver(int token)
 	{
-        ListNode<ObserverData> *node = m_observers.head;
-
-		while (node != NULL)
-		{
-			if (node->m_token == token)
-			{
-                delete node->value;
-                node->value = NULL;
-				m_observers.Delete(node);
-				return true;
-			}
-		}
-
-		return false;
+        return m_observers.Delete(ObserverData(token, NULL, NULL));
 	}
 
 	void callObservers(const EventData &data)
 	{
-        m_observers.ScanNodes(callObserver, (const void *)&data);
+        m_observers.ScanNodes([](const ObserverData &observer, const void *data)->bool
+        {
+            observer.m_handler(*((const EventData *)data), observer.m_context);
+            return true;
+        }, (const void *)&data);
 	}
 
 private:
 	int m_token;
-	LinkedList<ObserverData *> m_observers;
-
-    static bool callObserver(ObserverData * const &observer, const void *data)
-    {
-        observer->m_handler(*((const EventData *)data), observer->m_context);
-        return true;
-    }
+	LinkedList<ObserverData> m_observers;
 };
 
 #endif // Observers_h

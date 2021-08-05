@@ -12,7 +12,7 @@ public:
     {
     }
 
-    AutoPtr( T *ptr) :
+    AutoPtr(T *ptr) :
         m_ptr(ptr)
     {
     }

@@ -8,7 +8,7 @@
 struct ClientInfo
 {
 public:
-    ClientInfo(const String &_id, EthClient &_client, time_t _timeToDie) :
+    ClientInfo(const String &_id, EthClient &_client) :
         id(_id),
         client(&_client)
     {
@@ -18,6 +18,23 @@ public:
         id(_id),
         client(NULL)
     {
+    }
+
+    ClientInfo(const ClientInfo &clientInfo)
+    {
+        *this = clientInfo;
+    }
+
+    ClientInfo &operator=(const ClientInfo &clientInfo)
+    {
+        *const_cast<String *>(&id) = clientInfo.id;
+        client = clientInfo.client;
+        return *this;
+    }
+
+    bool operator==(const ClientInfo &c) const
+    {
+        return id == c.id;
     }
 
     const String id;
@@ -47,10 +64,11 @@ private:
     static void RouterPowerStateChanged(const PowerStateChangedParams &params, const void *context);
     void NotifyState(const String &id);
     void UpdateStateLastRecoveryTime();
-    void DeleteClient(ListNode<ClientInfo*> *&clientInfo, bool stopClient);
+    void DeleteClient(const ClientInfo &clientInfo, bool stopClient);
 
 private:
-    LinkedList<ClientInfo *> clients;
+    //static int id;
+    LinkedList<ClientInfo> clients;
 
     class SSEControllerState
     {

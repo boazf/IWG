@@ -4,29 +4,29 @@
 #include <Lock.h>
 
 template<typename T>
-class ListNode
-{
-public:
-    ListNode(T inValue) :
-        value(inValue),
-        next(NULL),
-        prev(NULL)
-    {
-    }
-
-    ~ListNode()
-    {
-    }
-
-public:
-    T value;
-    ListNode<T> *next;
-    ListNode<T> *prev;
-};
-
-template<typename T>
 class LinkedList
 {
+private:
+    class ListNode
+    {
+    public:
+        ListNode(T inValue) :
+            value(inValue),
+            next(NULL),
+            prev(NULL)
+        {
+        }
+
+        ~ListNode()
+        {
+        }
+
+    public:
+        T value;
+        ListNode *next;
+        ListNode *prev;
+    };
+
 public:
     LinkedList() :
         head(NULL),
@@ -39,11 +39,11 @@ public:
         ClearAll();
     }
 
-    ListNode<T> *Insert(T value)
+    void *Insert(T value)
     {
         Lock lock(cs);
 
-        ListNode<T> *newNode = new ListNode<T>(value);
+        ListNode *newNode = new ListNode(value);
         if (head == NULL)
         {
             head = newNode;
@@ -59,10 +59,11 @@ public:
         return newNode;
     }
 
-    ListNode<T> *Find(T val)
+private:
+    ListNode *Find(T val)
     {
         Lock lock(cs);
-        ListNode<T> *n;
+        ListNode *n;
 
         for(n = head; n != NULL; n = n->next)
         {
@@ -73,14 +74,14 @@ public:
         return NULL;
     }
 
-    ListNode<T> *Delete(ListNode<T> *node)
+    ListNode *Delete(ListNode *node)
     {
         Lock lock(cs);
 
         if (node == NULL)
             return NULL;
 
-        ListNode<T> *ret = NULL;
+        ListNode *ret = NULL;
 
         if (node->prev == NULL)
         {
@@ -119,10 +120,11 @@ public:
     }
 
 
-    ListNode<T> *Delete(T val)
+public:
+    bool Delete(T val)
     {
         Lock lock(cs);
-        return Delete(Find(val));
+        return Delete(Find(val)) != NULL;
     }
 
     bool IsEmpty()
@@ -137,7 +139,7 @@ public:
 
         while(head != NULL)
         {
-            ListNode<T> *next = head->next;
+            ListNode *next = head->next;
             delete head;
             head = next;
         }
@@ -149,7 +151,7 @@ public:
     {
         Lock lock(cs);
 
-        ListNode<T> *node = head;
+        ListNode *node = head;
         while(node != NULL)
         {
             if (!action(node->value, param))
@@ -158,9 +160,9 @@ public:
         }
     }
 
-public: 
-    ListNode<T> *head;
-    ListNode<T> *tail;
+private: 
+    ListNode *head;
+    ListNode *tail;
 
 private:
     CriticalSection cs;

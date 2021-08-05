@@ -81,27 +81,38 @@ static void TraceTimeStamp(SdFile logFile)
 
 static void Log(SdFile logFile, bool &shouldTraceTimeStamp)
 {
-    ListNode<String> *messageNode = messages.head;
-    const char *message = messageNode->value.c_str();
-    char *newLine = strchr(message, '\n');
-    while (newLine != NULL)
+    struct Params
     {
-        if (shouldTraceTimeStamp)
-            TraceTimeStamp(logFile);
-        logFile.write((const uint8_t *)message, newLine - message + 1);
-        shouldTraceTimeStamp = true;
-        message = newLine + 1;
-        newLine = strchr(message, '\n');
-    }
-    if (message[0] != '\0')
+        SdFile logFile;
+        bool &shouldTraceTimeStamp;
+    } params = { logFile, shouldTraceTimeStamp };
+
+    //ListNode<String> *messageNode = messages.head;
+    messages.ScanNodes([](const String &messageStr, const void *param)->bool
     {
-        if (shouldTraceTimeStamp)
-            TraceTimeStamp(logFile);
-        shouldTraceTimeStamp = false;
-        logFile.write((const uint8_t *)message, strlen(message));
-    }
-    logFile.flush();
-    messages.Delete(messageNode);
+        Params *params = (Params *)param;
+        const char *message = messageStr.c_str();
+        char *newLine = strchr(message, '\n');
+        while (newLine != NULL)
+        {
+            if (params->shouldTraceTimeStamp)
+                TraceTimeStamp(params->logFile);
+            params->logFile.write((const uint8_t *)message, newLine - message + 1);
+            params->shouldTraceTimeStamp = true;
+            message = newLine + 1;
+            newLine = strchr(message, '\n');
+        }
+        if (message[0] != '\0')
+        {
+            if (params->shouldTraceTimeStamp)
+                TraceTimeStamp(params->logFile);
+            params->shouldTraceTimeStamp = false;
+            params->logFile.write((const uint8_t *)message, strlen(message));
+        }
+        params->logFile.flush();
+        messages.Delete(messageStr);
+        return false;
+    }, &params);
 }
 
 static void FileLoggerTask(void *parameter)

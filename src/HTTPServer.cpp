@@ -34,41 +34,52 @@ bool HTTPServer::DoController(PClientContext context, String &resource, HTTP_REQ
 {
     int slashIndex = resource.indexOf('/');
     String id;
-    String controller;
+    String controllerName;
 
     if (slashIndex != -1)
     {
         id = resource.substring(slashIndex + 1);
-        controller = resource.substring(0, slashIndex);
+        controllerName = resource.substring(0, slashIndex);
     }
     else
     {
         id = "";
-        controller = resource;
+        controllerName = resource;
     }
 
-    controller.toUpperCase();
+    controllerName.toUpperCase();
 
 #ifdef DEBUG_HTTP_SERVER
     {
         LOCK_TRACE();
         Trace("controller: ");
-        Trace(controller.c_str());
+        Trace(controllerName.c_str());
         Trace(" id=");
         Traceln(id);
     }
 #endif
 
-    ListNode<Controller *> *controllerNode = controllers.head;
-
-    while (controllerNode)
+    struct Params
     {
-        if (controllerNode->value->name.equals(controller))
-            break;
-        controllerNode = controllerNode->next;
-    }
+        Controller *controller;
+        String name;
+    } params = { NULL, controllerName};
+    
+    controllers.ScanNodes([](Controller *const &controllerInst, const void *param)->bool
+    {
+        Params *params = (Params *)param;
 
-    if (controllerNode == NULL)
+        if (controllerInst->name.equals(params->name))
+        {
+            params->controller = controllerInst;
+            return false;
+        }
+        return true;
+    }, &params);
+
+    Controller *controller = params.controller;
+
+    if (controller == NULL)
     {
 #ifdef DEBUG_HTTP_SERVER
         Traceln("Controller was not found!");
@@ -79,16 +90,16 @@ bool HTTPServer::DoController(PClientContext context, String &resource, HTTP_REQ
     switch(requestType)
     {
     case HTTP_GET:
-        return controllerNode->value->Get(context->client, id);
+        return controller->Get(context->client, id);
 
     case HTTP_POST:
-        return controllerNode->value->Post(context->client, id, context->contentLength, context->contentType);
+        return controller->Post(context->client, id, context->contentLength, context->contentType);
 
     case HTTP_PUT:
-        return controllerNode->value->Put(context->client, id);
+        return controller->Put(context->client, id);
 
     case HTTP_DELETE:
-        return controllerNode->value->Delete(context->client, id);
+        return controller->Delete(context->client, id);
 
     default:;
     }
@@ -98,36 +109,49 @@ bool HTTPServer::DoController(PClientContext context, String &resource, HTTP_REQ
 
 bool HTTPServer::GetView(const String resource, View *&view, String &id)
 {
-    view = NULL;
-
-    for (ListNode<View *> *viewNode = views.head; viewNode != NULL; viewNode = viewNode->next)
+    struct Params
     {
-        if (viewNode->value->viewPath.equals("/"))
-        {
-            if (resource.equals("/"))
-            {
-                view = viewNode->value;
-                return true;
-            }
-            continue;
-        }
-        if (resource.startsWith(viewNode->value->viewPath))
-        {
-            if (!resource.equals(viewNode->value->viewPath))
-                id = resource.substring(viewNode->value->viewPath.length() + 1);
-            else
-                id = "";
-            view = viewNode->value;
-            break;
-        }
+        String id;
+        String resource;
+        View *view;
+        bool ret;
+    } params = { id, resource, NULL, true };
 
-        if (!viewNode->value->viewFilePath.equals("") && resource.startsWith(viewNode->value->viewFilePath))
+    views.ScanNodes([](View *const &viewInst, const void *param)->bool
+    {
+        Params *params = (Params *)param;
+
+        if (viewInst->viewPath.equals("/"))
         {
+            if (params->resource.equals("/"))
+            {
+                params->view = viewInst;
+                return false;
+            }
+            return true;
+        }
+        if (params->resource.startsWith(viewInst->viewPath))
+        {
+            if (!params->resource.equals(viewInst->viewPath))
+                params->id = params->resource.substring(viewInst->viewPath.length() + 1);
+            else
+                params->id = "";
+            params->view = viewInst;
             return false;
         }
-    }
 
-    return true;
+        if (!viewInst->viewFilePath.equals("") && params->resource.startsWith(viewInst->viewFilePath))
+        {
+            params->ret = false;
+            return false;
+        }
+
+        return true;
+    }, &params);
+
+    id = params.id;
+    view = params.view;
+    return params.ret;
 }
 
 bool HTTPServer::HandlePostRequest(PClientContext context, const String &resource)

@@ -2,8 +2,6 @@
 #include <Relays.h>
 #include <TimeUtil.h>
 
-#define SESSION_LENGTH 300
-
 bool SSEController::Get(EthClient &client, String &id)
 {
 #ifdef DEBUG_HTTP_SERVER
@@ -20,21 +18,28 @@ bool SSEController::Get(EthClient &client, String &id)
     }
 #endif
 
-
-    ListNode<ClientInfo *> *clientInfo = clients.head;
-    while (clientInfo != NULL)
+    struct Params
     {
-        if (clientInfo->value->id.equals(id))
+        SSEController *controller;
+        String id;
+    } params = { this, id };
+
+    clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
+    {
+        Params *params = (Params *)param;
+        String id = params->id;
+        if (clientInfo.id.equals(id))
         {
-            DeleteClient(clientInfo, true);
-            break;
+            params->controller->DeleteClient(clientInfo, true);
+            return false;
         }
-        clientInfo = clientInfo->next;
-    }
+
+        return true;
+    }, &params);
 #ifdef DEBUG_HTTP_SERVER
     Tracef("Adding SSE client: id=%s, IP=%s, port=%d, object=%lx\n", id.c_str(), client.remoteIP().toString().c_str(), client.remotePort(), (ulong)&client);
 #endif
-    clients.Insert(new ClientInfo(id, client, t_now + SESSION_LENGTH));
+    clients.Insert(ClientInfo(id, client));
     client.println("HTTP/1.1 200 OK");
     client.println("Content-Type: text/event-stream");
     client.println("Connection: keep-alive");  // the connection will be closed after completion of the response
@@ -92,18 +97,26 @@ void SSEController::NotifyState(const String &id)
     Trace(event);
 #endif
 
-    for (ListNode<ClientInfo *> *clientInfo = clients.head; clientInfo != NULL; clientInfo = clientInfo->next)
+    struct Params
     {
-        if (!id.equals("") && !id.equals(clientInfo->value->id))
-            continue;
-        EthClient *client = clientInfo->value->client;
+        String id;
+        String event;
+    } params = { id, event };
+
+    clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
+    {
+        Params *params = (Params *)param;
+        String id = params->id;
+        if (!id.equals("") && !id.equals(clientInfo.id))
+            return true;
+        EthClient *client = clientInfo.client;
         if (client == NULL)
-            continue;
+            return true;
 #ifdef DEBUG_HTTP_SERVER
         {
             LOCK_TRACE();
             Trace("Notifying client id=");
-            Trace(clientInfo->value->id);
+            Trace(clientInfo.id);
 #ifndef USE_WIFI
             Trace(", socket=");
             Traceln(client->getSocketNumber());
@@ -112,12 +125,14 @@ void SSEController::NotifyState(const String &id)
 #endif
         }
 #endif
-        client->print(event);
+        client->print(params->event);
         client->println();
         client->flush();
         if (!id.equals(""))
-            break;
-    }
+            return false;
+            
+        return true;
+    }, &params);
 }
 
 void SSEController::Init()
@@ -185,56 +200,69 @@ void SSEController::RouterPowerStateChanged(const PowerStateChangedParams &param
 
 bool SSEController::DeleteClient(EthClient &client, bool stopClient)
 {
-    for (ListNode<ClientInfo *> *clientInfo = clients.head; clientInfo != NULL; clientInfo = clientInfo->next)
+    struct Params
     {
-        if (clientInfo->value->client == &client)
-        {
-            DeleteClient(clientInfo, stopClient);
-            return true;
-        }
-    }
+        SSEController *controller;
+        EthClient &client;
+        bool stopClient;
+        bool ret;
+    } params = { this, client, stopClient, false };
 
-    return false;
+    clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
+    {
+        Params *params = (Params *)param;
+        if (clientInfo.client == &params->client)
+        {
+            params->controller->DeleteClient(clientInfo, params->stopClient);
+            params->ret = true;
+            return false;
+        }
+
+        return true;
+    }, &params);
+
+    return params.ret;
 }
 
-void SSEController::DeleteClient(ListNode<ClientInfo *> *&clientInfo, bool stopClient)
+void SSEController::DeleteClient(const ClientInfo &clientInfo, bool stopClient)
 {
 #ifdef DEBUG_HTTP_SERVER
-    if (clientInfo->value->client != NULL)
+    if (clientInfo.client != NULL)
     {
         LOCK_TRACE();
         Trace("Deleting previous session id=");
-        Trace(clientInfo->value->id);
+        Trace(clientInfo.id);
 #ifndef USE_WIFI
         Trace(", socket=");
-        Traceln(clientInfo->value->client->getSocketNumber());
+        Traceln(clientInfo.client->getSocketNumber());
 #else
         Traceln();
 #endif
     }
 #endif
-    if (clientInfo->value->client != NULL && stopClient)
+    if (clientInfo.client != NULL && stopClient)
     {
-        clientInfo->value->client->stop();
+        clientInfo.client->stop();
     }
-    clientInfo->value->client = NULL;
-    delete clientInfo->value;
-    clientInfo->value = NULL;
-    clientInfo = clients.Delete(clientInfo);
+    clients.Delete(clientInfo);
 }
 
 bool SSEController::IsValidId(const String &id)
 {
-    bool isValid = false;
-    
-    for (ListNode<ClientInfo *> *clientInfo = clients.head; clientInfo != NULL; clientInfo = clientInfo->next)
+    struct Params
     {
-        isValid = clientInfo->value->id.equals(id);
-        if (isValid)
-            break;
-    }
+        String id;
+        bool isValid;
+    } params = { id, false };
 
-    return isValid;
+    clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
+    {
+        Params *params = (Params *)param;
+        params->isValid = clientInfo.id.equals(params->id);
+        return !params->isValid;
+    }, &params);
+
+    return params.isValid;
 }
 
 void SSEController::AddClient(const String &id)
@@ -242,7 +270,7 @@ void SSEController::AddClient(const String &id)
     if (IsValidId(id))
         return;
 
-    clients.Insert(new ClientInfo(id));
+    clients.Insert(ClientInfo(id));
 }
 
 SSEController sseController;
