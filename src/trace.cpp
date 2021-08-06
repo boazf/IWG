@@ -87,7 +87,6 @@ static void Log(SdFile logFile, bool &shouldTraceTimeStamp)
         bool &shouldTraceTimeStamp;
     } params = { logFile, shouldTraceTimeStamp };
 
-    //ListNode<String> *messageNode = messages.head;
     messages.ScanNodes([](const String &messageStr, const void *param)->bool
     {
         Params *params = (Params *)param;
