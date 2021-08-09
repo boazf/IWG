@@ -383,33 +383,32 @@ bool WaitForDNS()
 {
   // Wait for successful DNS queries.
   #define EXPECT_SEQ_SUCCESS 5
-  IPAddress addrSrv;
-  unsigned long t0 = millis();
 #ifdef DEBUG_ETHERNET
   Traceln("Waiting for DNS availability...");
 #endif
-  int i;
+  bool success = false;
+  IPAddress addrSrv;
+  unsigned long t0 = millis();
+  unsigned long tWait = Config::dnsAvailTimeSec * 1000;
   do
   {
     while(!TryGetHostAddress(addrSrv, AppConfig::getServer1()) &&
           !TryGetHostAddress(addrSrv, AppConfig::getServer2()) &&
-          millis() - t0 < Config::dnsAvailTimeSec * 60 * 1000)
+          millis() - t0 < tWait)
       delay(1000);
-    if (millis() - t0 > Config::dnsAvailTimeSec * 60 * 1000)
+    if (millis() - t0 > tWait)
       break;
     // Expect several sequential successful queries
-    i = 0;
+    int i = 0;
     do
     {
       if (!TryGetHostAddress(addrSrv, AppConfig::getServer1()) &&
           !TryGetHostAddress(addrSrv, AppConfig::getServer2()))
         break;
       delay(500);
-      i++;
-    } while (i < EXPECT_SEQ_SUCCESS);
-  } while (i < EXPECT_SEQ_SUCCESS);
-  bool success = TryGetHostAddress(addrSrv, AppConfig::getServer1()) ||
-                 TryGetHostAddress(addrSrv, AppConfig::getServer2());
+      success = ++i == EXPECT_SEQ_SUCCESS;
+    } while (!success);
+  } while (!success);
 #ifdef DEBUG_ETHERNET
   if (!success)
     Traceln("No DNS!");
@@ -540,28 +539,28 @@ bool TryGetHostAddress(IPAddress &address, String server)
 {
 	if (server.equals(""))
 		return false;
+  bool failed;
 #ifdef USE_WIFI
-	if (WiFi.hostByName(server.c_str(), address) != 1)
+	failed = WiFi.hostByName(server.c_str(), address) != 1;
 #else
 	DNSClient dns;
   {
     Lock lock(csSpi);
     
-	  dns.begin(Config::gateway);
+    dns.begin(Config::gateway);
 
-	  if (dns.getHostByName(server.c_str(), address) != 1)
-#endif
-  	{
-#ifdef DEBUG_ETHERNET
-      LOCK_TRACE();
-      Trace("Failed to get host address for ");
-      Traceln(server.c_str());
-#endif
-      return false;
-    }
-#ifndef USE_WIFI
+    failed = dns.getHostByName(server.c_str(), address) != 1;
   }
 #endif
+  if (failed)
+  {
+#ifdef DEBUG_ETHERNET
+    LOCK_TRACE();
+    Trace("Failed to get host address for ");
+    Traceln(server.c_str());
+#endif
+    return false;
+  }
 
 	return true;
 }
