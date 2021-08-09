@@ -450,7 +450,7 @@ void HTTPServer::ServeClient()
 #endif
         PClientContext context = new ClientContext(client);
         TaskHandle_t requestTaskHandle;
-        xTaskCreate(RequestTask, "RequestTask", 16*1024, context, tskIDLE_PRIORITY, &requestTaskHandle);
+        xTaskCreate(RequestTask, "HTTPRequest", 16*1024, context, tskIDLE_PRIORITY, &requestTaskHandle);
         client = server.accept();
     }
 }
