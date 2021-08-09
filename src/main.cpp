@@ -39,7 +39,8 @@ void setup() {
 #ifndef USE_WIFI
   // Wait for router initialization time.
   // Some routers dors not function properly soon after startup.
-  while(millis() < Config::routerInitTimeSec * 1000);
+  unsigned long t0 = millis();
+  while(millis() - t0 < Config::routerInitTimeSec * 1000);
 #endif
   initProgress();
   InitEthernet();
