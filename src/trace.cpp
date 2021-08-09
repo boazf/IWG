@@ -81,38 +81,34 @@ static void TraceTimeStamp(SdFile logFile)
 
 static void Log(SdFile logFile, bool &shouldTraceTimeStamp)
 {
-    struct Params
-    {
-        SdFile logFile;
-        bool &shouldTraceTimeStamp;
-    } params = { logFile, shouldTraceTimeStamp };
+    String messageStr;
 
-    //ListNode<String> *messageNode = messages.head;
     messages.ScanNodes([](const String &messageStr, const void *param)->bool
     {
-        Params *params = (Params *)param;
-        const char *message = messageStr.c_str();
-        char *newLine = strchr(message, '\n');
-        while (newLine != NULL)
-        {
-            if (params->shouldTraceTimeStamp)
-                TraceTimeStamp(params->logFile);
-            params->logFile.write((const uint8_t *)message, newLine - message + 1);
-            params->shouldTraceTimeStamp = true;
-            message = newLine + 1;
-            newLine = strchr(message, '\n');
-        }
-        if (message[0] != '\0')
-        {
-            if (params->shouldTraceTimeStamp)
-                TraceTimeStamp(params->logFile);
-            params->shouldTraceTimeStamp = false;
-            params->logFile.write((const uint8_t *)message, strlen(message));
-        }
-        params->logFile.flush();
-        messages.Delete(messageStr);
+        ((String *)param)->concat(messageStr);
         return false;
-    }, &params);
+    }, &messageStr);
+
+    const char *message = messageStr.c_str();
+    char *newLine = strchr(message, '\n');
+    while (newLine != NULL)
+    {
+        if (shouldTraceTimeStamp)
+            TraceTimeStamp(logFile);
+        logFile.write((const uint8_t *)message, newLine - message + 1);
+        shouldTraceTimeStamp = true;
+        message = newLine + 1;
+        newLine = strchr(message, '\n');
+    }
+    if (message[0] != '\0')
+    {
+        if (shouldTraceTimeStamp)
+            TraceTimeStamp(logFile);
+        shouldTraceTimeStamp = false;
+        logFile.write((const uint8_t *)message, strlen(message));
+    }
+    logFile.flush();
+    messages.Delete(messageStr);
 }
 
 static void FileLoggerTask(void *parameter)
