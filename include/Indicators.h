@@ -20,10 +20,6 @@ public:
     ledState get() { return currState; }
 
 private:
-    static bool Blink(Indicator *const &indicator, const void *param);
-    static void BlinkerTask(void *param);
-
-private:
     static LinkedList<Indicator *> blinkingIndicators;
     static TaskHandle_t blinkerTaskHandle;
 

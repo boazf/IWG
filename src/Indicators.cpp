@@ -13,15 +13,6 @@
 LinkedList<Indicator *> Indicator::blinkingIndicators;
 TaskHandle_t Indicator::blinkerTaskHandle = NULL;
 
-void Indicator::BlinkerTask(void *param)
-{
-    while(true)
-    {
-        blinkingIndicators.ScanNodes(Blink, NULL);
-        vTaskDelay(1000 / BLINK_FREQ / 2 / portTICK_PERIOD_MS);
-    }
-}
-
 Indicator::Indicator(uint8_t _channel, uint8_t pin) : 
     channel(_channel)
 {
@@ -30,19 +21,24 @@ Indicator::Indicator(uint8_t _channel, uint8_t pin) :
     set(LED_OFF);
     if (blinkerTaskHandle == NULL)
     {
-        xTaskCreate(BlinkerTask, "Blinker", 8*1024, NULL, tskIDLE_PRIORITY, &blinkerTaskHandle);
+        xTaskCreate([](void *param)
+        {
+            while(true)
+            {
+                blinkingIndicators.ScanNodes([](Indicator *const &indicator, const void *param)->bool
+                {
+                    indicator->Blink();
+                    return true;
+                }, NULL);
+                vTaskDelay(1000 / BLINK_FREQ / 2 / portTICK_PERIOD_MS);
+            }
+        }, "Blinker", 8*1024, NULL, tskIDLE_PRIORITY, &blinkerTaskHandle);
     }
 }
 
 void Indicator::Blink()
 {
     ledcWrite(channel, ledcRead(channel) == LED_ON_DUTY ? LED_OFF_DUTY : LED_ON_DUTY);
-}
-
-bool Indicator::Blink(Indicator *const &indicator, const void *param)
-{
-    indicator->Blink();
-    return true;
 }
 
 void Indicator::setInternal(ledState state)
