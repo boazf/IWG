@@ -145,7 +145,9 @@ bool FilesController::Post(EthClient &client, String &resource, size_t contentLe
 #endif
             failed = true;
         }
-        file.flush();
+#ifdef USE_WIFI
+        client.flush();
+#endif
     }
 
     file.close();
@@ -165,7 +167,9 @@ bool FilesController::Post(EthClient &client, String &resource, size_t contentLe
     client.println("Cache-Control: no-cache");  // refresh the page automatically every 5 sec
     client.println("Content-Length: 0");
     client.println();
+#ifdef USE_WIFI
     client.flush();
+#endif
 
     return true;
 }
@@ -188,7 +192,9 @@ bool FilesController::Put(EthClient &client, String &resource)
     client.println("Cache-Control: no-cache");  // refresh the page automatically every 5 sec
     client.println("Content-Length: 0");
     client.println();
+#ifdef USE_WIFI
     client.flush();
+#endif
 
     return true;
 }
@@ -242,7 +248,9 @@ bool FilesController::Delete(EthClient &client, String &resource)
     client.println("Cache-Control: no-cache");  // refresh the page automatically every 5 sec
     client.println("Content-Length: 0");
     client.println();
+#ifdef USE_WIFI
     client.flush();
+#endif
 
     return true;
 }

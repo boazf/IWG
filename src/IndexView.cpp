@@ -45,7 +45,9 @@ bool IndexView::redirect(EthClient &client, const String &_id)
         client.println("Content-Length: 0");
         client.println("Connection: close");
         client.println();
+#ifdef USE_WIFI
         client.flush();
+#endif
         sseController.AddClient(String(id));
         return true;
     }

@@ -65,7 +65,9 @@ bool RecoveryController::Post(EthClient &client, String &resource, size_t conten
     client.println("Cache-Control: no-cache");  // refresh the page automatically every 5 sec
     client.println("Content-Length: 0");
     client.println();
+#ifdef USE_WIFI
     client.flush();
+#endif
 
     return true;
 }

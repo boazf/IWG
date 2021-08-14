@@ -18,7 +18,9 @@ public:
         client.println("Content-Length: 0");
         client.println("Connection: close");
         client.println();
+    #ifdef USE_WIFI
         client.flush();
+    #endif
         return true;
     }
 };

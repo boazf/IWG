@@ -47,7 +47,9 @@ bool SSEController::Get(EthClient &client, String &id)
     client.println("Cache-Control: no-cache");  // refresh the page automatically every 5 sec
     //client.println("Transfer-Encoding: chunked");
     client.println();
+#ifdef USE_WIFI
     client.flush();
+#endif
 
     NotifyState(id);
 
@@ -127,7 +129,9 @@ void SSEController::NotifyState(const String &id)
 #endif
         client->print(params->event);
         client->println();
+#ifdef USE_WIFI
         client->flush();
+#endif
         if (!id.equals(""))
             return false;
             

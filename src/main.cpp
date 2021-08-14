@@ -57,10 +57,15 @@ void setup() {
   initProgress(true);
 }
 
-void loop() {
+void loop() 
+{
   MaintainEthernet();
-  DoSFTService();
-  DoHTTPService();
+  RecoveryTypes recoveryType = recoveryControl.GetRecoveryState();
+  if (recoveryType != Modem && recoveryType != Router)
+  {
+    DoSFTService();
+    DoHTTPService();
+  }
   PerformControllersCycles();
   delay(1);
 }
