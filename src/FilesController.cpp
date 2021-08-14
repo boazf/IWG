@@ -65,7 +65,7 @@ bool FilesController::Post(EthClient &client, String &resource, size_t contentLe
 {
     normilizePath(resource);
 #ifdef DEBUG_HTTP_SERVER
-    Tracef("FilesController Post resource=%s, contentLength=%ul, contentType=%s\n", resource.c_str(), contentLength, contentType.c_str());
+    Tracef("FilesController Post resource=%s, contentLength=%lu, contentType=%s\n", resource.c_str(), contentLength, contentType.c_str());
 #endif
     String content;
     bool endOfHeaders = false;
@@ -145,9 +145,7 @@ bool FilesController::Post(EthClient &client, String &resource, size_t contentLe
 #endif
             failed = true;
         }
-#ifdef USE_WIFI
-        client.flush();
-#endif
+        file.flush();
     }
 
     file.close();
