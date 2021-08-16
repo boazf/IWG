@@ -337,6 +337,7 @@ bool InitEthernet()
   // start the Ethernet connection:
 #ifndef USE_WIFI
     Eth.init(CS_P);
+    WizReset();
 #endif
 
   if (!IsZeroIPAddress(Config::ip) && !IsZeroIPAddress(Config::gateway) && !IsZeroIPAddress(Config::mask))
@@ -364,7 +365,6 @@ bool InitEthernet()
 #else // USE_WIFI
   else
   {
-    WizReset();
     Eth.begin(Config::mac);
   }
 #endif // USE_WIFI

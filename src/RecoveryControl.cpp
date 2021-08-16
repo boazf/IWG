@@ -707,13 +707,25 @@ void RecoveryControl::OnEnterDisconnectRouter(void *param)
 Message RecoveryControl::OnDisconnectRouter(void *param)
 {
 	SMParam *smParam = (SMParam *)param;
-	if (t_now - smParam->recoveryStart < static_cast<time_t>(AppConfig::getRDisconnect()))
+	if (GetRouterPowerState() == POWER_OFF)
+	{
+		if (t_now - smParam->recoveryStart < static_cast<time_t>(AppConfig::getRDisconnect()))
+			return Message::None;
+
+#ifdef DEBUG_RECOVERY_CONTROL
+		Traceln("Reconnecting Router");
+#endif
+		SetRouterPowerState(POWER_ON);
+		smParam->t0 = t_now;
+	}
+
+#ifndef USE_WIFI
+	if (t_now - smParam->t0 < Config::routerInitTimeSec)
 		return Message::None;
 
-	SetRouterPowerState(POWER_ON);
-#ifdef DEBUG_RECOVERY_CONTROL
-	Traceln("Reconnecting Router");
+	InitEthernet();
 #endif
+
 	return Message::M_Done;
 }
 
