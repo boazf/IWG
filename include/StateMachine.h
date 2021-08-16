@@ -122,7 +122,7 @@ public:
 				return m_transitions[i].m_state;
 		}
 #ifdef DEBUG_STATE_MACHINE
-		Tracef("Error: Transition not found, state=%s, verb=%d", m_name, (int)verb);
+		Tracef("Error: Transition not found, state=%s, verb=%d\n", m_name, (int)verb);
 #endif		
 		assert(false);
 		return (StateName)0;
