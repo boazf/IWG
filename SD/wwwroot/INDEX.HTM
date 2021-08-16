@@ -311,7 +311,7 @@
             var timerId = setInterval(async function () {
                 var acc = await IsWebServerAccessible();
                 if (acc) {
-                    if (++successCount == 5) {
+                    if (++successCount == 2) {
                         clearInterval(timerId);
                         resolve(true);
                     }
