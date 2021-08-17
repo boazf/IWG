@@ -16,11 +16,11 @@ String HTTPServer::RequestResource(String &request)
     return request.substring(firstSpace + 1, secondSpace);
 }
 
-LinkedList<View *> HTTPServer::views;
+LinkedList<ViewCreator *> HTTPServer::viewCreators;
 
-void HTTPServer::AddView(View *view)
+void HTTPServer::AddView(ViewCreator *viewCreator)
 {
-    views.Insert(view);
+    viewCreators.Insert(viewCreator);
 }
 
 static LinkedList<Controller *> controllers;
@@ -117,30 +117,30 @@ bool HTTPServer::GetView(const String resource, View *&view, String &id)
         bool ret;
     } params = { id, resource, NULL, true };
 
-    views.ScanNodes([](View *const &viewInst, const void *param)->bool
+    viewCreators.ScanNodes([](ViewCreator *const &viewCreatorInst, const void *param)->bool
     {
         Params *params = (Params *)param;
 
-        if (viewInst->viewPath.equals("/"))
+        if (viewCreatorInst->viewPath.equals("/"))
         {
             if (params->resource.equals("/"))
             {
-                params->view = viewInst;
+                params->view = viewCreatorInst->createView();
                 return false;
             }
             return true;
         }
-        if (params->resource.startsWith(viewInst->viewPath))
+        if (params->resource.startsWith(viewCreatorInst->viewPath))
         {
-            if (!params->resource.equals(viewInst->viewPath))
-                params->id = params->resource.substring(viewInst->viewPath.length() + 1);
+            if (!params->resource.equals(viewCreatorInst->viewPath))
+                params->id = params->resource.substring(viewCreatorInst->viewPath.length() + 1);
             else
                 params->id = "";
-            params->view = viewInst;
+            params->view = viewCreatorInst->createView();
             return false;
         }
 
-        if (!viewInst->viewFilePath.equals("") && params->resource.startsWith(viewInst->viewFilePath))
+        if (!viewCreatorInst->viewFilePath.equals("") && params->resource.startsWith(viewCreatorInst->viewFilePath))
         {
             params->ret = false;
             return false;
@@ -156,7 +156,7 @@ bool HTTPServer::GetView(const String resource, View *&view, String &id)
 
 bool HTTPServer::HandlePostRequest(PClientContext context, const String &resource)
 {
-    View *view = NULL;
+    View *view;
     String id;
 
     if (!GetView(resource, view, id))
@@ -164,7 +164,10 @@ bool HTTPServer::HandlePostRequest(PClientContext context, const String &resourc
     if (view == NULL)
         return false;
 
-    return view->post(context->client, resource, id);
+    bool ret = view->post(context->client, resource, id);
+    delete view;
+
+    return ret;
 }
 
 bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
@@ -179,9 +182,10 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
 
     if (view == NULL)
     {
-        tempView.Attach(new FileView(resource.c_str(), resource.c_str()));
-        view = tempView;
+        view = new FileView(resource.c_str(), resource.c_str());
     }
+
+    tempView.Attach(view);
 
 #ifdef DEBUG_HTTP_SERVER
     {

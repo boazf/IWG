@@ -22,6 +22,20 @@ private:
     void SetConfigValue(const String &pair, bool &autoRecovery, bool &limitCycles, bool &DST);
 };
 
-extern SettingsView settingsView;
+class SettingsViewCreator : public ViewCreator
+{
+public:
+    SettingsViewCreator(const char *_viewPath, const char *_viewFilePath) :
+        ViewCreator(_viewPath, _viewFilePath)
+    {
+    }
+
+    View *createView()
+    {
+        return new SettingsView(viewPath.c_str(), viewFilePath.c_str());
+    }
+};
+
+extern SettingsViewCreator settingsViewCreator;
 
 #endif // SettingsView_h

@@ -11,6 +11,21 @@ public:
     bool post(EthClient &client, const String &resource, const String &id);
 };
 
-extern FilesView filesView;
+class FilesViewCreator : public ViewCreator
+{
+public:
+    FilesViewCreator(const char *_viewPath, const char *_viewFilePath) :
+        ViewCreator(_viewPath, _viewFilePath)
+    {
+    }
+
+
+    View *createView()
+    {
+        return new FilesView(viewPath.c_str(), viewFilePath.c_str());
+    }
+};
+
+extern FilesViewCreator filesViewCreator;
 
 #endif // FilesView_h

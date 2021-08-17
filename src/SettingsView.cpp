@@ -145,4 +145,4 @@ bool SettingsView::post(EthClient &client, const String &resource, const String 
     return true;
 }
 
-SettingsView settingsView("/SETTINGS", "/SETTINGS.HTM");
+SettingsViewCreator settingsViewCreator("/SETTINGS", "/SETTINGS.HTM");

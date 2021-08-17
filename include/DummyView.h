@@ -36,6 +36,20 @@ public:
     }
 };
 
-extern DummyView dummyView;
+class DummyViewCreator : public ViewCreator
+{
+public:
+    DummyViewCreator(const char *_viewPath, const char *_viewFilePath) :
+        ViewCreator(_viewPath, _viewFilePath)
+    {
+    }
+
+    View *createView()
+    {
+        return new DummyView(viewPath.c_str(), viewFilePath.c_str());
+    }
+};
+
+extern DummyViewCreator dummyViewCreator;
 
 #endif // DummyView_h

@@ -19,6 +19,20 @@ private:
     static int id;
 };
 
-extern IndexView indexView;
+class IndexViewCreator : public ViewCreator
+{
+public:
+    IndexViewCreator(const char *_viewPath, const char *_viewFilePath) :
+        ViewCreator(_viewPath, _viewFilePath)
+    {
+    }
+
+    View *createView()
+    {
+        return new IndexView(viewPath.c_str(), viewFilePath.c_str());
+    }
+};
+
+extern IndexViewCreator indexViewCreator;
 
 #endif // IndexView_h

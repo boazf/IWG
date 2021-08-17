@@ -55,4 +55,4 @@ bool IndexView::redirect(EthClient &client, const String &_id)
     return false;
 }
 
-IndexView indexView("/INDEX", "/INDEX.HTM");
+IndexViewCreator indexViewCreator("/INDEX", "/INDEX.HTM");

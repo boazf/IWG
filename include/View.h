@@ -61,4 +61,19 @@ protected:
     int buffSize;
 };
 
+class ViewCreator
+{
+public:
+    ViewCreator(const char *_viewPath, const char *_viewFilePath) :
+        viewPath(_viewPath),
+        viewFilePath(_viewFilePath)
+    {
+    }
+
+    virtual View *createView() = 0;
+
+    const String viewPath;
+    const String viewFilePath;
+};
+
 #endif // View_h

@@ -53,4 +53,4 @@ bool FilesView::post(EthClient &client, const String &resource, const String &id
     return true;
 }
 
-FilesView filesView("/FILES", "/FILES.HTM");
+FilesViewCreator filesViewCreator("/FILES", "/FILES.HTM");

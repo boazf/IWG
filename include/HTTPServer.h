@@ -37,7 +37,7 @@ class HTTPServer
 public:
     static void Init();
     static void ServeClient();
-    static void AddView(View *view);
+    static void AddView(ViewCreator *viewCreator);
     static void AddController(Controller *controller);
 
 private:
@@ -55,7 +55,7 @@ private:
 
 private:
     static EthServer server;
-    static LinkedList<View *> views;
+    static LinkedList<ViewCreator *> viewCreators;
 };
 
 void InitHTTPServer();

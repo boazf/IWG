@@ -9,13 +9,13 @@
 
 void InitViews()
 {
-    HTTPServer::AddView(&indexView);
-    HTTPServer::AddView(&settingsView);
-    HTTPServer::AddView(&dummyView);
-    HTTPServer::AddView(&defaultView);
-    HTTPServer::AddView(&historyView);
-    HTTPServer::AddView(&filesView);
+    HTTPServer::AddView(&indexViewCreator);
+    HTTPServer::AddView(&settingsViewCreator);
+    HTTPServer::AddView(&dummyViewCreator);
+    HTTPServer::AddView(&defaultViewCreator);
+    HTTPServer::AddView(&historyViewCreator);
+    HTTPServer::AddView(&filesViewCreator);
 }
 
-DummyView dummyView("/DUMMY", "");
-DefaultView defaultView("/", "");
+DummyViewCreator dummyViewCreator("/DUMMY", "");
+DefaultViewCreator defaultViewCreator("/", "");

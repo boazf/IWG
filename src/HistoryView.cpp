@@ -159,4 +159,4 @@ bool HistoryView::open(byte *buff, int buffSize)
     return true;
 }
 
-HistoryView historyView("/HISTORY", "/HISTORY.HTM");
+HistoryViewCreator historyViewCreator("/HISTORY", "/HISTORY.HTM");
