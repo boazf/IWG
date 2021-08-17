@@ -60,8 +60,7 @@ void setup() {
 void loop() 
 {
   MaintainEthernet();
-  RecoveryTypes recoveryType = recoveryControl.GetRecoveryState();
-  if (recoveryType != Modem && recoveryType != Router)
+  if (recoveryControl.GetRecoveryState() != Router)
   {
     DoSFTService();
     DoHTTPService();
