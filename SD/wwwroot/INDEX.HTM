@@ -311,7 +311,7 @@
             var timerId = setInterval(async function () {
                 var acc = await IsWebServerAccessible();
                 if (acc) {
-                    if (++successCount == 2) {
+                    if (++successCount == 1) {
                         clearInterval(timerId);
                         resolve(true);
                     }
@@ -322,7 +322,7 @@
                         resolve(false);
                     }
                 }
-            }, 1000);
+            }, 5000);
         });
 
         return await promise;
