@@ -33,7 +33,7 @@ int IndexView::getFillers(const ViewFiller *&_fillers)
     return NELEMS(fillers);
 }
 
-int IndexView::id = 0;
+std::atomic<int> IndexView::id(0);
 
 bool IndexView::redirect(EthClient &client, const String &_id)
 {

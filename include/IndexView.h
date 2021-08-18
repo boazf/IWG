@@ -2,6 +2,7 @@
 #define IndexView_h
 
 #include <HtmlFillerView.h>
+#include <atomic>
 
 class IndexView : public HtmlFillerView
 {
@@ -16,7 +17,7 @@ private:
     static ViewFiller fillers[];
 
 private:
-    static int id;
+    static std::atomic<int> id;
 };
 
 class IndexViewCreator : public ViewCreator
