@@ -1,9 +1,6 @@
 #include <Arduino.h>
 #include <Trace.h>
 #include <AutoPtr.h>
-#ifndef ESP32
-#include <stdio.h>
-#else
 #include <SDUtil.h>
 #include <TimeUtil.h>
 #include <LinkedList.h>
@@ -42,21 +39,15 @@ static int esp_log_to_file(const char *format, va_list valist)
     Tracevf(format, valist);
     return esp_log_func(format, valist);
 }
-#endif // ESP32
 
 void InitSerialTrace()
 {
     // Open serial communications and wait for port to open:
-#ifndef ESP32
-    Serial.begin(9600);
-#else
     Serial.begin(115200);
-#endif
     // Wait for serial port to connect. Needed for native USB port only
     while (!Serial);
 }
 
-#ifdef ESP32
 static SemaphoreHandle_t logSem = xSemaphoreCreateCounting(INT32_MAX , 0);
 static LinkedList<String> messages;
 
@@ -141,11 +132,9 @@ static void FileLoggerTask(void *parameter)
         }
     }
 }
-#endif // ESP32
 
 void InitFileTrace()
 {
-#ifdef ESP32
     AutoSD autoSD;
 
     if (!SD.exists(LOG_DIR))
@@ -179,7 +168,6 @@ void InitFileTrace()
         1,
         NULL,
         1 - xPortGetCoreID());
-#endif // ESP32
 }
 
 size_t Trace(const char *message) 
@@ -188,10 +176,8 @@ size_t Trace(const char *message)
     
     size_t ret = Serial.print(message);
 
-#ifdef ESP32
     messages.Insert(message);
     xSemaphoreGive(logSem);
-#endif
 
     return ret;
 };

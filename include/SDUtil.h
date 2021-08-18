@@ -4,7 +4,6 @@
 #include <Arduino.h>
 #include <SD.h>
 
-#ifdef ESP32
 #include <FileEx.h>
 #include <Lock.h>
 
@@ -45,7 +44,6 @@ public:
 };
 
 extern SDExClass SDEx;
-#endif
 
 void InitSD();
 
