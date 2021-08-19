@@ -64,6 +64,10 @@
     <div class="loader"></div>
 </div>
 
+<div id="glass" class="glass">
+    <span class='glyphicon glyphicon-hourglass glass'</span>    
+</div>
+
 <div class="modal fade" id="makeDirectory" role="dialog">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -195,6 +199,7 @@
     async function deleteFile(filePath) {
         if (!confirmDelete("delete file", filePath))
             return;
+        $("#glass").css("visibility","visible");
         if (!await deleteFileOrDirectory(filePath)) {
             alert("Failed to delete file!");
         } else {
@@ -205,6 +210,7 @@
     async function deleteDir(dirPath) {
         if (!confirmDelete("remove directory", dirPath))
             return;
+        $("#glass").css("visibility","visible");
         if (!await deleteFileOrDirectory(dirPath)) {
             alert("Failed to remove directory!");
         } else {
@@ -213,6 +219,7 @@
     }
 
     async function makeDir() {
+        $("#glass").css("visibility","visible");
         var response = await fetch('/api' + $(document)[0].location.pathname + '/' + $("#directoryName").val(), {method: "PUT"});
         if (response.status == 200) {
             refresh()
@@ -224,6 +231,7 @@
     async function uploadFile(inp) {
         let formData = new FormData();           
         formData.append("file", inp.files[0]);
+        $("#glass").css("visibility","visible");
         var response = await fetch('/api' + $(document)[0].location.pathname, {method: "POST", body: formData});
         if (response.status != 200) {
             alert("File upload failed!");
