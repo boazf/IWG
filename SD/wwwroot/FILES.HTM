@@ -202,6 +202,7 @@
         $("#glass").css("visibility","visible");
         if (!await deleteFileOrDirectory(filePath)) {
             alert("Failed to delete file!");
+            $("#glass").css("visibility","hidden");
         } else {
             refresh()
         }
@@ -213,6 +214,7 @@
         $("#glass").css("visibility","visible");
         if (!await deleteFileOrDirectory(dirPath)) {
             alert("Failed to remove directory!");
+            $("#glass").css("visibility","hidden");
         } else {
             refresh()
         }
@@ -225,6 +227,7 @@
             refresh()
         } else {
             alert("Failed to create directory!");
+            $("#glass").css("visibility","hidden");
         }
     }
 
@@ -235,6 +238,7 @@
         var response = await fetch('/api' + $(document)[0].location.pathname, {method: "POST", body: formData});
         if (response.status != 200) {
             alert("File upload failed!");
+            $("#glass").css("visibility","hidden");
         } else {
             refresh()
         }
