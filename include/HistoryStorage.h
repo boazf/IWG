@@ -80,7 +80,7 @@ private:
         Trace(data.recoverySource);
         Trace(", status=");
         Trace(data.recoveryStatus);
-        Trace(", route=");
+        Trace(", router=");
         Trace(data.routerRecoveries);
         Trace(", modem=");
         Trace(data.modemRecoveries);
@@ -103,7 +103,7 @@ private:
         Trace(data.recoverySource);
         Trace(", status=");
         Trace(data.recoveryStatus);
-        Trace(", route=");
+        Trace(", router=");
         Trace(data.routerRecoveries);
         Trace(", modem=");
         Trace(data.modemRecoveries);
