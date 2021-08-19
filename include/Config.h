@@ -22,6 +22,8 @@ public:
     static const char *timeServer;
     static byte modemRelay;
     static byte routerRelay;
+    static bool singleDevice;
+    static const char *deviceName;
 #ifdef USE_WIFI
     static const char *ssid;
     static const char *password;
@@ -42,6 +44,7 @@ private:
     static bool ParseByteArray(const String &strValue, char separator, byte *bytes, int arrayLen);
     static bool ParseMACAddress(const String &configValue, void *parsedMACAddress);
     static bool ParseIPAddress(const String &configValue, void *parsedIPAddress);
+    static bool ParseBoolean(const String &configValue, void *parsedBoolean);
 };
 
 void InitConfig();

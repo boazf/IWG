@@ -2,6 +2,7 @@
 #include <SDUtil.h>
 #include <HistoryControl.h>
 #include <Common.h>
+#include <Config.h>
 
 typedef bool(*fillFile)(SdFile &file);
 
@@ -70,10 +71,13 @@ static bool fillAlerts(SdFile &file)
             char str[] = "><span class=\"attribute-name\">Recoveries:</span><br />";
             file.write((byte *)str, NELEMS(str) - 1);
         }
-        len = sprintf(buff, "<span class=\"indented\">Router: %d</span>", hItem.routerRecoveries());
+        len = sprintf(buff, "<span class=\"indented\">%s: %d</span>", Config::deviceName, hItem.routerRecoveries());
         file.write((byte *)buff, len);
-        len = sprintf(buff, "<span class=\"indented\">Modem: %d</span>", hItem.modemRecoveries());
-        file.write((byte *)buff, len);
+        if (!Config::singleDevice)
+        {
+            len = sprintf(buff, "<span class=\"indented\">Modem: %d</span>", hItem.modemRecoveries());
+            file.write((byte *)buff, len);
+        }
         len = sprintf(buff, "</p>\n<hr />\n<h4 id=\"recoveryStatus%d\"></h4>\n</div>\n</div>\n", i);
         file.write((byte *)buff, len);
     }

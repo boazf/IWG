@@ -19,9 +19,11 @@ const char *Config::timeServer = "time.nist.gov";
 const char *Config::configFileName = "config.txt";
 byte Config::modemRelay = 0;
 byte Config::routerRelay = 0;
+bool Config::singleDevice = false;
+const char *Config::deviceName = "Router";
 #ifdef USE_WIFI
-const char *Config::ssid; // = "Your SSID";
-const char *Config::password; // = "Your password";
+const char *Config::ssid /* = "Your SSID" */;
+const char *Config::password /* = "Your password" */;
 #endif
 
 bool Config::ParseString(const String &configValue, void *str)
@@ -76,6 +78,22 @@ bool Config::ParseByte(const String &configValue, void *parsedByte)
   return ParseByte(configValue, (byte *)parsedByte);
 }
 
+bool Config::ParseBoolean(const String &configValue, void *parsedBoolean)
+{
+  if (configValue == "true")
+  {
+    *(bool *)parsedBoolean = true;
+    return true;
+  } else if (configValue == "false")
+  {
+    *(bool *)parsedBoolean = false;
+    return true;
+  } else 
+  {
+    return false;
+  }
+}
+
 void Config::Init()
 {
   AutoSD autoSD;
@@ -101,7 +119,9 @@ void Config::Init()
     { String("Gateway"), ParseIPAddress, gateway },
     { String("Subnet"), ParseIPAddress, mask },
     { String("ModemRelay"), ParseByte, &modemRelay },
-    { String("RouterRelay"), ParseByte, &routerRelay} 
+    { String("RouterRelay"), ParseByte, &routerRelay},
+    { String("SingleDevice"), ParseBoolean, &singleDevice},
+    { String("DeviceName"), ParseString, &deviceName}
   #ifdef USE_WIFI
     , { String("SSID"), ParseString, &ssid },
     { String("Password"), ParseString, &password }

@@ -1,5 +1,6 @@
 #include <Common.h>
 #include <SettingsView.h>
+#include <Config.h>
 #include <AppConfig.h>
 #include <EthernetUtil.h>
 
@@ -28,7 +29,9 @@ ViewFiller SettingsView::fillers[] =
     /* 10 */ [](String &fill){ fill = String("\"") + AppConfig::getRecoveryCycles() + "\" />"; },
     /* 11 */ [](String &fill){ fill = String("\"") + AppConfig::getMaxHistory() + "\" />"; },
     /* 12 */ [](String &fill){ fill = AppConfig::getLimitCycles() ? "'True'" : "'False'"; },
-    /* 13 */ [](String &fill){ fill = AppConfig::getDST() ? "checked=\"checked\" />" : " />"; }
+    /* 13 */ [](String &fill){ fill = AppConfig::getDST() ? "checked=\"checked\" />" : " />"; },
+    /* 14 */ [](String &fill){ fill = Config::singleDevice ? "none" : "visible"; },
+    /* 15 */ [](String &fill){ fill = Config::deviceName; }
 };
 
 int SettingsView::getFillers(const ViewFiller *&_fillers)

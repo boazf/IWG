@@ -39,7 +39,7 @@ body {
 .toggleSwitch {
     position: relative;
     display: block;
-    width: 50px;
+    width: auto;
     height: 100px;
     margin-bottom: 15px;
     cursor: pointer;
@@ -56,6 +56,7 @@ body {
     right: 0;
     bottom: 0;
     left: 0;
+    width: 50px;
     background: #ff7070;
     border-radius: 25px;
     transition: all 0.3s ease;
@@ -87,6 +88,7 @@ input:checked + .roundToggleSwitch {
     margin-left: 55px;
     font-size: 26px;
     color: #222;
+    width: auto;
     font-family: 'Roboto', sans-serif;
 }
 

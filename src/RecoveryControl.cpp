@@ -68,7 +68,7 @@ void RecoveryControl::Init()
 
 	Transition<Message, State> checkRouterRecoveryTimeoutTrans[] =
 	{
-		{ Message::M_Timeout, State::DisconnectModem },
+		{ Message::M_Timeout, Config::singleDevice ? State::CheckMaxCyclesExceeded : State::DisconnectModem },
 		{ Message::M_NoTimeout, State::WaitAfterRouterRecovery }
 	};
 
@@ -622,7 +622,10 @@ Message RecoveryControl::DecideRecoveryPath(Message message, void *param)
                 return message;
             }
 
-			if (!smParam->lanConnected || smParam->lastRecovery == INT32_MAX || t_now - smParam->lastRecovery > 3600)
+			if (Config::singleDevice ||
+				!smParam->lanConnected || 
+				smParam->lastRecovery == INT32_MAX || 
+				t_now - smParam->lastRecovery > 3600)
 				message = Message::M_DisconnectRouter;
 			else
 				message = smParam->lastRecoveryType == RecoveryTypes::Router ? Message::M_DisconnectModem : Message::M_DisconnectRouter;
