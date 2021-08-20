@@ -61,8 +61,8 @@ bool RecoveryController::Post(EthClient &client, String &resource, size_t conten
 
     client.println("HTTP/1.1 200 OK");
     client.println("Connection: close");  // the connection will be closed after completion of the response
-    client.println("Access-Control-Allow-Origin: *");  // allow any connection. We don't want Arduino to host all of the website ;-)
-    client.println("Cache-Control: no-cache");  // refresh the page automatically every 5 sec
+    client.println("Access-Control-Allow-Origin: *");  // allow any connection.
+    client.println("Cache-Control: no-cache");
     client.println("Content-Length: 0");
     client.println();
 #ifdef USE_WIFI

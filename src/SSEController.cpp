@@ -43,9 +43,8 @@ bool SSEController::Get(EthClient &client, String &id)
     client.println("HTTP/1.1 200 OK");
     client.println("Content-Type: text/event-stream");
     client.println("Connection: keep-alive");  // the connection will be closed after completion of the response
-    client.println("Access-Control-Allow-Origin: *");  // allow any connection. We don't want Arduino to host all of the website ;-)
-    client.println("Cache-Control: no-cache");  // refresh the page automatically every 5 sec
-    //client.println("Transfer-Encoding: chunked");
+    client.println("Access-Control-Allow-Origin: *");  // allow any connection.
+    client.println("Cache-Control: no-cache");
     client.println();
 #ifdef USE_WIFI
     client.flush();
