@@ -350,7 +350,12 @@ bool InitEthernet()
     Eth.begin(Config::mac, Config::ip, Config::gateway, Config::gateway, Config::mask);
 #endif
   }
-#ifdef USE_WIFI
+#ifndef USE_WIFI
+  else
+  {
+    Eth.begin(Config::mac);
+  }
+#else // USE_WIFI
   WiFi.begin(Config::ssid, Config::password);
   while(WiFi.waitForConnectResult() != WL_CONNECTED)
   {
@@ -362,11 +367,6 @@ bool InitEthernet()
 #ifdef DEBUG_ETHERNET
   Traceln(" Connected!");
 #endif      
-#else // USE_WIFI
-  else
-  {
-    Eth.begin(Config::mac);
-  }
 #endif // USE_WIFI
 
 #ifdef DEBUG_ETHERNET
