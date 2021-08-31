@@ -1,3 +1,4 @@
+#ifdef USE_SFT
 #include <Arduino.h>
 #include <SD.h>
 #include <time.h>
@@ -701,3 +702,4 @@ void DoSFTService()
 {
   SFT::DoService();
 }
+#endif // USE_SFT

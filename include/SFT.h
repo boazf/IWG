@@ -1,6 +1,8 @@
 #ifndef SFT_h
 #define SFT_h
 
+#ifdef USE_SFT
+
 #include <Common.h>
 #include <SPI.h>
 #include <SDUtil.h>
@@ -31,4 +33,10 @@ private:
 void InitSFT();
 void DoSFTService();
 
+#else
+
+#define InitSFT()
+#define DoSFTService()
+
+#endif // USE_SFT
 #endif // SFT_h
