@@ -160,6 +160,7 @@ void HistoryControl::Init()
 #endif
       );
     storage.init(maxHistory);
+    lastUpdate = t_now;
 }
 
 HistoryControl::~HistoryControl()
@@ -174,7 +175,7 @@ time_t HistoryControl::getLastRecovery()
 
 time_t HistoryControl::getLastUpdate()
 {
-    return storage.getLastUpdate();
+    return lastUpdate;
 }
 
 void HistoryControl::PerformCycle()
@@ -229,6 +230,7 @@ void HistoryControl::MaxHistoryChanged(const MaxHistoryRecordChangedParams &para
     HistoryControl *historyControl = (HistoryControl *)context;
     historyControl->maxHistory = params.m_maxRecords;
     historyControl->storage.resize(historyControl->maxHistory);
+    historyControl->lastUpdate = t_now;
 }
 
 H_Message HistoryControl::OnStateDoNotihng(void *param)
@@ -276,6 +278,7 @@ void HistoryControl::OnRecoveringModem(void *param)
 
     control->AddHistoryItem(control->byUser);
     control->currStorageItem->modemRecoveries()++;
+    control->lastUpdate = t_now;
 }
 
 void HistoryControl::OnRecoveringRouter(void *param)
@@ -287,6 +290,7 @@ void HistoryControl::OnRecoveringRouter(void *param)
 
     control->AddHistoryItem(control->byUser);
     control->currStorageItem->routerRecoveries()++;
+    control->lastUpdate = t_now;
 }
 
 void HistoryControl::OnRecoveryFailed(void *param)
@@ -308,6 +312,7 @@ void HistoryControl::OnHWFailure(void *param)
 
     delete control->currStorageItem;
     control->currStorageItem = NULL;
+    control->lastUpdate = t_now;
 }
 
 H_Message HistoryControl::AddToHistory(H_Message message, void *param)
@@ -342,6 +347,7 @@ bool HistoryControl::CreateHistoryItem(RecoverySource recoverySource)
         return false;
 
     currStorageItem = new HistoryStorageItem(recoverySource, t_now, INT32_MAX, 0, 0, OnGoingRecovery);
+    lastUpdate = t_now;
     return true;
 }
 
@@ -358,6 +364,7 @@ void HistoryControl::AddToHistoryStorage(RecoveryStatus status, bool withEndTime
     storage.addHistory(*currStorageItem);
     delete currStorageItem;
     currStorageItem = NULL;
+    lastUpdate = t_now;
 }
 
 int HistoryControl::Available()
