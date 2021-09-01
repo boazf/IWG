@@ -59,6 +59,9 @@ private:
     bool byUser;
     HistoryStorage storage;
     HistoryStorageItem *currStorageItem;
+    time_t lastUpdate;
+    
+private:
     void AddHistoryItem(bool byUser);
     bool CreateHistoryItem(RecoverySource recoverySource);
     void AddToHistoryStorage(RecoveryStatus status, bool withEndTime = true);
