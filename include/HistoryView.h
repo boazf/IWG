@@ -2,6 +2,7 @@
 #define HistoryView_h
 
 #include <View.h>
+#include <Lock.h>
 
 class HistoryView : public View
 {
@@ -12,6 +13,10 @@ public:
     }
 
     bool open(byte *buff, int buffSize);
+    void close();
+
+private:
+    static CriticalSection cs;
 };
 
 class HistoryViewCreator : public ViewCreator

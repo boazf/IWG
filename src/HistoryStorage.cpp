@@ -2,6 +2,7 @@
 #include <EEPROM.h>
 #include <HistoryStorage.h>
 #include <common.h>
+#include <TimeUtil.h>
 
 HistoryStorage::HistoryStorage()
 {
@@ -83,10 +84,20 @@ void HistoryStorage::init(int _maxRecords)
 #ifdef DEBUG_HISTORY
         ReportIntializationResult();
 #endif
+    lastUpdate = t_now;
+}
+
+time_t HistoryStorage::getLastUpdate()
+{
+    Lock lock(cs);
+
+    return lastUpdate;
 }
 
 void HistoryStorage::addHistory(HistoryStorageItem &item)
 {
+    Lock lock(cs);
+
     item.put(startIndex);
     if (startIndex == availableRecords && availableRecords < maxRecords)
     {
@@ -98,11 +109,15 @@ void HistoryStorage::addHistory(HistoryStorageItem &item)
         lastRecovery = INT32_MAX;
     else
         lastRecovery = item.endTime();
+
     EEPROM.commit();
+    lastUpdate = t_now;
 }
 
 void HistoryStorage::resize(int _maxRecords)
 {
+    Lock lock(cs);
+
     if (_maxRecords <= 0)
         return;
 
@@ -178,7 +193,9 @@ void HistoryStorage::resize(int _maxRecords)
         availableRecords = maxRecords;
         putAvailableRecords();
     }
+
     EEPROM.commit();
+    lastUpdate = t_now;
 }
 
 int HistoryStorage::available()

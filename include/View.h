@@ -26,7 +26,6 @@ public:
     View(const String _viewPath, const String _viewFilePath) :
         viewPath(_viewPath),
         viewFilePath(_viewFilePath),
-        offset(0),
         buff(NULL),
         buffSize(0)
     {
@@ -53,10 +52,10 @@ public:
 
 protected:
     bool openWWWROOT(SdFile &dir);
+    bool open(byte *buff, int buffSize, SdFile file);
 
 protected:
     SdFile file;
-    int offset;
     byte *buff;
     int buffSize;
 };

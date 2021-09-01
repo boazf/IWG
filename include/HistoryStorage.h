@@ -4,6 +4,7 @@
 #include <EEPROM.h>
 #include <time.h>
 #include <Common.h>
+#include <Lock.h>
 
 #define HISTORY_EEPROM_START_ADDRESS 512
 
@@ -163,12 +164,15 @@ public:
     void resize(int maxRecords);
     const HistoryStorageItem getItem(int index);
     time_t getLastRecovery();
+    time_t getLastUpdate();
 
 private:
     int maxRecords;
     int availableRecords;
     int startIndex;
     time_t lastRecovery;
+    time_t lastUpdate;
+    CriticalSection cs;
 
 private:
     void putAvailableRecords();

@@ -4,15 +4,20 @@
 #include <Common.h>
 #include <Config.h>
 
-bool View::open(byte *_buff, int _buffSize)
+bool View::open(byte *_buff, int _buffSize, SdFile _file)
 {
     buff = _buff;
     buffSize = _buffSize;
-    offset = buffSize;
+    file = _file;
 
+    return file;
+}
+
+bool View::open(byte *buff, int buffSize)
+{
     String fileName;
     fileName = "/wwwroot" + viewFilePath;
-    file = SD.open(fileName, FILE_READ);
+    SdFile file = SD.open(fileName, FILE_READ);
     if (!file)
     {
 #ifdef DEBUG_HTTP_SERVER
@@ -20,10 +25,9 @@ bool View::open(byte *_buff, int _buffSize)
         Trace("Failed to open file ");
         Traceln(fileName.c_str());
 #endif
-        return false;
     }
 
-    return true;
+    return open(buff, buffSize, file);
 }
 
 void View::close()

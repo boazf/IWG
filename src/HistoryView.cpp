@@ -99,28 +99,59 @@ static bool fillJS(SdFile &file)
     return true;
 }
 
+CriticalSection HistoryView::cs;
+
 #define TEMP_HISTORY_FILE_DIR "/wwwroot/temp"
 #define TEMP_HISTORY_FILE_PATH TEMP_HISTORY_FILE_DIR "/history.htm"
 
 bool HistoryView::open(byte *buff, int buffSize)
 {
-    if (!View::open(buff, buffSize))
-        return false;
+    cs.Enter();
 
     SdFile historyFile;
     if (!SD.exists(TEMP_HISTORY_FILE_DIR))
-        SD.mkdir(TEMP_HISTORY_FILE_DIR);
-    historyFile = SD.open(TEMP_HISTORY_FILE_PATH, FILE_WRITE);
-    if (!historyFile)
+    {
+        if (!SD.mkdir(TEMP_HISTORY_FILE_DIR))
+        {
+#ifdef DEBUG_HTTP_SERVER
+            Tracef("Failed to create directory %s\n", TEMP_HISTORY_FILE_DIR);
+#endif
+            return false;
+        }
+    }
+
+    historyFile = SD.open(TEMP_HISTORY_FILE_PATH, FILE_READ);
+    if (!historyFile || historyFile.getLastWrite() < historyControl.getLastUpdate())
+    {
+        if (historyFile)
+            historyFile.close();
+
+        historyFile = SD.open(TEMP_HISTORY_FILE_PATH, FILE_WRITE);
+        if (!historyFile)
+        {
+#ifdef DEBUG_HTTP_SERVER
+            Tracef("Failed to create %s\n", TEMP_HISTORY_FILE_PATH);
+#endif
+            return false;
+        }
+
+        if (!View::open(buff, buffSize))
+        {
+            historyFile.close();
+            SD.remove(TEMP_HISTORY_FILE_PATH);
+            return false;
+        }
+    }
+    else
     {
 #ifdef DEBUG_HTTP_SERVER
-        Traceln("Failed to open HISTORY.HTM file");
+        Tracef("Reusing %s\n", TEMP_HISTORY_FILE_PATH);
 #endif
-        return false;
+        return View::open(buff, buffSize, historyFile);
     }
 
     fillFile fillers[] = { fillAlerts, fillJS };
-    for (int nBytes = file.read(buff, buffSize); nBytes; nBytes = file.read(buff, buffSize))
+    for (int nBytes = View::read(); nBytes; nBytes = View::read())
     {
         int byte0 = 0;
         for (int i = 0; i < nBytes; i++)
@@ -156,11 +187,15 @@ bool HistoryView::open(byte *buff, int buffSize)
         historyFile.write(buff + byte0, nBytes - byte0);
     }
 
-    file.close();
+    View::close();
     historyFile.close();
-    file = SD.open(TEMP_HISTORY_FILE_PATH, FILE_READ);
+    return View::open(buff, buffSize, SD.open(TEMP_HISTORY_FILE_PATH, FILE_READ));
+}
 
-    return true;
+void HistoryView::close()
+{
+    View::close();
+    cs.Leave();
 }
 
 HistoryViewCreator historyViewCreator("/HISTORY", "/HISTORY.HTM");

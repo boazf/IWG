@@ -172,6 +172,11 @@ time_t HistoryControl::getLastRecovery()
     return storage.getLastRecovery(); 
 }
 
+time_t HistoryControl::getLastUpdate()
+{
+    return storage.getLastUpdate();
+}
+
 void HistoryControl::PerformCycle()
 {
     m_pSM->HandleState();

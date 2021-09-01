@@ -38,6 +38,7 @@ public:
     int Available();
     const HistoryStorageItem GetHistoryItem(int index);
     time_t getLastRecovery();
+    time_t getLastUpdate();
 
 private:
     static void RecoveryStateChanged(const RecoveryStateChangedParams &params, const void* context);

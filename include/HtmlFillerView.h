@@ -13,6 +13,7 @@ public:
     {
     }
 
+    bool open(byte *buff, int buffSize);
     int read();
 
 protected:
@@ -21,6 +22,9 @@ protected:
 private:
     size_t viewHandler(byte *buff, size_t buffSize);
     bool DoFill(int nFill, String &fill);
+
+private:
+    int offset;
 };
 
 #endif // HtmlFillerView_h
