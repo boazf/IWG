@@ -122,7 +122,7 @@ public:
 				return m_transitions[i].m_state;
 		}
 #ifdef DEBUG_STATE_MACHINE
-		Tracef("Error: Transition not found, state=%s, verb=%d\n", m_name, (int)verb);
+		Tracef("Error: Transition not found, state=%s, verb=%d\n", m_name, static_cast<int>(verb));
 #endif		
 		assert(false);
 		return (StateName)0;
@@ -207,18 +207,18 @@ public:
 	{
 		if (!m_first)
 		{
-			if (m_nextVerb != (Verb)0)
+			if (m_nextVerb != static_cast<Verb>(0))
 			{
 #ifdef DEBUG_STATE_MACHINE
 				Tracef("State machine: %s, exiting state: %s\n", m_name, m_current->getStateName());
 #endif
 				Verb verb = m_current->doExit(m_nextVerb, m_param);
 #ifdef DEBUG_STATE_MACHINE
-				Tracef("State machine: %s, transfering from state: %s, verb: %d\n", m_name, m_current->getStateName(), (int)verb);
+				Tracef("State machine: %s, transfering from state: %s, verb: %d\n", m_name, m_current->getStateName(), static_cast<int>(verb));
 #endif
 				StateName state = m_current->PerformTransition(verb);
 #ifdef DEBUG_STATE_MACHINE
-				Tracef("State machine: %s, new state: %d\n", m_name, (int)state);
+				Tracef("State machine: %s, new state: %d\n", m_name, static_cast<int>(state));
 #endif
 				int i = 0;
 				for (; i < m_nStates; i++)
@@ -228,7 +228,7 @@ public:
 				}
 #ifdef DEBUG_STATE_MACHINE
 				if (i >= m_nStates)
-					Tracef("Error: State machine: %s, unknown new state: %d\n", m_name, (int)state);
+					Tracef("Error: State machine: %s, unknown new state: %d\n", m_name, static_cast<int>(state));
 #endif
 				assert(i < m_nStates);
 				m_current = m_states + i;

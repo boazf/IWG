@@ -78,11 +78,11 @@ void SSEController::NotifyState(const String &id)
     event += "\"autoRecovery\": ";
     event += state.autoRecovery ? "true" : "false";
     event += ", \"modemState\": ";
-    event += (int)state.modemState;
+    event += static_cast<int>(state.modemState);
     event += ", \"routerState\": ";
-    event += (int)state.routerState;
+    event += static_cast<int>(state.routerState);
     event += ", \"recoveryType\": ";
-    event += (int)state.recoveryType;
+    event += static_cast<int>(state.recoveryType);
     event += ", \"showLastRecovery\": ";
     event += state.showLastRecovery ? "true" : "false";
     event += ", \"days\": ";

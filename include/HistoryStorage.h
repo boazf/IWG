@@ -77,9 +77,9 @@ private:
         Trace("Put History(");
         Trace(i);
         Trace("): source=");
-        Trace((int)data.recoverySource);
+        Trace(static_cast<int>(data.recoverySource));
         Trace(", status=");
-        Trace((int)data.recoveryStatus);
+        Trace(static_cast<int>(data.recoveryStatus));
         Trace(", router=");
         Trace(data.routerRecoveries);
         Trace(", modem=");
@@ -100,13 +100,13 @@ private:
         Trace("Get History(");
         Trace(i);
         Trace("): source=");
-        Trace((int)data.recoverySource);
+        Trace(static_cast<int>(data.recoverySource));
         Trace(", status=");
-        Trace((int)data.recoveryStatus);
+        Trace(static_cast<int>(data.recoveryStatus));
         Trace(", router=");
         Trace(data.routerRecoveries);
         Trace(", modem=");
-        Trace((int)data.modemRecoveries);
+        Trace(static_cast<int>(data.modemRecoveries));
         Trace(", start=");
         Trace(data.startTime);
         Trace(", end=");
