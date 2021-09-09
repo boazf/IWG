@@ -8,23 +8,23 @@
 #include <AppConfig.h>
 #include <Lock.h>
 
-enum Message
+enum class RecoveryMessages
 {
 	None,
-	M_Connected,
-	M_Disconnected,
-	M_Done,
-	M_Timeout,
-	M_NoTimeout,
-	M_Exceeded,
-	M_NotExceeded,
-	M_DisconnectRouter,
-	M_DisconnectModem,
-	M_CheckConnectivity,
-	M_HWError
+	Connected,
+	Disconnected,
+	Done,
+	Timeout,
+	NoTimeout,
+	Exceeded,
+	NotExceeded,
+	DisconnectRouter,
+	DisconnectModem,
+	CheckConnectivity,
+	HWError
 };
 
-enum State
+enum class RecoveryStates
 {
 	Init,
 	CheckConnectivity,
@@ -44,7 +44,7 @@ enum State
 	HWError
 };
 
-enum RecoveryTypes
+enum class RecoveryTypes
 {
 	NoRecovery,
 	Router,
@@ -113,7 +113,7 @@ public:
 		lastRecovery(_lastRecovery),
 		lanConnected(false),
 		lastRecoveryType(RecoveryTypes::NoRecovery),
-		requestedRecovery(Message::M_Done),
+		requestedRecovery(RecoveryMessages::Done),
 		updateConnState(false),
 		cycles(0),
 		autoRecovery(AppConfig::getAutoRecovery()),
@@ -128,7 +128,7 @@ public:
 	time_t lastRecovery;
 	bool lanConnected;
 	RecoveryTypes lastRecoveryType;
-	Message requestedRecovery;
+	RecoveryMessages requestedRecovery;
 	bool updateConnState;
 	time_t recoveryStart;
 	time_t t0;
@@ -193,7 +193,7 @@ public:
 	void StartRecoveryCycles(RecoveryTypes recoveryType);
 
 private:
-	StateMachine<Message, State> *m_pSM;
+	StateMachine<RecoveryMessages, RecoveryStates> *m_pSM;
 	SMParam *m_param;
 	Observers<RecoveryStateChangedParams> m_recoveryStateChanged;
 	Observers<PowerStateChangedParams> m_modemPowerStateChanged;
@@ -204,23 +204,23 @@ private:
 
 private:
 	static void OnEnterInit(void *param);
-	static Message OnInit(void *param);
+	static RecoveryMessages OnInit(void *param);
 	static void OnEnterCheckConnectivity(void *param);
-	static Message OnCheckConnectivity(void *param);
-	static Message OnWaitConnectionTestPeriod(void *param);
-	static Message OnStartCheckConnectivity(void *param);
+	static RecoveryMessages OnCheckConnectivity(void *param);
+	static RecoveryMessages OnWaitConnectionTestPeriod(void *param);
+	static RecoveryMessages OnStartCheckConnectivity(void *param);
 	static void OnEnterDisconnectRouter(void *param);
-	static Message OnDisconnectRouter(void *param);
-	static Message OnWaitWhileRecovering(void *param);
-	static Message OnCheckRouterRecoveryTimeout(void *param);
+	static RecoveryMessages OnDisconnectRouter(void *param);
+	static RecoveryMessages OnWaitWhileRecovering(void *param);
+	static RecoveryMessages OnCheckRouterRecoveryTimeout(void *param);
 	static void OnEnterDisconnectModem(void *param);
-	static Message OnDisconnectModem(void *param);
-	static Message OnCheckModemRecoveryTimeout(void *param);
-	static Message OnCheckMaxCyclesExceeded(void *param);
+	static RecoveryMessages OnDisconnectModem(void *param);
+	static RecoveryMessages OnCheckModemRecoveryTimeout(void *param);
+	static RecoveryMessages OnCheckMaxCyclesExceeded(void *param);
 	static void OnEnterHWError(void *param);
-	static Message OnHWError(void *param);
-	static Message DecideRecoveryPath(Message message, void *param);
-	static Message UpdateRecoveryState(Message message, void *param);
+	static RecoveryMessages OnHWError(void *param);
+	static RecoveryMessages DecideRecoveryPath(RecoveryMessages message, void *param);
+	static RecoveryMessages UpdateRecoveryState(RecoveryMessages message, void *param);
 	void RaiseRecoveryStateChanged(RecoveryTypes recoveryType, bool byUser);
 	static void AppConfigChanged(const AppConfigChangedParam &param, const void *context);
 	static void RecoveryControlTask(void *param);

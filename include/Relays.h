@@ -1,7 +1,7 @@
 #ifndef Relays_h
 #define Relays_h
 
-enum PowerState
+enum class PowerState
 {
     POWER_OFF,
     POWER_ON,

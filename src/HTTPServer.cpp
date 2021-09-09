@@ -89,16 +89,16 @@ bool HTTPServer::DoController(PClientContext context, String &resource, HTTP_REQ
 
     switch(requestType)
     {
-    case HTTP_GET:
+    case HTTP_REQ_TYPE::HTTP_GET:
         return controller->Get(context->client, id);
 
-    case HTTP_POST:
+    case HTTP_REQ_TYPE::HTTP_POST:
         return controller->Post(context->client, id, context->contentLength, context->contentType);
 
-    case HTTP_PUT:
+    case HTTP_REQ_TYPE::HTTP_PUT:
         return controller->Put(context->client, id);
 
-    case HTTP_DELETE:
+    case HTTP_REQ_TYPE::HTTP_DELETE:
         return controller->Delete(context->client, id);
 
     default:;
@@ -264,7 +264,7 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
     case CONTENT_TYPE::WOFF2:
         contentTypeHeader += "font/woff2";
         break;
-    case CONTENT_TYPE::CT_UNKNOWN:
+    case CONTENT_TYPE::UNKNOWN:
 #ifdef DEBUG_HTTP_SERVER
         Traceln("Unknown extention");
 #endif
@@ -410,19 +410,19 @@ void HTTPServer::ServiceRequest(PClientContext context)
 
     switch(RequestType(context->request))
     {
-    case HTTP_GET:
+    case HTTP_REQ_TYPE::HTTP_GET:
         if (!HandleGetRequest(context, resource))
             PageNotFound(context->client);
         break;
 
-    case HTTP_POST:
+    case HTTP_REQ_TYPE::HTTP_POST:
         if (!HandlePostRequest(context, resource))
             PageNotFound(context->client);
         break;
 
-    case HTTP_PUT:
-    case HTTP_DELETE:
-    case HTTP_UNKNOWN:
+    case HTTP_REQ_TYPE::HTTP_PUT:
+    case HTTP_REQ_TYPE::HTTP_DELETE:
+    case HTTP_REQ_TYPE::HTTP_UNKNOWN:
         PageNotFound(context->client);
         break;
     }

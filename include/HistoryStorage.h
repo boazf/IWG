@@ -7,13 +7,13 @@
 
 #define HISTORY_EEPROM_START_ADDRESS 512
 
-enum RecoverySource
+enum class RecoverySource
 {
     UserInitiatedRecovery = 0,
     AutoRecovery = 1
 };
 
-enum RecoveryStatus
+enum class RecoveryStatus
 {
     OnGoingRecovery = 0,
     RecoverySuccess = 1,
@@ -29,8 +29,8 @@ public:
     {
         data.endTime = INT32_MAX;
         data.modemRecoveries = 0;
-        data.recoverySource = AutoRecovery;
-        data.recoveryStatus = RecoverySuccess;
+        data.recoverySource = RecoverySource::AutoRecovery;
+        data.recoveryStatus = RecoveryStatus::RecoverySuccess;
         data.routerRecoveries = 0;
         data.startTime = INT32_MAX;
     }
@@ -77,9 +77,9 @@ private:
         Trace("Put History(");
         Trace(i);
         Trace("): source=");
-        Trace(data.recoverySource);
+        Trace((int)data.recoverySource);
         Trace(", status=");
-        Trace(data.recoveryStatus);
+        Trace((int)data.recoveryStatus);
         Trace(", router=");
         Trace(data.routerRecoveries);
         Trace(", modem=");
@@ -100,13 +100,13 @@ private:
         Trace("Get History(");
         Trace(i);
         Trace("): source=");
-        Trace(data.recoverySource);
+        Trace((int)data.recoverySource);
         Trace(", status=");
-        Trace(data.recoveryStatus);
+        Trace((int)data.recoveryStatus);
         Trace(", router=");
         Trace(data.routerRecoveries);
         Trace(", modem=");
-        Trace(data.modemRecoveries);
+        Trace((int)data.modemRecoveries);
         Trace(", start=");
         Trace(data.startTime);
         Trace(", end=");

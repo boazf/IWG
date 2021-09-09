@@ -20,11 +20,11 @@ void initProgress(bool last = false)
   static Indicator indicators[] = { opi, mri, uli, rri };
 
   if (state > 0)
-    indicators[state - 1].set(LED_ON);
+    indicators[state - 1].set(ledState::LED_ON);
 
   if (!last && state < NELEMS(indicators))
   {
-    indicators[state++].set(LED_BLINK);
+    indicators[state++].set(ledState::LED_BLINK);
   }
 }
 
@@ -60,7 +60,7 @@ void setup() {
 void loop() 
 {
   MaintainEthernet();
-  if (recoveryControl.GetRecoveryState() != Router)
+  if (recoveryControl.GetRecoveryState() != RecoveryTypes::Router)
   {
     DoSFTService();
     DoHTTPService();

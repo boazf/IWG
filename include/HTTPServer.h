@@ -23,7 +23,7 @@ typedef struct ClientContext_
     String contentType;
 } ClientContext, *PClientContext;
 
-enum HTTP_REQ_TYPE
+enum class HTTP_REQ_TYPE
 {
     HTTP_UNKNOWN,
     HTTP_GET,

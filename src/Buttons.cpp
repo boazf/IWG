@@ -7,7 +7,7 @@ Button::Button(uint8_t _pin) : pin(_pin)
 
 buttonState Button::state()
 {
-    return digitalRead(pin) ? BUTTON_OFF : BUTTON_ON;
+    return digitalRead(pin) ? buttonState::BUTTON_OFF : buttonState::BUTTON_ON;
 }
 
 #define MODEM_RECOVERY_BUTTON 34

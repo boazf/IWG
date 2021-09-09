@@ -94,7 +94,7 @@ void HistoryStorage::addHistory(HistoryStorageItem &item)
         putAvailableRecords();
     }
     startIndex = (startIndex + 1) % maxRecords;
-    if (item.recoveryStatus() != RecoverySuccess)
+    if (item.recoveryStatus() != RecoveryStatus::RecoverySuccess)
         lastRecovery = INT32_MAX;
     else
         lastRecovery = item.endTime();

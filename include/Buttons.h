@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-enum buttonState
+enum class buttonState
 {
     BUTTON_OFF,
     BUTTON_ON

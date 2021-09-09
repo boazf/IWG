@@ -12,7 +12,7 @@ static PowerState routerPowerState;
 
 int PowerStateToLineState(PowerState state)
 {
-    return state == POWER_ON ? HIGH : LOW;
+    return state == PowerState::POWER_ON ? HIGH : LOW;
 }
 
 void InitRelays()
@@ -24,8 +24,8 @@ void InitRelays()
 
     pinMode(modemRelay, OUTPUT);
     pinMode(routerRelay, OUTPUT);
-    SetModemPowerState(POWER_ON);
-    SetRouterPowerState(POWER_ON);
+    SetModemPowerState(PowerState::POWER_ON);
+    SetRouterPowerState(PowerState::POWER_ON);
 }
 
 PowerState GetRouterPowerState()

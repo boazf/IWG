@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <LinkedList.h>
 
-enum ledState
+enum class ledState
 {
     LED_ON,
     LED_IDLE,

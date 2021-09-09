@@ -5,27 +5,27 @@
 #include <RecoveryControl.h>
 #include <HistoryStorage.h>
 
-enum H_Message
+enum class H_Message
 {
-    HM_None = 0,
-    HM_CheckConnectivity,
-    HM_RouterRecovery,
-    HM_ModemRecovery,
-    HM_RecoveryFailure,
-    HM_RecoverySuccess,
-    HM_HWFailure
+    None = 0,
+    CheckConnectivity,
+    RouterRecovery,
+    ModemRecovery,
+    RecoveryFailure,
+    RecoverySuccess,
+    HWFailure
 };
 
-enum H_State
+enum class H_State
 {
-    HS_Init,
-    HS_Connected,
-    HS_CheckingConnectivity,
-    HS_RecoveringRouter,
-    HS_RecoveringModem,
-    HS_RecoveryFailed,
-    HS_CheckingConnectivityWhileInFailure,
-    HS_HWFailure
+    Init,
+    Connected,
+    CheckingConnectivity,
+    RecoveringRouter,
+    RecoveringModem,
+    RecoveryFailed,
+    CheckingConnectivityWhileInFailure,
+    HWFailure
 };
 
 class HistoryControl

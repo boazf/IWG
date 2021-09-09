@@ -5,30 +5,30 @@
 #include <Buttons.h>
 #include <Indicators.h>
 
-enum MC_Message
+enum class MC_Message
 {
-    MCM_None = 0,
-    MCM_Connected,
-    MCM_CheckConnectivity,
-    MCM_ModemRecovery,
-    MCM_RouterRecovery,
-    MCM_RecoveryFailure,
-    MCM_Unlock,
-    MCM_Disconnected,
-    MCM_HWFailure
+    None = 0,
+    Connected,
+    CheckConnectivity,
+    ModemRecovery,
+    RouterRecovery,
+    RecoveryFailure,
+    Unlock,
+    Disconnected,
+    HWFailure
 };
 
-enum MC_State
+enum class MC_State
 {
-    MCS_Init,
-    MCS_Connected,
-    MCS_CheckConnectivity,
-    MCS_ModemRecovery,
-    MCS_RouterRecovery,
-    MCS_RecoveryFailure,
-    MCS_Disconnected,
-    MCS_HWFailure,
-    MCS_Unlock
+    Init,
+    Connected,
+    CheckConnectivity,
+    ModemRecovery,
+    RouterRecovery,
+    RecoveryFailure,
+    Disconnected,
+    HWFailure,
+    Unlock
 };
 
 class ManualControl

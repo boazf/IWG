@@ -5,9 +5,9 @@
 #include <SDUtil.h>
 #include <EthernetUtil.h>
 
-enum CONTENT_TYPE
+enum class CONTENT_TYPE
 {
-    CT_UNKNOWN,
+    UNKNOWN,
     JAVASCRIPT,
     ICON,
     HTML,

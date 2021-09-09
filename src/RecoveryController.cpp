@@ -53,7 +53,7 @@ bool RecoveryController::Post(EthClient &client, String &resource, size_t conten
     {
 		LOCK_TRACE();
         Trace("RecoveryType: ");
-        Traceln(recoveryType);
+        Traceln((int)recoveryType);
     }
 #endif
 

@@ -78,11 +78,11 @@ void SSEController::NotifyState(const String &id)
     event += "\"autoRecovery\": ";
     event += state.autoRecovery ? "true" : "false";
     event += ", \"modemState\": ";
-    event += state.modemState;
+    event += (int)state.modemState;
     event += ", \"routerState\": ";
-    event += state.routerState;
+    event += (int)state.routerState;
     event += ", \"recoveryType\": ";
-    event += state.recoveryType;
+    event += (int)state.recoveryType;
     event += ", \"showLastRecovery\": ";
     event += state.showLastRecovery ? "true" : "false";
     event += ", \"days\": ";
@@ -154,7 +154,7 @@ void SSEController::Init()
 void SSEController::UpdateStateLastRecoveryTime()
 {
     time_t lastRecovery = recoveryControl.GetLastRecovery();
-    state.showLastRecovery = lastRecovery != INT32_MAX && recoveryControl.GetRecoveryState() == NoRecovery;
+    state.showLastRecovery = lastRecovery != INT32_MAX && recoveryControl.GetRecoveryState() == RecoveryTypes::NoRecovery;
     if (state.showLastRecovery)
     {
         time_t timeSinceLastRecovery = t_now - lastRecovery;

@@ -68,7 +68,7 @@ CONTENT_TYPE View::getContentType()
     int dot = viewFilePath.lastIndexOf('.');
 
     if (dot == -1)
-        return CONTENT_TYPE::CT_UNKNOWN;
+        return CONTENT_TYPE::UNKNOWN;
 
     String ext = viewFilePath.substring(dot + 1);
     ext.toUpperCase();
@@ -95,7 +95,7 @@ CONTENT_TYPE View::getContentType()
     else if (ext.equals("WF2"))
         return CONTENT_TYPE::WOFF2;
 
-    return CONTENT_TYPE::CT_UNKNOWN;
+    return CONTENT_TYPE::UNKNOWN;
 }
 
 bool View::post(EthClient &client, const String &resource, const String &id)

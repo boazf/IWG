@@ -18,7 +18,7 @@ Indicator::Indicator(uint8_t _channel, uint8_t pin) :
 {
     ledcSetup(channel, LED_FREQ, LED_RESOLUTION);
     ledcAttachPin(pin, channel);
-    set(LED_OFF);
+    set(ledState::LED_OFF);
     if (blinkerTaskHandle == NULL)
     {
         xTaskCreate([](void *param)
@@ -45,23 +45,23 @@ void Indicator::setInternal(ledState state)
 {
     switch(state)
     {
-        case LED_ON:
+        case ledState::LED_ON:
             ledcWrite(channel, LED_ON_DUTY);
             break;
-        case LED_IDLE:
+        case ledState::LED_IDLE:
             ledcWrite(channel, LED_IDLE_DUTY);
             break;
-        case LED_OFF:
+        case ledState::LED_OFF:
             ledcWrite(channel, LED_OFF_DUTY);
             break;
-        case LED_BLINK:
+        case ledState::LED_BLINK:
             break;
     }
 }
 
 void Indicator::set(ledState state)
 {
-    if (currState == LED_BLINK)
+    if (currState == ledState::LED_BLINK)
     {
         blinkingIndicators.Delete(this);
     }
@@ -70,13 +70,13 @@ void Indicator::set(ledState state)
     
     switch(state)
     {
-        case LED_ON:
-        case LED_IDLE:
-        case LED_OFF:
+        case ledState::LED_ON:
+        case ledState::LED_IDLE:
+        case ledState::LED_OFF:
             setInternal(state);
             break;
-        case LED_BLINK:
-            setInternal(LED_ON);
+        case ledState::LED_BLINK:
+            setInternal(ledState::LED_ON);
             blinkingIndicators.Insert(this);
             break;
     }
