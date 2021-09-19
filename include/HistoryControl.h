@@ -13,6 +13,7 @@ enum class H_Message
     ModemRecovery,
     RecoveryFailure,
     RecoverySuccess,
+    PeriodicRestart,
     HWFailure
 };
 
@@ -25,6 +26,7 @@ enum class H_State
     RecoveringModem,
     RecoveryFailed,
     CheckingConnectivityWhileInFailure,
+    PeriodicRestart,
     HWFailure
 };
 
@@ -49,6 +51,7 @@ private:
     static void OnRecoveringModem(void *param);
     static void OnRecoveringRouter(void *param);
     static void OnRecoveryFailed(void *param);
+    static void OnPeriodicRestart(void *param);
     static void OnHWFailure(void *param);
     static H_Message AddToHistory(H_Message message, void *param);
     static H_Message OnStateDoNotihng(void *param);
@@ -56,13 +59,13 @@ private:
 private:
     StateMachine<H_Message, H_State> *m_pSM;
     int maxHistory;
-    bool byUser;
+    RecoverySource recoverySource;
     HistoryStorage storage;
     HistoryStorageItem *currStorageItem;
     time_t lastUpdate;
     
 private:
-    void AddHistoryItem(bool byUser);
+    void AddHistoryItem(RecoverySource recoverySource);
     bool CreateHistoryItem(RecoverySource recoverySource);
     void AddToHistoryStorage(RecoveryStatus status, bool withEndTime = true);
 };

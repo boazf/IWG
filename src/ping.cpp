@@ -78,6 +78,8 @@
 #include "lwip/netdb.h"
 #include "lwip/dns.h"
 
+#include <Lock.h>
+
 static uint16_t ping_seq_num;
 static uint8_t stopped = 0;
 
@@ -246,13 +248,15 @@ void ping(const char *name, int count, int interval, int size, int timeout) {
 	}
 	ping_start(adr, count, interval, size, timeout);
 }
+
 bool ping_start(struct ping_option *ping_o) {
-	
-
 	return ping_start(ping_o->ip,ping_o->count,0,0,0);
-
 }
+
+static CriticalSection csPing;
+
 bool ping_start(IPAddress adr, int count=0, int interval=0, int size=0, int timeout=0) {
+	Lock lock(csPing);
 //	driver_error_t *error;
 	struct sockaddr_in address;
 	ip4_addr_t ping_target;

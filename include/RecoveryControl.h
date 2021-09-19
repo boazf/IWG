@@ -20,6 +20,7 @@ enum class RecoveryMessages
 	NotExceeded,
 	DisconnectRouter,
 	DisconnectModem,
+	PeriodicRestart,
 	CheckConnectivity,
 	HWError
 };
@@ -41,6 +42,10 @@ enum class RecoveryStates
 	CheckConnectivityAfterRouterRecovery,
 	WaitAfterRouterRecovery,
 	CheckRouterRecoveryTimeout,
+	PeriodicRestart,
+	WaitAfterPeriodicRestart,
+	CheckConnectivityAfterPeriodicRestart,
+	CheckPeriodicRestartTimeout,
 	HWError
 };
 
@@ -52,21 +57,28 @@ enum class RecoveryTypes
 	ConnectivityCheck,
 	Failed,
 	HWFailure,
-	Disconnected
+	Disconnected,
+	Periodic
 };
 
+enum class RecoverySource : uint8_t
+{
+	UserInitiated,
+	Auto,
+	Periodic
+};
 
 class RecoveryStateChangedParams
 {
 public:
-	RecoveryStateChangedParams(RecoveryTypes recoveryType, bool byUser)
+	RecoveryStateChangedParams(RecoveryTypes recoveryType, RecoverySource source)
 	{
 		m_recoveryType = recoveryType;
-		m_byUser = byUser;
+		m_source = source;
 	}
 
 	RecoveryTypes m_recoveryType;
-	bool m_byUser;
+	RecoverySource m_source;
 };
 
 class PowerStateChangedParams
@@ -107,9 +119,9 @@ class RecoveryControl;
 class SMParam
 {
 public:
-	SMParam(RecoveryControl *recoveryControl, time_t _lastRecovery, bool byUser = false) :
+	SMParam(RecoveryControl *recoveryControl, time_t _lastRecovery, RecoverySource recoverySource = RecoverySource::Auto) :
 		m_recoveryControl(recoveryControl),
-		m_byUser(byUser),
+		m_recoverySource(recoverySource),
 		lastRecovery(_lastRecovery),
 		lanConnected(false),
 		lastRecoveryType(RecoveryTypes::NoRecovery),
@@ -118,13 +130,14 @@ public:
 		cycles(0),
 		autoRecovery(AppConfig::getAutoRecovery()),
 		maxHistory(AppConfig::getMaxHistory()),
-		stateParam(NULL)
+		stateParam(NULL),
+		nextPeriodicRestart(-1)
 	{
 		waitSem = xSemaphoreCreateBinary();
 	}
 
 	RecoveryControl *m_recoveryControl;
-	bool m_byUser;
+	RecoverySource m_recoverySource;
 	time_t lastRecovery;
 	bool lanConnected;
 	RecoveryTypes lastRecoveryType;
@@ -137,6 +150,7 @@ public:
 	int maxHistory;
 	void *stateParam;
     xSemaphoreHandle waitSem;
+	time_t nextPeriodicRestart;
 	CriticalSection csLock;
 };
 
@@ -210,10 +224,12 @@ private:
 	static RecoveryMessages OnWaitConnectionTestPeriod(void *param);
 	static RecoveryMessages OnStartCheckConnectivity(void *param);
 	static void OnEnterDisconnectRouter(void *param);
+	static void OnEnterDisconnectRouter(void *param, bool signalStateChanged);
 	static RecoveryMessages OnDisconnectRouter(void *param);
 	static RecoveryMessages OnWaitWhileRecovering(void *param);
 	static RecoveryMessages OnCheckRouterRecoveryTimeout(void *param);
 	static void OnEnterDisconnectModem(void *param);
+	static void OnEnterDisconnectModem(void *param, bool signalStateChanged);
 	static RecoveryMessages OnDisconnectModem(void *param);
 	static RecoveryMessages OnCheckModemRecoveryTimeout(void *param);
 	static RecoveryMessages OnCheckMaxCyclesExceeded(void *param);
@@ -221,9 +237,15 @@ private:
 	static RecoveryMessages OnHWError(void *param);
 	static RecoveryMessages DecideRecoveryPath(RecoveryMessages message, void *param);
 	static RecoveryMessages UpdateRecoveryState(RecoveryMessages message, void *param);
-	void RaiseRecoveryStateChanged(RecoveryTypes recoveryType, bool byUser);
+	static void OnEnterPeriodicRestart(void *param);
+	static RecoveryMessages OnPeriodicRestart(void *param);
+	static RecoveryMessages OnCheckPeriodicRestartTimeout(void *param);
+	static RecoveryMessages DecideUponPeriodicRestartTimeout(RecoveryMessages message, void *param);
+	void RaiseRecoveryStateChanged(RecoveryTypes recoveryType, RecoverySource recoverySource);
 	static void AppConfigChanged(const AppConfigChangedParam &param, const void *context);
 	static void RecoveryControlTask(void *param);
+	static bool isPeriodicRestartEnabled();
+	static time_t calcNextPeriodicRestart();
 };
 
 extern RecoveryControl recoveryControl;

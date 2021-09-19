@@ -25,6 +25,7 @@ void HistoryControl::Init()
         { H_Message::CheckConnectivity, H_State::CheckingConnectivity },
         { H_Message::ModemRecovery, H_State::RecoveringModem },
         { H_Message::RouterRecovery, H_State::RecoveringRouter },
+        { H_Message::PeriodicRestart, H_State::PeriodicRestart },
         { H_Message::HWFailure, H_State::HWFailure }
     };
 
@@ -46,6 +47,15 @@ void HistoryControl::Init()
     Transition<H_Message, H_State> recoveringRouterTrans[] =
     { 
         { H_Message::ModemRecovery, H_State::RecoveringModem },
+        { H_Message::RecoveryFailure, H_State::RecoveryFailed },
+        { H_Message::RecoverySuccess, H_State::Connected },
+        { H_Message::HWFailure, H_State::HWFailure}
+    };
+
+    Transition<H_Message, H_State> periodicRestartTrans[] =
+    { 
+        { H_Message::ModemRecovery, H_State::RecoveringModem },
+        { H_Message::RouterRecovery, H_State::RecoveringRouter },
         { H_Message::RecoveryFailure, H_State::RecoveryFailed },
         { H_Message::RecoverySuccess, H_State::Connected },
         { H_Message::HWFailure, H_State::HWFailure}
@@ -80,7 +90,7 @@ void HistoryControl::Init()
    			SMState<H_Message, H_State>::OnExitDoNothing,
             TRANSITIONS(initTrans)
 #ifdef DEBUG_STATE_MACHINE
-			, "H_State::Init"
+			, "Init"
 #endif
 			),
         SMState<H_Message, H_State>(
@@ -90,7 +100,7 @@ void HistoryControl::Init()
    			SMState<H_Message, H_State>::OnExitDoNothing,
             TRANSITIONS(connectedTrans)
 #ifdef DEBUG_STATE_MACHINE
-			, "H_State::Connected"
+			, "Connected"
 #endif
 			),
         SMState<H_Message, H_State>(
@@ -100,7 +110,7 @@ void HistoryControl::Init()
    			SMState<H_Message, H_State>::OnExitDoNothing,
             TRANSITIONS(checkingConnectivityTrans)
 #ifdef DEBUG_STATE_MACHINE
-			, "H_State::CheckingConnectivity"
+			, "CheckingConnectivity"
 #endif
 			),
         SMState<H_Message, H_State>(
@@ -110,7 +120,7 @@ void HistoryControl::Init()
    			SMState<H_Message, H_State>::OnExitDoNothing,
             TRANSITIONS(recoveringModemTrans)
 #ifdef DEBUG_STATE_MACHINE
-			, "H_State::RecoveringModem"
+			, "RecoveringModem"
 #endif
 			),
         SMState<H_Message, H_State>(
@@ -120,7 +130,7 @@ void HistoryControl::Init()
    			SMState<H_Message, H_State>::OnExitDoNothing,
             TRANSITIONS(recoveringRouterTrans)
 #ifdef DEBUG_STATE_MACHINE
-			, "H_State::RecoveringRouter"
+			, "RecoveringRouter"
 #endif
 			),
         SMState<H_Message, H_State>(
@@ -130,7 +140,7 @@ void HistoryControl::Init()
             AddToHistory,
             TRANSITIONS(recoveryFailedTrans)
 #ifdef DEBUG_STATE_MACHINE
-			, "H_State::RecoveryFailed"
+			, "RecoveryFailed"
 #endif
 			),
         SMState<H_Message, H_State>(
@@ -140,7 +150,17 @@ void HistoryControl::Init()
             AddToHistory,
             TRANSITIONS(checkingConnectivityWhileInFailureTrans)
 #ifdef DEBUG_STATE_MACHINE
-			, "H_State::CheckingConnectivityWhileInFailure"
+			, "CheckingConnectivityWhileInFailure"
+#endif
+			),
+        SMState<H_Message, H_State>(
+            H_State::PeriodicRestart, 
+            OnPeriodicRestart, 
+            OnStateDoNotihng,
+   			SMState<H_Message, H_State>::OnExitDoNothing,
+            TRANSITIONS(periodicRestartTrans)
+#ifdef DEBUG_STATE_MACHINE
+			, "PeriodicRestart"
 #endif
 			),
         SMState<H_Message, H_State>(
@@ -150,7 +170,7 @@ void HistoryControl::Init()
    			SMState<H_Message, H_State>::OnExitDoNothing,
             TRANSITIONS(HWFailureTrans)
 #ifdef DEBUG_STATE_MACHINE
-			, "H_State::HWFailure"
+			, "HWFailure"
 #endif
 			)
     };
@@ -190,7 +210,7 @@ void HistoryControl::RecoveryStateChanged(const RecoveryStateChangedParams &para
     if (historyControl->m_pSM->current()->State() == H_State::Init)
         return;
 
-    historyControl->byUser = params.m_byUser;
+    historyControl->recoverySource = params.m_source;
 
     switch(params.m_recoveryType)
     {
@@ -213,6 +233,9 @@ void HistoryControl::RecoveryStateChanged(const RecoveryStateChangedParams &para
         historyControl->m_pSM->ApplyVerb(H_Message::RecoverySuccess);
         break;
     case RecoveryTypes::Disconnected:
+        break;
+    case RecoveryTypes::Periodic:
+        historyControl->m_pSM->ApplyVerb(H_Message::PeriodicRestart);
         break;
     }
 }
@@ -266,7 +289,7 @@ void HistoryControl::OnCheckingConnectivity(void *param)
 #endif
     HistoryControl *control = (HistoryControl *)param;
 
-    control->CreateHistoryItem(control->byUser ? RecoverySource::UserInitiatedRecovery : RecoverySource::AutoRecovery);
+    control->CreateHistoryItem(control->recoverySource);
 }
 
 void HistoryControl::OnRecoveringModem(void *param)
@@ -276,7 +299,7 @@ void HistoryControl::OnRecoveringModem(void *param)
 #endif
     HistoryControl *control = (HistoryControl *)param;
 
-    control->AddHistoryItem(control->byUser);
+    control->AddHistoryItem(control->recoverySource);
     control->currStorageItem->modemRecoveries()++;
     control->lastUpdate = t_now;
 }
@@ -288,8 +311,23 @@ void HistoryControl::OnRecoveringRouter(void *param)
 #endif
     HistoryControl *control = (HistoryControl *)param;
 
-    control->AddHistoryItem(control->byUser);
+    control->AddHistoryItem(control->recoverySource);
     control->currStorageItem->routerRecoveries()++;
+    control->lastUpdate = t_now;
+}
+
+void HistoryControl::OnPeriodicRestart(void *param)
+{
+#ifdef DEBUG_HISTORY
+    Traceln(__func__);
+#endif
+    HistoryControl *control = (HistoryControl *)param;
+
+    control->AddHistoryItem(control->recoverySource);
+    if (AppConfig::getPeriodicallyRestartRouter())
+        control->currStorageItem->routerRecoveries()++;
+    if (AppConfig::getPeriodicallyRestartModem())
+        control->currStorageItem->modemRecoveries()++;
     control->lastUpdate = t_now;
 }
 
@@ -323,19 +361,19 @@ H_Message HistoryControl::AddToHistory(H_Message message, void *param)
     if (message == H_Message::RecoverySuccess)
     {
         HistoryControl *control = (HistoryControl *)param;
-        control->AddHistoryItem(control->byUser);
+        control->AddHistoryItem(control->recoverySource);
         control->AddToHistoryStorage(RecoveryStatus::RecoverySuccess, false);
     }
 
     return message;
 }
 
-void HistoryControl::AddHistoryItem(bool byUser)
+void HistoryControl::AddHistoryItem(RecoverySource recoverySource)
 {
 #ifdef DEBUG_HISTORY
     Traceln(__func__);
 #endif
-    CreateHistoryItem(byUser ? RecoverySource::UserInitiatedRecovery : RecoverySource::AutoRecovery);
+    CreateHistoryItem(recoverySource);
 }
 
 bool HistoryControl::CreateHistoryItem(RecoverySource recoverySource)

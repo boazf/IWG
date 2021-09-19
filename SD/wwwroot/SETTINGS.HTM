@@ -37,7 +37,7 @@
         <script onerror="loadError=true" src="/lib/jquery/jqcombo.js"></script>
 
         <div class="container body-content">
-            <form method="post" class="pt-3" action="/Settings">
+            <form id="settings" method="post" class="pt-3" action="/Settings">
                 <h2><span class="glyphicon glyphicon-wrench"></span> Settings</h2>
                 <ul class="nav nav-tabs">
                     <li class="active"><a data-toggle="tab" href="#Basic" aria-expanded="true">Basic</a></li>
@@ -48,17 +48,18 @@
                 </div>
                 <div id="tabs" class="tab-content">
                     <div id="Basic" class="tab-pane fade in active">
-                        <label class="switch" for="EnableAutoRecovery">
-                            <input type="checkbox" data-val="true" data-val-required="The EnableAutoRecovery field is required." id="EnableAutoRecovery" name="EnableAutoRecovery" value="true" %0                       
-                            <span class="slider round"></span>
-                            <span class="sliderLabel">Enable Auto-Recovery</span>
-                        </label>
-                        <br />
-                        <br />
+                        <div class="form-group row">
+                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3"  for="EnableAutoRecovery">Auto-Recovery</label>
+                            <span class="col-xs-3 col-sm-2 col-md-2 col-lg-1" style="margin-right:12px"></span>
+                            <label class="switch small">
+                                <input type="checkbox" id="EnableAutoRecovery" name="EnableAutoRecovery" value="true"  %0                       
+                                <span class="slider round small"><span class="sliderText small On">ON</span><span class="sliderText small Off">OFF</span></span>
+                            </label>
+                        </div>
                         <div class="form-group row">
                             <label class="col-xs-9 col-sm-6 col-md-5 col-lg-4" for="LANAddressForConnectionTesting">LAN Address for Connection Testing</label>
                             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-4">
-                                <input class="form-control input-sm" maxlength="15" size="15" type="text" data-val="true" data-val-maxlength="The field LAN Address for Connection Testing must be a string or array type with a maximum length of &#x27;15&#x27;." data-val-maxlength-max="15" data-val-regex="LAN Address should be a valid IP address" data-val-regex-pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" id="LANAddressForConnectionTesting" name="LANAddressForConnectionTesting" value=%1                  
+                                <input class="form-control input-sm" maxlength="15" size="15" type="text" data-val="true" data-val-regex="LAN Address should be a valid IP address" data-val-regex-pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" id="LANAddressForConnectionTesting" name="LANAddressForConnectionTesting" value=%1                  
                                 <span id="lanclear" class="clearbtn glyphicon glyphicon-remove-circle"></span> 
                             </div>
                         </div>
@@ -79,6 +80,30 @@
                             </div>
                         </div>
                         <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="Server2ForConnectionTesting" data-valmsg-replace="true"></span>
+                        <div class="form-group row">
+                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3"  for="PeriodicallyRestartRouter">Periodically Restart %15                                           </label>
+                            <span class="col-xs-3 col-sm-2 col-md-2 col-lg-1" style="margin-right:12px"></span>
+                            <label class="switch small">
+                                <input type="checkbox" id="PeriodicallyRestartRouter" name="PeriodicallyRestartRouter" onclick="disableEnablePeriodicRestartTime()" value="true" %16                       
+                                <span class="slider round small"><span class="sliderText small On">ON</span><span class="sliderText small Off">OFF</span></span>
+                            </label>
+                        </div>
+                        <div class="form-group row" style="display:%14        ">
+                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3"  for="PeriodicallyRestartModem">Periodically Restart Modem</label>
+                            <span class="col-xs-3 col-sm-2 col-md-2 col-lg-1" style="margin-right:12px"></span>
+                            <label class="switch small">
+                                <input type="checkbox" id="PeriodicallyRestartModem" name="PeriodicallyRestartModem" onclick="disableEnablePeriodicRestartTime()" value="true" %17                       
+                                <span class="slider round small"><span class="sliderText small On">ON</span><span class="sliderText small Off">OFF</span></span>
+                            </label>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3" for="PeriodicRestartTime">Periodic Restart Time</label>
+                            <span class="col-xs-3 col-sm-2 col-md-2 col-lg-1" style="margin-right:12px"></span>
+                            <div class="btn-group col-1">
+                                <input class="form-control input-sm" type="time" id="PeriodicRestartTime" name="PeriodicRestartTime" data-val="true" data-val-required="The Modem Reconnect Time field is required." value=%18       />
+                            </div>
+                        </div>
+                        <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="PeriodicRestartTime" data-valmsg-replace="true"></span>
                     </div>
 
                     <div id="Advanced" class="tab-pane fade">
@@ -128,7 +153,7 @@
                                 <span class="input-group-addon" style="padding-top:1px;padding-bottom:1px">
                                     <label class="switch small" for="LimitRecoveryCycles">
                                         <input type="checkbox" onclick="disableEnableDisconnectCycles()" data-val="true" data-val-required="The LimitRecoveryCycles field is required." id="LimitRecoveryCycles" name="LimitRecoveryCycles" value="true" %9                          
-                                        <span class="slider round small"></span>
+                                        <span class="slider round small"><span class="sliderText small On">ON</span><span class="sliderText small Off">OFF</span></span>
                                     </label>
                                 </span>
                                 <input class="form-control input-sm" pattern="[0-9]*" type="number" data-val="true" data-val-range="The field Limit Recovery Cycles must be between 1 and 15." data-val-range-max="15" data-val-range-min="1" data-val-required="The Limit Recovery Cycles field is required." id="RecoveryCycles" name="RecoveryCycles" value=%10             
@@ -139,8 +164,8 @@
                             <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3"  for="DaylightSavingTime">Daylight Saving Time</label>
                             <span class="col-xs-3 col-md-2 col-lg-1" style="margin-right:12px"></span>
                             <label class="switch small">
-                                <input type="checkbox" data-val="true" data-val-required="The EnableAutoRecovery field is required." id="DaylightSavingTime" name="DaylightSavingTime" value="true" %13                         
-                                <span class="slider round small"></span>
+                                <input type="checkbox" id="DaylightSavingTime" name="DaylightSavingTime" value="true" %13                         
+                                <span class="slider round small"><span class="sliderText small On">ON</span><span class="sliderText small Off">OFF</span></span>
                             </label>
                         </div>
                     </div>
@@ -166,6 +191,8 @@
                 <input name="EnableAutoRecovery" type="hidden" value="false">
                 <input name="LimitRecoveryCycles" type="hidden" value="false" />
                 <input name="DaylightSavingTime" type="hidden" value="false" />
+                <input name="PeriodicallyRestartRouter" type="hidden" value="false" />
+                <input name="PeriodicallyRestartModem" type="hidden" value="false" />
             </form>
             <script type="text/javascript">
                 function checkLoadError() {
@@ -184,9 +211,15 @@
                 $("#EnableAutoRecovery")[0].focus();
                 $("#LimitRecoveryCycles")[0].checked = 'True' == %12        ;
                 disableEnableDisconnectCycles();
+                disableEnablePeriodicRestartTime();
 
                 function disableEnableDisconnectCycles() {
                     $("#RecoveryCycles")[0].disabled = !$("#LimitRecoveryCycles")[0].checked;
+                }
+
+                function disableEnablePeriodicRestartTime() {
+                    $("#PeriodicRestartTime")[0].disabled = 
+                        !$("#PeriodicallyRestartModem")[0].checked && !$("#PeriodicallyRestartRouter")[0].checked;
                 }
 
                 jQuery.validator.addMethod("verifyservername",

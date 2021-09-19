@@ -16,7 +16,9 @@ AppConfigStore AppConfig::store;
 #define DEFAULT_SERVER1 "google.com"
 #define DEFAULT_SERVER2 "yahoo.com"
 #define DEFAULT_DST false
-
+#define DEFAULT_PERIODICALLY_RESTART_ROUTER false
+#define DEFAULT_PERIODICALLY_RESTART_MODEM false
+#define DEFAULT_PERIODIC_RESTART_TIME ((time_t)((4 * 60 + 30) * 60))
 void AppConfig::init()
 {
     EEPROM.begin(1024);
@@ -35,6 +37,9 @@ void AppConfig::init()
         setServer1(internalGetServer1());
         setServer2(internalGetServer2());
         setDST(internalGetDST());
+        setPeriodicallyRestartRouter(internalGetPeriodicallyRestartRouter());
+        setPeriodicallyRestartModem(internalGetPeriodicallyRestartModem());
+        setPeriodicRestartTime(internalGetPeriodicRestartTime());
     }
     else
     {
@@ -52,6 +57,9 @@ void AppConfig::init()
         setServer2(DEFAULT_SERVER2);
         setDST(DEFAULT_DST);
         setInitialized(true);
+        setPeriodicallyRestartRouter(DEFAULT_PERIODICALLY_RESTART_ROUTER);
+        setPeriodicallyRestartModem(DEFAULT_PERIODICALLY_RESTART_MODEM);
+        setPeriodicRestartTime(DEFAULT_PERIODIC_RESTART_TIME);
         commit();
     }
 }
@@ -189,6 +197,36 @@ void AppConfig::setDST(bool value)
     store.DST = value;
 }
 
+bool AppConfig::getPeriodicallyRestartRouter()
+{
+    return store.periodicallyRestartRouter;
+}
+
+void AppConfig::setPeriodicallyRestartRouter(bool value)
+{
+    store.periodicallyRestartRouter = value;
+}
+
+bool AppConfig::getPeriodicallyRestartModem()
+{
+    return store.periodicallyRestartModem;
+}
+
+void AppConfig::setPeriodicallyRestartModem(bool value)
+{
+    store.periodicallyRestartModem = value;
+}
+
+time_t AppConfig::getPeriodicRestartTime()
+{
+    return store.periodicRestartTime;
+}
+
+void AppConfig::setPeriodicRestartTime(time_t value)
+{
+    store.periodicRestartTime = value;
+}
+
 Observers<AppConfigChangedParam> AppConfig::appConfigChanged;
 
 void AppConfig::commit()
@@ -270,6 +308,24 @@ void AppConfig::commit()
     if (store.DST != internalGetDST())
     {
         internalSetDST(store.DST);
+        dirty = true;
+    }
+
+    if (store.periodicallyRestartRouter != internalGetPeriodicallyRestartRouter())
+    {
+        internalSetPeriodicallyRestartRouter(store.periodicallyRestartRouter);
+        dirty = true;
+    }
+
+    if (store.periodicallyRestartModem != internalGetPeriodicallyRestartModem())
+    {
+        internalSetPeriodicallyRestartModem(store.periodicallyRestartModem);
+        dirty = true;
+    }
+
+    if (store.periodicRestartTime != internalGetPeriodicRestartTime())
+    {
+        internalSetPeriodicRestartTime(store.periodicRestartTime);
         dirty = true;
     }
 
@@ -462,6 +518,39 @@ bool AppConfig::internalGetDST()
 void AppConfig::internalSetDST(bool value)
 {
     putField<bool>(offsetof(AppConfigStore, DST), value);
+}
+
+bool AppConfig::internalGetPeriodicallyRestartRouter()
+{
+    bool value = false;
+    return getField<bool>(offsetof(AppConfigStore, periodicallyRestartRouter), value);
+}
+
+void AppConfig::internalSetPeriodicallyRestartRouter(bool value)
+{
+    putField<bool>(offsetof(AppConfigStore, periodicallyRestartRouter), value);
+}
+
+bool AppConfig::internalGetPeriodicallyRestartModem()
+{
+    bool value = false;
+    return getField<bool>(offsetof(AppConfigStore, periodicallyRestartModem), value);
+}
+
+void AppConfig::internalSetPeriodicallyRestartModem(bool value)
+{
+    putField<bool>(offsetof(AppConfigStore, periodicallyRestartModem), value);
+}
+
+time_t AppConfig::internalGetPeriodicRestartTime()
+{
+    time_t value;
+    return getField<time_t>(offsetof(AppConfigStore, periodicRestartTime), value);
+}
+
+void AppConfig::internalSetPeriodicRestartTime(time_t value)
+{
+    putField<time_t>(offsetof(AppConfigStore, periodicRestartTime), value);
 }
 
 void InitAppConfig()

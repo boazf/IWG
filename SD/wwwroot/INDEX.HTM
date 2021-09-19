@@ -78,7 +78,8 @@
         TEST_CONNECTION: 3,
         FAILED: 4,
         HW_FAILURE: 5,
-        DISCONNECTED: 6
+        DISCONNECTED: 6,
+        PERIODIC : 7
     };
 
     const powerStates = {
@@ -87,18 +88,17 @@
     }
 
     var recoveryTimer = 0;
+    var recoveryType = %9   ;
+    var id = GetId();
+    var autoPilot = false;
+    var inactive = true;
+    var mDisco = 5000;
+    var rDisco = 5000;
+    var mPeriodic = false;
+    var rPeriodic = false;
 
     SetLastRecoveryDisplay(%4     , %5  , %6  , %7  , %8     );
-
-    var recoveryType = %9   ;
-
     SetConnectionStatus(recoveryType);
-
-    var id = GetId();
-
-    var autoPilot = false;
-
-    var inactive = true;
 
     function GetId() {
         var href = window.location.href;
@@ -144,13 +144,23 @@
     source.onmessage = function (event) {
         inactive = false;
         var state = JSON.parse(event.data);
+        mDisco = state.mDisco * 1000;
+        rDisco = state.rDisco * 1000 - 500;
+        mPeriodic = state.mPeriodic;
+        rPeriodic = state.rPeriodic;
         SetConnectionStatus(state.recoveryType);
         //$("#spnMessage").text("id=" + id + " " + event.data);
         switch (state.recoveryType) {
             case recoveryTypes.ROUTER:
-                if (recoveryType != recoveryTypes.ROUTER) {
-                    RecoveryAutoPilot();
-                }
+                $("#glassPane").css("visibility", "visible");
+                if (recoveryType != recoveryTypes.ROUTER)
+                    RecoveryAutoPilot(recoveryTypes.ROUTER);
+                break;
+            case recoveryTypes.PERIODIC:
+                $("#glassPane").css("visibility", "visible");
+                if (recoveryType != recoveryTypes.PERIODIC)
+                    RecoveryAutoPilot(recoveryTypes.PERIODIC);
+                break;
             case recoveryTypes.MODEM:
             case recoveryTypes.TEST_CONNECTION:
             case recoveryTypes.HW_FAILURE:
@@ -206,6 +216,8 @@
                 return "Hardware Failure!"
             case recoveryTypes.DISCONNECTED:
                 return "Disconnected.";
+            case recoveryTypes.PERIODIC:
+                return "Disconnected - Periodic restart."
         }
     }
 
@@ -221,6 +233,7 @@
             case recoveryTypes.FAILED:
             case recoveryTypes.HW_FAILURE:
             case recoveryTypes.DISCONNECTED:
+            case recoveryTypes.PERIODIC:
                 $("#connection").removeClass("alert-success");
                 $("#connection").removeClass("alert-warning");
                 $("#connection").addClass("alert-danger");
@@ -244,6 +257,7 @@
             case recoveryTypes.FAILED:
             case recoveryTypes.HW_FAILURE:
             case recoveryTypes.DISCONNECTED:
+            case recoveryTypes.PERIODIC:
                 statusGlyphicon = 'glyphicon-remove';
                 break;
             case recoveryTypes.TEST_CONNECTION:
@@ -259,17 +273,34 @@
         SetConnectionClass(recoveryType);
     }
 
-    function RecoveryAutoPilot() {
+    function RecoveryAutoPilot(recoveryType) {
+        var tWait = 0;
         autoPilot = true;
-        $("#router")[0].checked = false;
         HideLastRecovery();
-        SetConnectionStatus(recoveryTypes.ROUTER);
+        if (recoveryType == recoveryTypes.ROUTER || 
+            recoveryType == recoveryTypes.PERIODIC && rPeriodic)
+        {
+            tWait = rDisco;
+            $("#router")[0].checked = false;
+            setTimeout(async function () {
+                $("#router")[0].checked = true;
+            }, rDisco);
+        }
+
+        if (recoveryType == recoveryTypes.PERIODIC && mPeriodic)
+        {
+            tWait = Math.max(mDisco, rDisco);
+            $("#modem")[0].checked = false;
+            setTimeout(async function () {
+                $("#modem")[0].checked = true;
+            }, mDisco);
+        }
+
         setTimeout(async function () {
-            $("#router")[0].checked = true;
             await WaitForServerToBeAccessible(180000);
             location.href = appBase + "index";
             autoPilot = false;
-        }, 4500)
+        }, tWait);
     }
 
     function PadZeroes(num, size) {

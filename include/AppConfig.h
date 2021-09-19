@@ -35,6 +35,9 @@ typedef struct AppConfigStore_
     int maxHistory;
     bool DST;
     bool initialized;
+    bool periodicallyRestartRouter;
+    bool periodicallyRestartModem;
+    time_t periodicRestartTime;
 } AppConfigStore;
 
 class AppConfig
@@ -67,6 +70,12 @@ public:
     static void setMaxHistory(int value);
     static bool getDST();
     static void setDST(bool value);
+    static bool getPeriodicallyRestartRouter();
+    static void setPeriodicallyRestartRouter(bool value);
+    static bool getPeriodicallyRestartModem();
+    static void setPeriodicallyRestartModem(bool value);
+    static time_t getPeriodicRestartTime();
+    static void setPeriodicRestartTime(time_t value);
     static Observers<AppConfigChangedParam> &getAppConfigChanged()
     {
         return appConfigChanged;
@@ -106,6 +115,12 @@ private:
     static void internalSetMaxHistory(int value);
     static bool internalGetDST();
     static void internalSetDST(bool value);
+    static bool internalGetPeriodicallyRestartRouter();
+    static void internalSetPeriodicallyRestartRouter(bool value);
+    static bool internalGetPeriodicallyRestartModem();
+    static void internalSetPeriodicallyRestartModem(bool value);
+    static time_t internalGetPeriodicRestartTime();
+    static void internalSetPeriodicRestartTime(time_t value);
     template<typename T>
     static T &getField(int offset, T &value)
     {

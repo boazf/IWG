@@ -31,7 +31,10 @@ ViewFiller SettingsView::fillers[] =
     /* 12 */ [](String &fill){ fill = AppConfig::getLimitCycles() ? "'True'" : "'False'"; },
     /* 13 */ [](String &fill){ fill = AppConfig::getDST() ? "checked=\"checked\" />" : " />"; },
     /* 14 */ [](String &fill){ fill = Config::singleDevice ? "none" : "visible"; },
-    /* 15 */ [](String &fill){ fill = Config::deviceName; }
+    /* 15 */ [](String &fill){ fill = Config::deviceName; },
+    /* 16 */ [](String &fill){ fill = AppConfig::getPeriodicallyRestartRouter() ? "checked=\"checked\" />" : " />"; },
+    /* 17 */ [](String &fill){ fill = AppConfig::getPeriodicallyRestartModem() ? "checked=\"checked\" />" : " />"; },
+    /* 18 */ [](String &fill){ time_t t = AppConfig::getPeriodicRestartTime(); int h = t / 3600; int m =  (t % 3600) / 60; char buff[8]; sprintf(buff, "\"%02u:%02u\"%c", h, m, '\0'); fill = String(buff); },
 };
 
 int SettingsView::getFillers(const ViewFiller *&_fillers)
@@ -65,7 +68,36 @@ int SettingsView::parseInt(const String &val)
     return ret;
 }
 
-void SettingsView::SetConfigValue(const String &pair, bool &autoRecovery, bool &limitCycles, bool &DST)
+time_t SettingsView::parseTime(const String &val)
+{
+    int h, m;
+    if (sscanf(val.c_str(), "%d%%3A%d", &h, &m) != 2)
+        return -1;
+
+    return (h * 60 + m) * 60;
+}
+
+std::map<const std::string, settingsKeys> SettingsView::settingsMap = 
+{
+    { "EnableAutoRecovery", settingsKeys::enableAutoRecovery },
+    { "LANAddressForConnectionTesting", settingsKeys::lanAddressForConnectionTesting },
+    { "ServerForConnectionTesting", settingsKeys::serverForConnectionTesting },
+    { "Server2ForConnectionTesting", settingsKeys::server2ForConnectionTesting },
+    { "PeriodicallyRestartRouter", settingsKeys::periodicRestartRouter },
+    { "PeriodicallyRestartModem", settingsKeys::periodicRestartModem },
+    { "PeriodicRestartTime", settingsKeys::periodicRestartTime },
+    { "RouterDisconnectTime", settingsKeys::routerDisconnectTime },
+    { "ModemDisconnectTime", settingsKeys::modemDisconnectTime },
+    { "ConnectionTestPeriod", settingsKeys::connectionTestPeriod },
+    { "RouterReconnectTime", settingsKeys::routerReconnectTime },
+    { "ModemReconnectTime", settingsKeys::modemReconnectTime },
+    { "LimitRecoveryCycles", settingsKeys::limitRecoveryCycles },
+    { "RecoveryCycles", settingsKeys::recoveryCycles },
+    { "DaylightSavingTime", settingsKeys::daylightSavingTime },
+    { "MaxHistoryRecords", settingsKeys::maxHistoryRecords }
+};
+
+void SettingsView::SetConfigValue(const String &pair, SettingsValuesSetMap &settingsValuesSetMap)
 {
     if (pair.equals(""))
         return;
@@ -74,52 +106,88 @@ void SettingsView::SetConfigValue(const String &pair, bool &autoRecovery, bool &
     String var = pair.substring(0, eqIndex);
     String val = pair.substring(eqIndex + 1);
 
-    if (var.equals("EnableAutoRecovery"))
+    std::map<const std::string, settingsKeys>::iterator i = settingsMap.find(var.c_str());
+    if (i == settingsMap.end())
     {
-        if (!autoRecovery)
+        Tracef("Unknown settings key variable: %s\n", var.c_str());
+        return;
+    }
+
+    switch (i->second)
+    {
+    case settingsKeys::enableAutoRecovery:
+        if (!settingsValuesSetMap[settingsKeys::enableAutoRecovery])
             AppConfig::setAutoRecovery(parseBool(val));
-        autoRecovery = true;
-    }
-    else if (var.equals("LANAddressForConnectionTesting"))
+        settingsValuesSetMap[settingsKeys::enableAutoRecovery] = true;
+        break;
+    case settingsKeys::lanAddressForConnectionTesting:
         AppConfig::setLANAddr(parseIPAddress(val));
-    else if (var.equals("ServerForConnectionTesting"))
+        break;
+    case settingsKeys::serverForConnectionTesting:
         AppConfig::setServer1(val);
-    else if (var.equals("Server2ForConnectionTesting"))
+        break;
+    case settingsKeys::server2ForConnectionTesting:
         AppConfig::setServer2(val);
-    else if (var.equals("RouterDisconnectTime"))
+        break;
+    case settingsKeys::routerDisconnectTime:
         AppConfig::setRDisconnect(parseInt(val));
-    else if (var.equals("ModemDisconnectTime"))
+        break;
+    case settingsKeys::modemDisconnectTime:
         AppConfig::setMDisconnect(parseInt(val));
-    else if (var.equals("ConnectionTestPeriod"))
+        break;
+    case settingsKeys::connectionTestPeriod:
         AppConfig::setConnectionTestPeriod(parseInt(val));
-    else if (var.equals("RouterReconnectTime"))
+        break;
+    case settingsKeys::routerReconnectTime:
         AppConfig::setRReconnect(parseInt(val));
-    else if (var.equals("ModemReconnectTime"))
+        break;
+    case settingsKeys::modemReconnectTime:
         AppConfig::setMReconnect(parseInt(val));
-    else if (var.equals("LimitRecoveryCycles"))
-    {
-        if (!limitCycles)
+        break;
+    case settingsKeys::limitRecoveryCycles:
+        if (!settingsValuesSetMap[settingsKeys::limitRecoveryCycles])
             AppConfig::setLimitCycles(parseBool(val));
-        limitCycles = true;
-    }
-    else if (var.equals("RecoveryCycles"))
+        settingsValuesSetMap[settingsKeys::limitRecoveryCycles] = true;
+        break;
+    case settingsKeys::recoveryCycles:
         AppConfig::setRecoveryCycles(parseInt(val));
-    else if (var.equals("DaylightSavingTime"))
-    {
-        if (!DST)
+        break;
+    case settingsKeys::daylightSavingTime:
+        if (!settingsValuesSetMap[settingsKeys::daylightSavingTime])
             AppConfig::setDST(parseBool(val));
-        DST = true;
-    }
-    else if (var.equals("MaxHistoryRecords"))
+        settingsValuesSetMap[settingsKeys::daylightSavingTime] = true;
+        break;
+    case settingsKeys::maxHistoryRecords:
         AppConfig::setMaxHistory(parseInt(val));
+        break;
+    case settingsKeys::periodicRestartRouter:
+        if (!settingsValuesSetMap[settingsKeys::periodicRestartRouter])
+            AppConfig::setPeriodicallyRestartRouter(parseBool(val));
+        settingsValuesSetMap[settingsKeys::periodicRestartRouter] = true;
+        break;
+    case settingsKeys::periodicRestartModem:
+        if (!settingsValuesSetMap[settingsKeys::periodicRestartModem])
+            AppConfig::setPeriodicallyRestartModem(parseBool(val));
+        settingsValuesSetMap[settingsKeys::periodicRestartModem] = true;
+        break;
+    case settingsKeys::periodicRestartTime:
+        AppConfig::setPeriodicRestartTime(parseTime(val));
+        break;
+    }
 }
 
 bool SettingsView::post(EthClient &client, const String &resource, const String &id)
 {
     String pair = "";
-    bool autoRecovery = false;
-    bool limitCycles = false;
-    bool DST = false;
+
+    SettingsValuesSetMap settingsValuesSetMap =
+    {
+        { settingsKeys::enableAutoRecovery, false },
+        { settingsKeys::limitRecoveryCycles, false },
+        { settingsKeys::daylightSavingTime, false },
+        { settingsKeys::periodicRestartRouter, false },
+        { settingsKeys::periodicRestartModem, false }
+    };
 
     while(client.available())
     {
@@ -130,11 +198,11 @@ bool SettingsView::post(EthClient &client, const String &resource, const String 
             continue;
         }
 
-        SetConfigValue(pair, autoRecovery, limitCycles, DST);
+        SetConfigValue(pair, settingsValuesSetMap);
         pair = "";
     }
 
-    SetConfigValue(pair, autoRecovery, limitCycles, DST);
+    SetConfigValue(pair, settingsValuesSetMap);
     AppConfig::commit();
 
     client.println("HTTP/1.1 302 Found");

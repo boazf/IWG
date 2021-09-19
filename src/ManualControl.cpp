@@ -20,7 +20,8 @@ void ManualControl::Init()
         { MC_Message::Disconnected, MC_State::Disconnected },
         { MC_Message::HWFailure, MC_State::HWFailure },
         { MC_Message::RecoveryFailure, MC_State::RecoveryFailure },
-        { MC_Message::Connected, MC_State::Connected }
+        { MC_Message::Connected, MC_State::Connected },
+        { MC_Message::PeriodicRestart, MC_State::PeriodicRestart }
     };
 
     SMState<MC_Message, MC_State> states[] =
@@ -78,6 +79,18 @@ void ManualControl::Init()
             MC_State::RouterRecovery,
             OnEnterRouterRecovery,
             OnRouterRecovery,
+            SMState<MC_Message, MC_State>::OnExitDoNothing,
+            TRANSITIONS(transitions)
+#ifdef DEBUG_STATE_MACHINE
+			, "RouterRecovery"
+#endif
+        },
+
+        SMState<MC_Message, MC_State>
+        {
+            MC_State::PeriodicRestart,
+            OnEnterPeriodicRestart,
+            OnPeriodicRestart,
             SMState<MC_Message, MC_State>::OnExitDoNothing,
             TRANSITIONS(transitions)
 #ifdef DEBUG_STATE_MACHINE
@@ -191,6 +204,11 @@ MC_Message ManualControl::transitionMessage(MC_State currState)
         case RecoveryTypes::Router:
             if (currState != MC_State::RouterRecovery)
                 return MC_Message::RouterRecovery;
+            break;
+
+        case RecoveryTypes::Periodic:
+            if (currState != MC_State::PeriodicRestart)
+                return MC_Message::PeriodicRestart;
             break;
     }
 
@@ -318,6 +336,22 @@ void ManualControl::OnEnterRouterRecovery(void *param)
 MC_Message ManualControl::OnRouterRecovery(void *param)
 {
     DO_TRANSITION(MC_State::RouterRecovery);
+
+    return MC_Message::None;
+}
+
+void ManualControl::OnEnterPeriodicRestart(void *param)
+{
+    OnEnterRecovery(param);
+    if (AppConfig::getPeriodicallyRestartRouter())
+        rri.set(ledState::LED_BLINK);
+    if (AppConfig::getPeriodicallyRestartModem())
+        mri.set(ledState::LED_BLINK);
+}
+
+MC_Message ManualControl::OnPeriodicRestart(void *param)
+{
+    DO_TRANSITION(MC_State::PeriodicRestart);
 
     return MC_Message::None;
 }

@@ -55,8 +55,9 @@
     };
 
     const recoverySource = {
+        userInitiated: 0,
         autoRecovery: 1,
-        userInitiated: 0
+        Periodic: 2
     };
 
     $(document).ready(function () {
@@ -95,6 +96,9 @@
                 break;
             case recoverySource.userInitiated:
                 recoverySourceElem.innerHTML = "User Initiated Recovery";
+                break;
+            case recoverySource.Periodic:
+                recoverySourceElem.innerHTML = "Periodic Restart";
                 break;
         }
     }

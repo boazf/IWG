@@ -2,9 +2,32 @@
 #define SettingsView_h
 
 #include <HtmlFillerView.h>
+#include <map>
+
+enum class settingsKeys
+{
+    enableAutoRecovery,
+    lanAddressForConnectionTesting,
+    serverForConnectionTesting,
+    server2ForConnectionTesting,
+    periodicRestartRouter,
+    periodicRestartModem,
+    periodicRestartTime,
+    routerDisconnectTime,
+    modemDisconnectTime,
+    connectionTestPeriod,
+    routerReconnectTime,
+    modemReconnectTime,
+    limitRecoveryCycles,
+    recoveryCycles,
+    daylightSavingTime,
+    maxHistoryRecords
+};
 
 class SettingsView : public HtmlFillerView
 {
+    typedef std::map<settingsKeys, bool> SettingsValuesSetMap;
+
 public:
     SettingsView(const char *_viewName, const char *_viewFile);     
     bool post(EthClient &client, const String &resource, const String &id);
@@ -14,12 +37,14 @@ protected:
 
 private:
     static ViewFiller fillers[];
+    static std::map<const std::string, settingsKeys> settingsMap;
 
 private:
     bool parseBool(const String &val);
     IPAddress parseIPAddress(const String &val);
     int parseInt(const String &val);
-    void SetConfigValue(const String &pair, bool &autoRecovery, bool &limitCycles, bool &DST);
+    time_t parseTime(const String &val);
+    void SetConfigValue(const String &pair, SettingsValuesSetMap &settingsValuesSetMap);
 };
 
 class SettingsViewCreator : public ViewCreator

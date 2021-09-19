@@ -12,6 +12,7 @@ enum class MC_Message
     CheckConnectivity,
     ModemRecovery,
     RouterRecovery,
+    PeriodicRestart,
     RecoveryFailure,
     Unlock,
     Disconnected,
@@ -25,6 +26,7 @@ enum class MC_State
     CheckConnectivity,
     ModemRecovery,
     RouterRecovery,
+    PeriodicRestart,
     RecoveryFailure,
     Disconnected,
     HWFailure,
@@ -51,6 +53,8 @@ private:
     static MC_Message OnModemRecovery(void *param);
     static void OnEnterRouterRecovery(void *param);
     static MC_Message OnRouterRecovery(void *param);
+    static void OnEnterPeriodicRestart(void *param);
+    static MC_Message OnPeriodicRestart(void *param);
     static void OnEnterUnlock(void *param);
     static MC_Message OnUnlock(void *param);
     static void OnEnterDisconnected(void *param);

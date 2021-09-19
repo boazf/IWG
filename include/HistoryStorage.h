@@ -4,14 +4,9 @@
 #include <EEPROM.h>
 #include <time.h>
 #include <Common.h>
+#include <RecoveryControl.h>
 
 #define HISTORY_EEPROM_START_ADDRESS 512
-
-enum class RecoverySource
-{
-    UserInitiatedRecovery = 0,
-    AutoRecovery = 1
-};
 
 enum class RecoveryStatus
 {
@@ -29,7 +24,7 @@ public:
     {
         data.endTime = INT32_MAX;
         data.modemRecoveries = 0;
-        data.recoverySource = RecoverySource::AutoRecovery;
+        data.recoverySource = RecoverySource::Auto;
         data.recoveryStatus = RecoveryStatus::RecoverySuccess;
         data.routerRecoveries = 0;
         data.startTime = INT32_MAX;

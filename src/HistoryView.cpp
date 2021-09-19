@@ -91,9 +91,9 @@ static bool fillJS(SdFile &file)
     for (int i = 0; i < historyControl.Available(); i++)
     {
         HistoryStorageItem hItem = historyControl.GetHistoryItem(i);
-        int len = sprintf(buff, "setRecoverySource(%d, %d);\n", i, (int)hItem.recoverySource());
+        int len = sprintf(buff, "setRecoverySource(%d, %d);\n", i, static_cast<int>(hItem.recoverySource()));
         file.write((byte *)buff, len);
-        len = sprintf(buff, "setRecoveryStatus(%d, %d);\n", i, (int)hItem.recoveryStatus());
+        len = sprintf(buff, "setRecoveryStatus(%d, %d);\n", i, static_cast<int>(hItem.recoveryStatus()));
         file.write((byte *)buff, len);
     }
     return true;

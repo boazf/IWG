@@ -93,6 +93,14 @@ void SSEController::NotifyState(const String &id)
     event += state.minutes;
     event += ", \"seconds\": ";
     event += state.seconds;
+    event += ", \"rDisco\": ";
+    event += AppConfig::getRDisconnect();
+    event += ", \"mDisco\": ";
+    event += AppConfig::getMDisconnect();
+    event += ", \"rPeriodic\": ";
+    event += AppConfig::getPeriodicallyRestartRouter() ? "true" : "false";
+    event += ", \"mPeriodic\": ";
+    event += AppConfig::getPeriodicallyRestartModem() ? "true" : "false";
     event += "}\n";
 #ifdef DEBUG_HTTP_SERVER
     Trace(event);
