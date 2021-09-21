@@ -131,7 +131,8 @@ String AppConfig::getServer1()
 
 void AppConfig::setServer1(const String &value)
 {
-    strcpy(store.server1, value.c_str());
+    strncpy(store.server1, value.c_str(), MAX_SERVER_NAME);
+    store.server1[MAX_SERVER_NAME] = '\0';
 }
 
 String AppConfig::getServer2()
@@ -141,7 +142,8 @@ String AppConfig::getServer2()
 
 void AppConfig::setServer2(const String &value)
 {
-    strcpy(store.server2, value.c_str());
+    strncpy(store.server2, value.c_str(), MAX_SERVER_NAME);
+    store.server2[MAX_SERVER_NAME] = '\0';
 }
 
 IPAddress AppConfig::getLANAddr()

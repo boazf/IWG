@@ -4,25 +4,30 @@
 #include <HtmlFillerView.h>
 #include <map>
 
+#define SETTINGS_KEYS \
+    X(enableAutoRecovery) \
+    X(lanAddressForConnectionTesting) \
+    X(serverForConnectionTesting) \
+    X(server2ForConnectionTesting) \
+    X(periodicallyRestartRouter) \
+    X(periodicallyRestartModem) \
+    X(periodicRestartTime) \
+    X(routerDisconnectTime) \
+    X(modemDisconnectTime) \
+    X(connectionTestPeriod) \
+    X(routerReconnectTime) \
+    X(modemReconnectTime) \
+    X(limitRecoveryCycles) \
+    X(recoveryCycles) \
+    X(daylightSavingTime) \
+    X(maxHistoryRecords)
+
+#define X(a) a,
 enum class settingsKeys
 {
-    enableAutoRecovery,
-    lanAddressForConnectionTesting,
-    serverForConnectionTesting,
-    server2ForConnectionTesting,
-    periodicRestartRouter,
-    periodicRestartModem,
-    periodicRestartTime,
-    routerDisconnectTime,
-    modemDisconnectTime,
-    connectionTestPeriod,
-    routerReconnectTime,
-    modemReconnectTime,
-    limitRecoveryCycles,
-    recoveryCycles,
-    daylightSavingTime,
-    maxHistoryRecords
+    SETTINGS_KEYS
 };
+#undef X
 
 class SettingsView : public HtmlFillerView
 {

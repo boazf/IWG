@@ -77,25 +77,12 @@ time_t SettingsView::parseTime(const String &val)
     return (h * 60 + m) * 60;
 }
 
+#define X(a) { #a, settingsKeys::a },
 std::map<const std::string, settingsKeys> SettingsView::settingsMap = 
 {
-    { "EnableAutoRecovery", settingsKeys::enableAutoRecovery },
-    { "LANAddressForConnectionTesting", settingsKeys::lanAddressForConnectionTesting },
-    { "ServerForConnectionTesting", settingsKeys::serverForConnectionTesting },
-    { "Server2ForConnectionTesting", settingsKeys::server2ForConnectionTesting },
-    { "PeriodicallyRestartRouter", settingsKeys::periodicRestartRouter },
-    { "PeriodicallyRestartModem", settingsKeys::periodicRestartModem },
-    { "PeriodicRestartTime", settingsKeys::periodicRestartTime },
-    { "RouterDisconnectTime", settingsKeys::routerDisconnectTime },
-    { "ModemDisconnectTime", settingsKeys::modemDisconnectTime },
-    { "ConnectionTestPeriod", settingsKeys::connectionTestPeriod },
-    { "RouterReconnectTime", settingsKeys::routerReconnectTime },
-    { "ModemReconnectTime", settingsKeys::modemReconnectTime },
-    { "LimitRecoveryCycles", settingsKeys::limitRecoveryCycles },
-    { "RecoveryCycles", settingsKeys::recoveryCycles },
-    { "DaylightSavingTime", settingsKeys::daylightSavingTime },
-    { "MaxHistoryRecords", settingsKeys::maxHistoryRecords }
+    SETTINGS_KEYS
 };
+#undef X
 
 void SettingsView::SetConfigValue(const String &pair, SettingsValuesSetMap &settingsValuesSetMap)
 {
@@ -160,15 +147,15 @@ void SettingsView::SetConfigValue(const String &pair, SettingsValuesSetMap &sett
     case settingsKeys::maxHistoryRecords:
         AppConfig::setMaxHistory(parseInt(val));
         break;
-    case settingsKeys::periodicRestartRouter:
-        if (!settingsValuesSetMap[settingsKeys::periodicRestartRouter])
+    case settingsKeys::periodicallyRestartRouter:
+        if (!settingsValuesSetMap[settingsKeys::periodicallyRestartRouter])
             AppConfig::setPeriodicallyRestartRouter(parseBool(val));
-        settingsValuesSetMap[settingsKeys::periodicRestartRouter] = true;
+        settingsValuesSetMap[settingsKeys::periodicallyRestartRouter] = true;
         break;
-    case settingsKeys::periodicRestartModem:
-        if (!settingsValuesSetMap[settingsKeys::periodicRestartModem])
+    case settingsKeys::periodicallyRestartModem:
+        if (!settingsValuesSetMap[settingsKeys::periodicallyRestartModem])
             AppConfig::setPeriodicallyRestartModem(parseBool(val));
-        settingsValuesSetMap[settingsKeys::periodicRestartModem] = true;
+        settingsValuesSetMap[settingsKeys::periodicallyRestartModem] = true;
         break;
     case settingsKeys::periodicRestartTime:
         AppConfig::setPeriodicRestartTime(parseTime(val));
@@ -185,8 +172,8 @@ bool SettingsView::post(EthClient &client, const String &resource, const String 
         { settingsKeys::enableAutoRecovery, false },
         { settingsKeys::limitRecoveryCycles, false },
         { settingsKeys::daylightSavingTime, false },
-        { settingsKeys::periodicRestartRouter, false },
-        { settingsKeys::periodicRestartModem, false }
+        { settingsKeys::periodicallyRestartRouter, false },
+        { settingsKeys::periodicallyRestartModem, false }
     };
 
     while(client.available())

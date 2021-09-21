@@ -49,133 +49,133 @@
                 <div id="tabs" class="tab-content">
                     <div id="Basic" class="tab-pane fade in active">
                         <div class="form-group row">
-                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3"  for="EnableAutoRecovery">Auto-Recovery</label>
+                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3"  for="enableAutoRecovery">Auto-Recovery</label>
                             <span class="col-xs-3 col-sm-2 col-md-2 col-lg-1" style="margin-right:12px"></span>
                             <label class="switch small">
-                                <input type="checkbox" id="EnableAutoRecovery" name="EnableAutoRecovery" value="true"  %0                       
+                                <input type="checkbox" id="enableAutoRecovery" name="enableAutoRecovery" value="true"  %0                       
                                 <span class="slider round small"><span class="sliderText small On">ON</span><span class="sliderText small Off">OFF</span></span>
                             </label>
                         </div>
                         <div class="form-group row">
-                            <label class="col-xs-9 col-sm-6 col-md-5 col-lg-4" for="LANAddressForConnectionTesting">LAN Address for Connection Testing</label>
+                            <label class="col-xs-9 col-sm-6 col-md-5 col-lg-4" for="lanAddressForConnectionTesting">LAN Address for Connection Testing</label>
                             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-4">
-                                <input class="form-control input-sm" maxlength="15" size="15" type="text" data-val="true" data-val-regex="LAN Address should be a valid IP address" data-val-regex-pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" id="LANAddressForConnectionTesting" name="LANAddressForConnectionTesting" value=%1                  
+                                <input class="form-control input-sm" maxlength="15" size="15" type="text" data-val="true" data-val-regex="LAN Address should be a valid IP address" data-val-regex-pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" id="lanAddressForConnectionTesting" name="lanAddressForConnectionTesting" value=%1                  
                                 <span id="lanclear" class="clearbtn glyphicon glyphicon-remove-circle"></span> 
                             </div>
                         </div>
-                        <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="LANAddressForConnectionTesting" data-valmsg-replace="true"></span>
+                        <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="lanAddressForConnectionTesting" data-valmsg-replace="true"></span>
                         <div class="form-group row">
-                            <label class="col-xs-9 col-sm-6 col-md-5 col-lg-4" for="ServerForConnectionTesting">Server Name for Connection Testing</label>
+                            <label class="col-xs-9 col-sm-6 col-md-5 col-lg-4" for="serverForConnectionTesting">Server Name for Connection Testing</label>
                             <div class="btn-group col-xs-12 col-sm-6 col-md-6 col-lg-4">
-                                <input class="form-control input-sm" autocorrect="off" autocapitalize="off" spellcheck="false" type="text" data-val="true" data-val-verifyservername="When Second Server Name is empty Server name is required" id="ServerForConnectionTesting" name="ServerForConnectionTesting" value=%2                                                                      
+                                <input class="form-control input-sm" maxlength="64" size="64" autocorrect="off" autocapitalize="off" spellcheck="false" type="text" data-val="true" data-val-verifyservername="When Second Server Name is empty Server name is required" id="serverForConnectionTesting" name="serverForConnectionTesting" value=%2                                                                      
                                 <span id="serverclear" class="clearbtn glyphicon glyphicon-remove-circle"></span> 
                             </div>
                         </div>
-                        <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="ServerForConnectionTesting" data-valmsg-replace="true"></span>
+                        <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="serverForConnectionTesting" data-valmsg-replace="true"></span>
                         <div class="form-group row">
-                            <label class="col-xs-9 col-sm-6 col-md-5 col-lg-4" for="Server2ForConnectionTesting">Second Server Name for Connection Testing</label>
+                            <label class="col-xs-9 col-sm-6 col-md-5 col-lg-4" for="server2ForConnectionTesting">Second Server Name for Connection Testing</label>
                             <div class="btn-group col-xs-12 col-sm-6 col-md-6 col-lg-4">
-                                <input class="form-control input-sm" autocorrect="off" autocapitalize="off" spellcheck="false" type="text" data-val="true" data-val-verifyservername="When Server Name is empty Second Server Name is required" id="Server2ForConnectionTesting" name="Server2ForConnectionTesting" value=%3                                                                      
+                                <input class="form-control input-sm" maxlength="64" size="64" autocorrect="off" autocapitalize="off" spellcheck="false" type="text" data-val="true" data-val-verifyservername="When Server Name is empty Second Server Name is required" id="server2ForConnectionTesting" name="server2ForConnectionTesting" value=%3                                                                      
                                 <span id="server2clear" class="clearbtn glyphicon glyphicon-remove-circle"></span> 
                             </div>
                         </div>
-                        <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="Server2ForConnectionTesting" data-valmsg-replace="true"></span>
+                        <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="server2ForConnectionTesting" data-valmsg-replace="true"></span>
                         <div class="form-group row">
-                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3"  for="PeriodicallyRestartRouter">Periodically Restart %15                                           </label>
+                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3"  for="periodicallyRestartRouter">Periodically Restart %15                                           </label>
                             <span class="col-xs-3 col-sm-2 col-md-2 col-lg-1" style="margin-right:12px"></span>
                             <label class="switch small">
-                                <input type="checkbox" id="PeriodicallyRestartRouter" name="PeriodicallyRestartRouter" onclick="disableEnablePeriodicRestartTime()" value="true" %16                       
+                                <input type="checkbox" id="periodicallyRestartRouter" name="periodicallyRestartRouter" onclick="disableEnablePeriodicRestartTime()" value="true" %16                       
                                 <span class="slider round small"><span class="sliderText small On">ON</span><span class="sliderText small Off">OFF</span></span>
                             </label>
                         </div>
                         <div class="form-group row" style="display:%14        ">
-                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3"  for="PeriodicallyRestartModem">Periodically Restart Modem</label>
+                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3"  for="periodicallyRestartModem">Periodically Restart Modem</label>
                             <span class="col-xs-3 col-sm-2 col-md-2 col-lg-1" style="margin-right:12px"></span>
                             <label class="switch small">
-                                <input type="checkbox" id="PeriodicallyRestartModem" name="PeriodicallyRestartModem" onclick="disableEnablePeriodicRestartTime()" value="true" %17                       
+                                <input type="checkbox" id="periodicallyRestartModem" name="periodicallyRestartModem" onclick="disableEnablePeriodicRestartTime()" value="true" %17                       
                                 <span class="slider round small"><span class="sliderText small On">ON</span><span class="sliderText small Off">OFF</span></span>
                             </label>
                         </div>
                         <div class="form-group row">
-                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3" for="PeriodicRestartTime">Periodic Restart Time</label>
+                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3" for="periodicRestartTime">Periodic Restart Time</label>
                             <span class="col-xs-3 col-sm-2 col-md-2 col-lg-1" style="margin-right:12px"></span>
                             <div class="btn-group col-1">
-                                <input class="form-control input-sm" type="time" id="PeriodicRestartTime" name="PeriodicRestartTime" data-val="true" data-val-required="The Modem Reconnect Time field is required." value=%18       />
+                                <input class="form-control input-sm" type="time" id="periodicRestartTime" name="periodicRestartTime" data-val="true" data-val-required="The Modem Reconnect Time field is required." value=%18       />
                             </div>
                         </div>
-                        <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="PeriodicRestartTime" data-valmsg-replace="true"></span>
+                        <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="periodicRestartTime" data-valmsg-replace="true"></span>
                     </div>
 
                     <div id="Advanced" class="tab-pane fade">
                         <div class="form-group row" style="margin-top:10px">
-                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3" for="RouterDisconnectTime">%15                     Disconnect Time</label><span class="col-xs-3 col-md-2 col-lg-1">[1 - 30]</span>
+                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3" for="routerDisconnectTime">%15                     Disconnect Time</label><span class="col-xs-3 col-md-2 col-lg-1">[1 - 30]</span>
                             <div class="input-group col-xs-3 col-sm-3 col-md-2 col-lg-2">
-                                <input class="form-control input-sm" pattern="[0-9]*" type="number" data-val="true" data-val-range="The field %15                        Disconnect Time must be between 1 and 30." data-val-range-max="30" data-val-range-min="1" data-val-required="The %15                         Disconnect Time field is required." id="RouterDisconnectTime" name="RouterDisconnectTime" value=%4          
+                                <input class="form-control input-sm" pattern="[0-9]*" type="number" data-val="true" data-val-range="The field %15                        Disconnect Time must be between 1 and 30." data-val-range-max="30" data-val-range-min="1" data-val-required="The %15                         Disconnect Time field is required." id="routerDisconnectTime" name="routerDisconnectTime" value=%4          
                                 <span class="input-group-addon">Sec</span>
                             </div>
-                            <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="RouterDisconnectTime" data-valmsg-replace="true"></span>
+                            <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="routerDisconnectTime" data-valmsg-replace="true"></span>
                         </div>
                         <div class="form-group row" style="display:%14        ">
-                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3" for="ModemDisconnectTime">Modem Disconnect Time</label><span class="col-xs-3 col-md-2 col-lg-1">[1 - 30]</span>
+                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3" for="modemDisconnectTime">Modem Disconnect Time</label><span class="col-xs-3 col-md-2 col-lg-1">[1 - 30]</span>
                             <div class="input-group col-xs-3 col-sm-3 col-md-2 col-lg-2">
-                                <input class="form-control input-sm" pattern="[0-9]*" type="number" data-val="true" data-val-range="The field Modem Disconnect Time must be between 1 and 30." data-val-range-max="30" data-val-range-min="1" data-val-required="The Modem Disconnect Time field is required." id="ModemDisconnectTime" name="ModemDisconnectTime" value=%5              
+                                <input class="form-control input-sm" pattern="[0-9]*" type="number" data-val="true" data-val-range="The field Modem Disconnect Time must be between 1 and 30." data-val-range-max="30" data-val-range-min="1" data-val-required="The Modem Disconnect Time field is required." id="modemDisconnectTime" name="modemDisconnectTime" value=%5              
                                 <span class="input-group-addon">Sec</span>
                             </div>
-                            <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="ModemDisconnectTime" data-valmsg-replace="true"></span>
+                            <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="modemDisconnectTime" data-valmsg-replace="true"></span>
                         </div>
                         <div class="form-group row">
-                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3" for="RouterReconnectTime">%15                      Reconnect Time</label><span class="col-xs-3 col-md-2 col-lg-1">[10 - 600]</span>
+                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3" for="routerReconnectTime">%15                      Reconnect Time</label><span class="col-xs-3 col-md-2 col-lg-1">[10 - 600]</span>
                             <div class="input-group col-xs-3 col-sm-3 col-md-2 col-lg-2">
-                                <input class="form-control input-sm" pattern="[0-9]*" type="number" data-val="true" data-val-range="The field %15                     Reconnect Time must be between 10 and 600." data-val-range-max="600" data-val-range-min="10" data-val-required="The %15                        Reconnect Time field is required." id="RouterReconnectTime" name="RouterReconnectTime" value=%6             
+                                <input class="form-control input-sm" pattern="[0-9]*" type="number" data-val="true" data-val-range="The field %15                     Reconnect Time must be between 10 and 600." data-val-range-max="600" data-val-range-min="10" data-val-required="The %15                        Reconnect Time field is required." id="routerReconnectTime" name="routerReconnectTime" value=%6             
                                 <span class="input-group-addon">Sec</span>
                             </div>
-                            <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="RouterReconnectTime" data-valmsg-replace="true"></span>
+                            <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="routerReconnectTime" data-valmsg-replace="true"></span>
                         </div>
                         <div class="form-group row" style="display:%14        ">
-                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3" for="ModemReconnectTime">Modem Reconnect Time</label><span class="col-xs-3 col-md-2 col-lg-1">[10 - 600]</span>
+                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3" for="modemReconnectTime">Modem Reconnect Time</label><span class="col-xs-3 col-md-2 col-lg-1">[10 - 600]</span>
                             <div class="input-group col-xs-3 col-sm-3 col-md-2 col-lg-2">
-                                <input class="form-control input-sm" pattern="[0-9]*" type="number" data-val="true" data-val-range="The field Modem Reconnect Time must be between 10 and 600." data-val-range-max="600" data-val-range-min="10" data-val-required="The Modem Reconnect Time field is required." id="ModemReconnectTime" name="ModemReconnectTime" value=%7              
+                                <input class="form-control input-sm" pattern="[0-9]*" type="number" data-val="true" data-val-range="The field Modem Reconnect Time must be between 10 and 600." data-val-range-max="600" data-val-range-min="10" data-val-required="The Modem Reconnect Time field is required." id="modemReconnectTime" name="modemReconnectTime" value=%7              
                                 <span class="input-group-addon">Sec</span>
                             </div>
-                            <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="ModemReconnectTime" data-valmsg-replace="true"></span>
+                            <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="modemReconnectTime" data-valmsg-replace="true"></span>
                         </div>
                         <div class="form-group row">
-                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3" for="ConnectionTestPeriod">Connection Test Period</label><span class="col-xs-3 col-md-2 col-lg-1">[15 - 600]</span>
+                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3" for="connectionTestPeriod">Connection Test Period</label><span class="col-xs-3 col-md-2 col-lg-1">[15 - 600]</span>
                             <div class="input-group col-xs-3 col-sm-3 col-md-2 col-lg-2">
-                                <input class="form-control input-sm" pattern="[0-9]*" type="number" data-val="true" data-val-range="The field Connection Test Period must be between 15 and 600." data-val-range-max="600" data-val-range-min="15" data-val-required="The Connection Test Period field is required." id="ConnectionTestPeriod" name="ConnectionTestPeriod" value=%8            
+                                <input class="form-control input-sm" pattern="[0-9]*" type="number" data-val="true" data-val-range="The field Connection Test Period must be between 15 and 600." data-val-range-max="600" data-val-range-min="15" data-val-required="The Connection Test Period field is required." id="connectionTestPeriod" name="connectionTestPeriod" value=%8            
                                 <span class="input-group-addon">Sec</span>
                             </div>
-                            <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="ConnectionTestPeriod" data-valmsg-replace="true"></span>
+                            <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="connectionTestPeriod" data-valmsg-replace="true"></span>
                         </div>
                         <div class="form-group row">
-                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3" for="RecoveryCycles">Limit Recovery Cycles</label><span class="col-xs-3 col-md-2 col-lg-1">[1 - 15]</span>
+                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3" for="recoveryCycles">Limit Recovery Cycles</label><span class="col-xs-3 col-md-2 col-lg-1">[1 - 15]</span>
                             <div class="input-group col-xs-3 col-sm-3 col-md-2 col-lg-2">
                                 <span class="input-group-addon" style="padding-top:1px;padding-bottom:1px">
-                                    <label class="switch small" for="LimitRecoveryCycles">
-                                        <input type="checkbox" onclick="disableEnableDisconnectCycles()" data-val="true" data-val-required="The LimitRecoveryCycles field is required." id="LimitRecoveryCycles" name="LimitRecoveryCycles" value="true" %9                          
+                                    <label class="switch small" for="limitRecoveryCycles">
+                                        <input type="checkbox" onclick="disableEnableDisconnectCycles()" data-val="true" data-val-required="The limitRecoveryCycles field is required." id="limitRecoveryCycles" name="limitRecoveryCycles" value="true" %9                          
                                         <span class="slider round small"><span class="sliderText small On">ON</span><span class="sliderText small Off">OFF</span></span>
                                     </label>
                                 </span>
-                                <input class="form-control input-sm" pattern="[0-9]*" type="number" data-val="true" data-val-range="The field Limit Recovery Cycles must be between 1 and 15." data-val-range-max="15" data-val-range-min="1" data-val-required="The Limit Recovery Cycles field is required." id="RecoveryCycles" name="RecoveryCycles" value=%10             
+                                <input class="form-control input-sm" pattern="[0-9]*" type="number" data-val="true" data-val-range="The field Limit Recovery Cycles must be between 1 and 15." data-val-range-max="15" data-val-range-min="1" data-val-required="The Limit Recovery Cycles field is required." id="recoveryCycles" name="recoveryCycles" value=%10             
                             </div>
-                            <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="RecoveryCycles" data-valmsg-replace="true"></span>
+                            <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="recoveryCycles" data-valmsg-replace="true"></span>
                         </div>
                         <div class="form-group row">
-                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3"  for="DaylightSavingTime">Daylight Saving Time</label>
+                            <label class="col-xs-6 col-sm-4 col-md-3 col-lg-3"  for="daylightSavingTime">Daylight Saving Time</label>
                             <span class="col-xs-3 col-md-2 col-lg-1" style="margin-right:12px"></span>
                             <label class="switch small">
-                                <input type="checkbox" id="DaylightSavingTime" name="DaylightSavingTime" value="true" %13                         
+                                <input type="checkbox" id="daylightSavingTime" name="daylightSavingTime" value="true" %13                         
                                 <span class="slider round small"><span class="sliderText small On">ON</span><span class="sliderText small Off">OFF</span></span>
                             </label>
                         </div>
                     </div>
                     <div id="History" class="tab-pane fade">
                         <div class="form-group row" style="margin-top:10px">
-                            <label class="col-xs-7 col-sm-4 col-md-3 col-lg-3" for="MaxHistoryRecords">Maximum Number of History Records</label><span class="col-xs-3 col-md-2 col-lg-1">[1 - 100]</span>
+                            <label class="col-xs-7 col-sm-4 col-md-3 col-lg-3" for="maxHistoryRecords">Maximum Number of History Records</label><span class="col-xs-3 col-md-2 col-lg-1">[1 - 100]</span>
                             <div class="input-group col-xs-2 col-sm-3 col-md-2 col-lg-2">
-                                <input class="form-control input-sm" pattern="[0-9]*" type="number" data-val="true" data-val-range="The field Maximum Number of History Records must be between 1 and 100." data-val-range-max="100" data-val-range-min="1" data-val-required="The Maximum Number of History Records field is required." id="MaxHistoryRecords" name="MaxHistoryRecords" value=%11             
+                                <input class="form-control input-sm" pattern="[0-9]*" type="number" data-val="true" data-val-range="The field Maximum Number of History Records must be between 1 and 100." data-val-range-max="100" data-val-range-min="1" data-val-required="The Maximum Number of History Records field is required." id="maxHistoryRecords" name="maxHistoryRecords" value=%11             
                             </div>
-                            <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="MaxHistoryRecords" data-valmsg-replace="true"></span>
+                            <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="maxHistoryRecords" data-valmsg-replace="true"></span>
                         </div>
                     </div>
                 </div>
@@ -188,11 +188,11 @@
                     </div>
                 </div>
                 <input name="__RequestVerificationToken" type="hidden" value="CfDJ8NBvSMe0yQlKq92kcrI4pZ5DV-ogiZC2-nBJTWQ5_mrihCAcKbLVZ-rRvU78OWLH6JXMD5IgxezmXPXzMtdqAjTwcEYQV3RkqbiakfFCZ_YEt4T_fxpX5ASvgp6iQVlHPycaSVHLuBsbgn-hMhj6WLo" />
-                <input name="EnableAutoRecovery" type="hidden" value="false">
-                <input name="LimitRecoveryCycles" type="hidden" value="false" />
-                <input name="DaylightSavingTime" type="hidden" value="false" />
-                <input name="PeriodicallyRestartRouter" type="hidden" value="false" />
-                <input name="PeriodicallyRestartModem" type="hidden" value="false" />
+                <input name="enableAutoRecovery" type="hidden" value="false">
+                <input name="limitRecoveryCycles" type="hidden" value="false" />
+                <input name="daylightSavingTime" type="hidden" value="false" />
+                <input name="periodicallyRestartRouter" type="hidden" value="false" />
+                <input name="periodicallyRestartModem" type="hidden" value="false" />
             </form>
             <script type="text/javascript">
                 function checkLoadError() {
@@ -200,26 +200,26 @@
                         location.replace(document.location.pathname);
                 }
                 $("#lanclear").click(function(){
-                    $("#LANAddressForConnectionTesting").val('');
+                    $("#lanAddressForConnectionTesting").val('');
                 });
                 $("#serverclear").click(function(){
-                    $("#ServerForConnectionTesting").val('');
+                    $("#serverForConnectionTesting").val('');
                 });
                 $("#server2clear").click(function(){
-                    $("#Server2ForConnectionTesting").val('');
+                    $("#server2ForConnectionTesting").val('');
                 });
-                $("#EnableAutoRecovery")[0].focus();
-                $("#LimitRecoveryCycles")[0].checked = 'True' == %12        ;
+                $("#enableAutoRecovery")[0].focus();
+                $("#limitRecoveryCycles")[0].checked = 'True' == %12        ;
                 disableEnableDisconnectCycles();
                 disableEnablePeriodicRestartTime();
 
                 function disableEnableDisconnectCycles() {
-                    $("#RecoveryCycles")[0].disabled = !$("#LimitRecoveryCycles")[0].checked;
+                    $("#recoveryCycles")[0].disabled = !$("#limitRecoveryCycles")[0].checked;
                 }
 
                 function disableEnablePeriodicRestartTime() {
-                    $("#PeriodicRestartTime")[0].disabled = 
-                        !$("#PeriodicallyRestartModem")[0].checked && !$("#PeriodicallyRestartRouter")[0].checked;
+                    $("#periodicRestartTime")[0].disabled = 
+                        !$("#periodicallyRestartModem")[0].checked && !$("#periodicallyRestartRouter")[0].checked;
                 }
 
                 jQuery.validator.addMethod("verifyservername",
@@ -227,8 +227,8 @@
                         if (value != null && value != "")
                             return true;
 
-                        var server = $('#ServerForConnectionTesting')[0].value;
-                        var server2 = $('#Server2ForConnectionTesting')[0].value;
+                        var server = $('#serverForConnectionTesting')[0].value;
+                        var server2 = $('#server2ForConnectionTesting')[0].value;
 
                         return (server != null && server != '') || (server2 != null && server2 != '');
                     });
