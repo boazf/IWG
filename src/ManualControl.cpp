@@ -3,6 +3,9 @@
 #include <EthernetUtil.h>
 #include <AppConfig.h>
 #include <RecoveryControl.h>
+#ifdef DEBUG_STATE_MACHINE
+#include <StringableEnum.h>
+#endif
 
 void ManualControl::Init()
 {
@@ -33,9 +36,6 @@ void ManualControl::Init()
             OnInit,
             SMState<MC_Message, MC_State>::OnExitDoNothing,
             TRANSITIONS(initTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "Init"
-#endif
         },
 
         SMState<MC_Message, MC_State>
@@ -45,9 +45,6 @@ void ManualControl::Init()
             OnConnected,
             SMState<MC_Message, MC_State>::OnExitDoNothing,
             TRANSITIONS(transitions)
-#ifdef DEBUG_STATE_MACHINE
-			, "Connected"
-#endif
         },
 
         SMState<MC_Message, MC_State>
@@ -57,9 +54,6 @@ void ManualControl::Init()
             OnCheckConnectivity,
             SMState<MC_Message, MC_State>::OnExitDoNothing,
             TRANSITIONS(transitions)
-#ifdef DEBUG_STATE_MACHINE
-			, "CheckConnctivity"
-#endif
         },
 
         SMState<MC_Message, MC_State>
@@ -69,9 +63,6 @@ void ManualControl::Init()
             OnModemRecovery,
             SMState<MC_Message, MC_State>::OnExitDoNothing,
             TRANSITIONS(transitions)
-#ifdef DEBUG_STATE_MACHINE
-			, "ModemRecovery"
-#endif
         },
 
         SMState<MC_Message, MC_State>
@@ -81,9 +72,6 @@ void ManualControl::Init()
             OnRouterRecovery,
             SMState<MC_Message, MC_State>::OnExitDoNothing,
             TRANSITIONS(transitions)
-#ifdef DEBUG_STATE_MACHINE
-			, "RouterRecovery"
-#endif
         },
 
         SMState<MC_Message, MC_State>
@@ -93,9 +81,6 @@ void ManualControl::Init()
             OnPeriodicRestart,
             SMState<MC_Message, MC_State>::OnExitDoNothing,
             TRANSITIONS(transitions)
-#ifdef DEBUG_STATE_MACHINE
-			, "RouterRecovery"
-#endif
         },
 
         SMState<MC_Message, MC_State>
@@ -105,9 +90,6 @@ void ManualControl::Init()
             OnUnlock,
             SMState<MC_Message, MC_State>::OnExitDoNothing,
             TRANSITIONS(transitions)
-#ifdef DEBUG_STATE_MACHINE
-			, "Unlock"
-#endif
         },
 
         SMState<MC_Message, MC_State>
@@ -117,9 +99,6 @@ void ManualControl::Init()
             OnRecoveryFailure,
             SMState<MC_Message, MC_State>::OnExitDoNothing,
             TRANSITIONS(transitions)
-#ifdef DEBUG_STATE_MACHINE
-			, "RecoveryFailure"
-#endif
         },
 
         SMState<MC_Message, MC_State>
@@ -129,9 +108,6 @@ void ManualControl::Init()
             OnDisconnected,
             SMState<MC_Message, MC_State>::OnExitDoNothing,
             TRANSITIONS(transitions)
-#ifdef DEBUG_STATE_MACHINE
-			, "Disconnected"
-#endif
         },
 
         SMState<MC_Message, MC_State>
@@ -141,9 +117,6 @@ void ManualControl::Init()
             OnHWFailure,
             SMState<MC_Message, MC_State>::OnExitDoNothing,
             TRANSITIONS(transitions)
-#ifdef DEBUG_STATE_MACHINE
-			, "HWFailure"
-#endif
         }
     };
 
@@ -436,5 +409,22 @@ MC_Message ManualControl::OnUnlock(void *param)
     return MC_Message::None;
 }
 
+#ifdef DEBUG_STATE_MACHINE
+#define X(a) {MC_State::a, #a},
+template<>
+const std::map<MC_State, std::string> StringableEnum<MC_State>::strMap = 
+{
+    MC_States
+};
+#undef X
+
+#define X(a) {MC_Message::a, #a},
+template<>
+const std::map<MC_Message, std::string> StringableEnum<MC_Message>::strMap = 
+{
+    MC_Messages
+};
+#undef X
+#endif
 
 ManualControl manualControl;

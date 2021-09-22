@@ -8,46 +8,55 @@
 #include <AppConfig.h>
 #include <Lock.h>
 
+#define Recovery_Messages \
+	X(None) \
+	X(Connected) \
+	X(Disconnected) \
+	X(Done) \
+	X(Timeout) \
+	X(NoTimeout) \
+	X(Exceeded) \
+	X(NotExceeded) \
+	X(DisconnectRouter) \
+	X(DisconnectModem) \
+	X(PeriodicRestart) \
+	X(CheckConnectivity) \
+	X(HWError)
+
+#define Recovery_States \
+	X(Init) \
+	X(CheckConnectivity) \
+	X(StartCheckConnectivity) \
+	X(WaitWhileConnected) \
+	X(DisconnectModem) \
+	X(WaitAfterModemRecovery) \
+	X(CheckConnectivityAfterModemRecovery) \
+	X(CheckModemRecoveryTimeout) \
+	X(CheckMaxCyclesExceeded) \
+	X(CheckConnectivityAfterRecoveryFailure) \
+	X(WaitWhileRecoveryFailure) \
+	X(DisconnectRouter) \
+	X(CheckConnectivityAfterRouterRecovery) \
+	X(WaitAfterRouterRecovery) \
+	X(CheckRouterRecoveryTimeout) \
+	X(PeriodicRestart) \
+	X(WaitAfterPeriodicRestart) \
+	X(CheckConnectivityAfterPeriodicRestart) \
+	X(CheckPeriodicRestartTimeout) \
+	X(HWError)
+
+
+#define X(a) a,
 enum class RecoveryMessages
 {
-	None,
-	Connected,
-	Disconnected,
-	Done,
-	Timeout,
-	NoTimeout,
-	Exceeded,
-	NotExceeded,
-	DisconnectRouter,
-	DisconnectModem,
-	PeriodicRestart,
-	CheckConnectivity,
-	HWError
+	Recovery_Messages
 };
 
 enum class RecoveryStates
 {
-	Init,
-	CheckConnectivity,
-	StartCheckConnectivity,
-	WaitWhileConnected,
-	DisconnectModem,
-	WaitAfterModemRecovery,
-	CheckConnectivityAfterModemRecovery,
-	CheckModemRecoveryTimeout,
-	CheckMaxCyclesExceeded,
-	CheckConnectivityAfterRecoveryFailure,
-	WaitWhileRecoveryFailure,
-	DisconnectRouter,
-	CheckConnectivityAfterRouterRecovery,
-	WaitAfterRouterRecovery,
-	CheckRouterRecoveryTimeout,
-	PeriodicRestart,
-	WaitAfterPeriodicRestart,
-	CheckConnectivityAfterPeriodicRestart,
-	CheckPeriodicRestartTimeout,
-	HWError
+	Recovery_States
 };
+#undef X
 
 enum class RecoveryTypes
 {

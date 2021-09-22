@@ -4,6 +4,9 @@
 #include <Arduino.h>
 #include <assert.h>
 #include <Common.h>
+#ifdef DEBUG_STATE_MACHINE
+#include <StringableEnum.h>
+#endif
 
 #define TRANSITIONS(a) a, NELEMS(a)
 
@@ -54,9 +57,6 @@ public:
 		m_onExit(0),
 		m_transitions(NULL),
 		m_nTransitions(0)
-	#ifdef DEBUG_STATE_MACHINE
-		, m_name("")
-	#endif
 	{
 	}
 
@@ -66,19 +66,18 @@ public:
 		m_transitions = NULL;
 	}
 
-	SMState(State state, OnEntry onEntry, OnState onState, OnExit onExit, const Transition<Verb, State> *transitions, int nTransitions
-	#ifdef DEBUG_STATE_MACHINE
-		, const char *name
-	#endif
-		) :
+	SMState(
+		State state, 
+		OnEntry onEntry, 
+		OnState onState, 
+		OnExit onExit, 
+		const Transition<Verb, State> *transitions, 
+		int nTransitions) :
 		m_state(state),
 		m_onEntry(onEntry),
 		m_onState(onState),
 		m_onExit(onExit),
 		m_nTransitions(nTransitions)
-	#ifdef DEBUG_STATE_MACHINE
-		, m_name(name)
-	#endif
 	{
 		m_transitions = new Transition<Verb, State>[m_nTransitions];
 		for (int i = 0; i < m_nTransitions; i++)
@@ -97,22 +96,12 @@ public:
 		m_onState = other.m_onState;
 		m_onExit = other.m_onExit;
 		m_nTransitions = other.m_nTransitions;
-#ifdef DEBUG_STATE_MACHINE
-		m_name = other.m_name;
-#endif
 		m_transitions = new Transition <Verb, State>[m_nTransitions];
 		for (int i = 0; i < m_nTransitions; i++)
 			m_transitions[i] = other.m_transitions[i];
 
 		return *this;
 	}
-
-#ifdef DEBUG_STATE_MACHINE
-	const char *getStateName()
-	{
-		return m_name;
-	}
-#endif // DEBUG_STATE_MACHINE
 
 	State PerformTransition(Verb verb)
 	{
@@ -122,7 +111,9 @@ public:
 				return m_transitions[i].m_state;
 		}
 #ifdef DEBUG_STATE_MACHINE
-		Tracef("Error: Transition not found, state=%s, verb=%d\n", m_name, static_cast<int>(verb));
+		Tracef("Error: Transition not found, state=%s, verb=%s\n", 
+			StringableEnum<State>(m_state).ToString().c_str(), 
+			StringableEnum<Verb>(verb).ToString().c_str());
 #endif		
 		assert(false);
 		return (State)0;
@@ -165,9 +156,6 @@ private:
 	OnExit m_onExit;
 	Transition<Verb, State> *m_transitions;
 	int m_nTransitions;
-#ifdef DEBUG_STATE_MACHINE
-	const char *m_name;
-#endif	
 };
 
 template<typename Verb, typename State>
@@ -210,15 +198,22 @@ public:
 			if (m_nextVerb != static_cast<Verb>(0))
 			{
 #ifdef DEBUG_STATE_MACHINE
-				Tracef("State machine: %s, exiting state: %s\n", m_name, m_current->getStateName());
+				Tracef("State machine: %s, exiting state: %s\n", 
+					m_name, 
+					StringableEnum<State>(m_current->getState()).ToString().c_str());
 #endif
 				Verb verb = m_current->doExit(m_nextVerb, m_param);
 #ifdef DEBUG_STATE_MACHINE
-				Tracef("State machine: %s, transfering from state: %s, verb: %d\n", m_name, m_current->getStateName(), static_cast<int>(verb));
+				Tracef("State machine: %s, transfering from state: %s, verb: %s\n", 
+					m_name, 
+					StringableEnum<State>(m_current->getState()).ToString().c_str(), 
+					StringableEnum<Verb>(verb).ToString().c_str());
 #endif
 				State state = m_current->PerformTransition(verb);
 #ifdef DEBUG_STATE_MACHINE
-				Tracef("State machine: %s, new state: %d\n", m_name, static_cast<int>(state));
+				Tracef("State machine: %s, new state: %s\n", 
+					m_name, 
+					StringableEnum<State>(state).ToString().c_str());
 #endif
 				int i = 0;
 				for (; i < m_nStates; i++)
@@ -228,12 +223,17 @@ public:
 				}
 #ifdef DEBUG_STATE_MACHINE
 				if (i >= m_nStates)
-					Tracef("Error: State machine: %s, unknown new state: %d\n", m_name, static_cast<int>(state));
+					Tracef("Error: State machine: %s, unknown new state: %n (%s)\n", 
+						m_name, 
+						static_cast<int>(state), 
+						StringableEnum<State>(state).ToString().c_str());
 #endif
 				assert(i < m_nStates);
 				m_current = m_states + i;
 #ifdef DEBUG_STATE_MACHINE
-				Tracef("State machine: %s, entering  state: %s\n", m_name, m_current->getStateName());
+				Tracef("State machine: %s, entering  state: %s\n", 
+					m_name, 
+					StringableEnum<State>(m_current->getState()).ToString().c_str());
 #endif
 				m_current->doEnter(m_param);
 			}
@@ -241,7 +241,9 @@ public:
 		else
 		{
 #ifdef DEBUG_STATE_MACHINE
-			Tracef("State machine: %s, entering starting state: %s\n", m_name, m_current->getStateName());
+			Tracef("State machine: %s, entering starting state: %s\n", 
+				m_name, 
+				StringableEnum<State>(m_current->getState()).ToString().c_str());
 #endif
 			m_current->doEnter(m_param);
 			m_first = false;

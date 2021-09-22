@@ -5,30 +5,38 @@
 #include <RecoveryControl.h>
 #include <HistoryStorage.h>
 
+#define H_Messages \
+    X(None) \
+    X(CheckConnectivity) \
+    X(RouterRecovery) \
+    X(ModemRecovery) \
+    X(RecoveryFailure) \
+    X(RecoverySuccess) \
+    X(PeriodicRestart) \
+    X(HWFailure)
+
+#define H_States \
+    X(Init) \
+    X(Connected) \
+    X(CheckingConnectivity) \
+    X(RecoveringRouter) \
+    X(RecoveringModem) \
+    X(RecoveryFailed) \
+    X(CheckingConnectivityWhileInFailure) \
+    X(PeriodicRestart) \
+    X(HWFailure)
+
+#define X(a) a,
 enum class H_Message
 {
-    None = 0,
-    CheckConnectivity,
-    RouterRecovery,
-    ModemRecovery,
-    RecoveryFailure,
-    RecoverySuccess,
-    PeriodicRestart,
-    HWFailure
+    H_Messages
 };
 
 enum class H_State
 {
-    Init,
-    Connected,
-    CheckingConnectivity,
-    RecoveringRouter,
-    RecoveringModem,
-    RecoveryFailed,
-    CheckingConnectivityWhileInFailure,
-    PeriodicRestart,
-    HWFailure
+    H_States
 };
+#undef X
 
 class HistoryControl
 {

@@ -12,6 +12,9 @@
 #include <AppConfig.h>
 #include <TimeUtil.h>
 #include <HistoryControl.h>
+#ifdef DEBUG_STATE_MACHINE
+#include <StringableEnum.h>
+#endif
 
 RecoveryControl::RecoveryControl() :
 	m_currentRecoveryState(RecoveryTypes::ConnectivityCheck)
@@ -156,201 +159,121 @@ void RecoveryControl::Init()
 			OnEnterInit, 
 			OnInit, 
 			UpdateRecoveryState, 
-			TRANSITIONS(initTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "Init"
-#endif
-			),
+			TRANSITIONS(initTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::CheckConnectivity, 
 			OnEnterCheckConnectivity, 
 			OnCheckConnectivity, 
 			DecideRecoveryPath, 
-			TRANSITIONS(checkConnecticityTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "CheckConnectivity"
-#endif
-			),
+			TRANSITIONS(checkConnecticityTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::WaitWhileConnected, 
 			SMState<RecoveryMessages, RecoveryStates>::OnEnterDoNothing,
 			OnWaitConnectionTestPeriod, 
 			SMState<RecoveryMessages, RecoveryStates>::OnExitDoNothing, 
-			TRANSITIONS(waitWhileConnectedTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "WaitWhileConnected"
-#endif
-			),
+			TRANSITIONS(waitWhileConnectedTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::StartCheckConnectivity, 
 			SMState<RecoveryMessages, RecoveryStates>::OnEnterDoNothing, 
 			OnStartCheckConnectivity, 
 			SMState<RecoveryMessages, RecoveryStates>::OnExitDoNothing, 
-			TRANSITIONS(startCheckConnectivityTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "StartCheckConnectivity"
-#endif
-			),
+			TRANSITIONS(startCheckConnectivityTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::DisconnectRouter, 
 			OnEnterDisconnectRouter, 
 			OnDisconnectRouter, 
 			SMState<RecoveryMessages, RecoveryStates>::OnExitDoNothing, 
-			TRANSITIONS(disconnectRouterTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "DisconnectRouter"
-#endif
-			),
+			TRANSITIONS(disconnectRouterTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::WaitAfterRouterRecovery, 
 			SMState<RecoveryMessages, RecoveryStates>::OnEnterDoNothing, 
 			OnWaitWhileRecovering, 
 			SMState<RecoveryMessages, RecoveryStates>::OnExitDoNothing, 
-			TRANSITIONS(waitAfterRouterRecoveryTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "WaitAfterRouterRecovery"
-#endif
-			),
+			TRANSITIONS(waitAfterRouterRecoveryTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::CheckConnectivityAfterRouterRecovery, 
 			OnEnterCheckConnectivity, 
 			OnCheckConnectivity, 
 			UpdateRecoveryState, 
-			TRANSITIONS(checkConnectivityAfterRouterRecoveryTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "CheckConnectivityAfterRouterRecovery"
-#endif
-			),
+			TRANSITIONS(checkConnectivityAfterRouterRecoveryTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::CheckRouterRecoveryTimeout, 
 			SMState<RecoveryMessages, RecoveryStates>::OnEnterDoNothing, 
 			OnCheckRouterRecoveryTimeout, 
 			SMState<RecoveryMessages, RecoveryStates>::OnExitDoNothing, 
-			TRANSITIONS(checkRouterRecoveryTimeoutTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "CheckRouterRecoveryTimeout"
-#endif
-			),
+			TRANSITIONS(checkRouterRecoveryTimeoutTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::DisconnectModem, 
 			OnEnterDisconnectModem, 
 			OnDisconnectModem, 
 			SMState<RecoveryMessages, RecoveryStates>::OnExitDoNothing, 
-			TRANSITIONS(disconnectModemTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "DisconnectModem"
-#endif
-			),
+			TRANSITIONS(disconnectModemTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::WaitAfterModemRecovery, 
 			SMState<RecoveryMessages, RecoveryStates>::OnEnterDoNothing, 
 			OnWaitWhileRecovering, 
 			SMState<RecoveryMessages, RecoveryStates>::OnExitDoNothing, 
-			TRANSITIONS(waitAfterModemRecoveryTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "WaitAfterModemRecovery"
-#endif
-			),
+			TRANSITIONS(waitAfterModemRecoveryTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::CheckConnectivityAfterModemRecovery, 
 			OnEnterCheckConnectivity, 
 			OnCheckConnectivity, 
 			UpdateRecoveryState, 
-			TRANSITIONS(checkConnectivityAfterModemRecoveryTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "CheckConnectivityAfterModemRecovery"
-#endif
-			),
+			TRANSITIONS(checkConnectivityAfterModemRecoveryTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::CheckModemRecoveryTimeout, 
 			SMState<RecoveryMessages, RecoveryStates>::OnEnterDoNothing, 
 			OnCheckModemRecoveryTimeout, 
 			SMState<RecoveryMessages, RecoveryStates>::OnExitDoNothing, 
-			TRANSITIONS(checkModemRecoveryTimeoutTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "CheckModemRecoveryTimeout"
-#endif
-			),
+			TRANSITIONS(checkModemRecoveryTimeoutTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::CheckMaxCyclesExceeded, 
 			SMState<RecoveryMessages, RecoveryStates>::OnEnterDoNothing, 
 			OnCheckMaxCyclesExceeded, 
 			SMState<RecoveryMessages, RecoveryStates>::OnExitDoNothing, 
-			TRANSITIONS(checkMaxCyclesExceededTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "CheckMaxCyclesExceeded"
-#endif
-			),
+			TRANSITIONS(checkMaxCyclesExceededTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::CheckConnectivityAfterRecoveryFailure, 
 			OnEnterCheckConnectivity, 
 			OnCheckConnectivity, 
 			UpdateRecoveryState, 
-			TRANSITIONS(checkConnectivityAfterRecoveryFailureTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "CheckConnectivityAfterRecoveryFailure"
-#endif
-			),
+			TRANSITIONS(checkConnectivityAfterRecoveryFailureTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::WaitWhileRecoveryFailure, 
 			SMState<RecoveryMessages, RecoveryStates>::OnEnterDoNothing, 
 			OnWaitConnectionTestPeriod, 
 			SMState<RecoveryMessages, RecoveryStates>::OnExitDoNothing, 
-			TRANSITIONS(waitWhileRecoveryFailureTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "WaitWhileRecoveryFailure"
-#endif
-			),
+			TRANSITIONS(waitWhileRecoveryFailureTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::PeriodicRestart,
 			OnEnterPeriodicRestart,
 			OnPeriodicRestart,
 			SMState<RecoveryMessages, RecoveryStates>::OnExitDoNothing, 
-			TRANSITIONS(periodicRestartTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "PeriodicRestart"
-#endif
-			),
+			TRANSITIONS(periodicRestartTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::WaitAfterPeriodicRestart, 
 			SMState<RecoveryMessages, RecoveryStates>::OnEnterDoNothing, 
 			OnWaitWhileRecovering, 
 			SMState<RecoveryMessages, RecoveryStates>::OnExitDoNothing, 
-			TRANSITIONS(waitAfterPeriodicRestartTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "WaitAfterPeriodicRestart"
-#endif
-			),
+			TRANSITIONS(waitAfterPeriodicRestartTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::CheckConnectivityAfterPeriodicRestart, 
 			OnEnterCheckConnectivity, 
 			OnCheckConnectivity, 
 			UpdateRecoveryState, 
-			TRANSITIONS(checkConnectivityAfterPeriodicRestartTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "CheckConnectivityAfterPeriodicRestart"
-#endif
-			),
+			TRANSITIONS(checkConnectivityAfterPeriodicRestartTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::CheckPeriodicRestartTimeout, 
 			SMState<RecoveryMessages, RecoveryStates>::OnEnterDoNothing, 
 			OnCheckPeriodicRestartTimeout, 
 			DecideUponPeriodicRestartTimeout, 
-			TRANSITIONS(checkPeriodicRestartTimeoutTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "CheckPeriodicRestartTimeout"
-#endif
-			),
+			TRANSITIONS(checkPeriodicRestartTimeoutTrans)),
 		SMState<RecoveryMessages, RecoveryStates>(
 			RecoveryStates::HWError, 
 			SMState<RecoveryMessages, RecoveryStates>::OnEnterDoNothing, 
 			OnHWError, 
 			SMState<RecoveryMessages, RecoveryStates>::OnExitDoNothing, 
-			TRANSITIONS(hwErrorTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "HWError"
-#endif
-			)
+			TRANSITIONS(hwErrorTrans))
 	};
 
 	m_param = new SMParam(this, historyControl.getLastRecovery(), RecoverySource::Auto);
@@ -1034,5 +957,23 @@ void RecoveryControl::StartRecoveryCycles(RecoveryTypes recoveryType)
 	
 	xSemaphoreGive(m_param->waitSem);
 }
+
+#ifdef DEBUG_STATE_MACHINE
+#define X(a) {RecoveryStates::a, #a},
+template<>
+const std::map<RecoveryStates, std::string> StringableEnum<RecoveryStates>::strMap = 
+{
+    Recovery_States
+};
+#undef X
+
+#define X(a) {RecoveryMessages::a, #a},
+template<>
+const std::map<RecoveryMessages, std::string> StringableEnum<RecoveryMessages>::strMap = 
+{
+    Recovery_Messages
+};
+#undef X
+#endif
 
 RecoveryControl recoveryControl;

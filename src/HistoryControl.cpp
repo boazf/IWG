@@ -2,7 +2,9 @@
 #include <AppConfig.h>
 #include <Common.h>
 #include <TimeUtil.h>
-
+#ifdef DEBUG_STATE_MACHINE
+#include <StringableEnum.h>
+#endif
 HistoryControl::HistoryControl() :
     currStorageItem(NULL)
 {
@@ -88,91 +90,55 @@ void HistoryControl::Init()
             SMState<H_Message, H_State>::OnEnterDoNothing, 
             OnInit,
    			SMState<H_Message, H_State>::OnExitDoNothing,
-            TRANSITIONS(initTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "Init"
-#endif
-			),
+            TRANSITIONS(initTrans)),
         SMState<H_Message, H_State>(
             H_State::Connected, 
             OnConnected, 
             OnStateDoNotihng,
    			SMState<H_Message, H_State>::OnExitDoNothing,
-            TRANSITIONS(connectedTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "Connected"
-#endif
-			),
+            TRANSITIONS(connectedTrans)),
         SMState<H_Message, H_State>(
             H_State::CheckingConnectivity, 
             OnCheckingConnectivity,
             OnStateDoNotihng,
    			SMState<H_Message, H_State>::OnExitDoNothing,
-            TRANSITIONS(checkingConnectivityTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "CheckingConnectivity"
-#endif
-			),
+            TRANSITIONS(checkingConnectivityTrans)),
         SMState<H_Message, H_State>(
             H_State::RecoveringModem, 
             OnRecoveringModem,
             OnStateDoNotihng,
    			SMState<H_Message, H_State>::OnExitDoNothing,
-            TRANSITIONS(recoveringModemTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "RecoveringModem"
-#endif
-			),
+            TRANSITIONS(recoveringModemTrans)),
         SMState<H_Message, H_State>(
             H_State::RecoveringRouter, 
             OnRecoveringRouter,
             OnStateDoNotihng,
    			SMState<H_Message, H_State>::OnExitDoNothing,
-            TRANSITIONS(recoveringRouterTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "RecoveringRouter"
-#endif
-			),
+            TRANSITIONS(recoveringRouterTrans)),
         SMState<H_Message, H_State>(
             H_State::RecoveryFailed, 
             OnRecoveryFailed,
             OnStateDoNotihng,
             AddToHistory,
-            TRANSITIONS(recoveryFailedTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "RecoveryFailed"
-#endif
-			),
+            TRANSITIONS(recoveryFailedTrans)),
         SMState<H_Message, H_State>(
             H_State::CheckingConnectivityWhileInFailure, 
             OnCheckingConnectivity, 
             OnStateDoNotihng,
             AddToHistory,
-            TRANSITIONS(checkingConnectivityWhileInFailureTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "CheckingConnectivityWhileInFailure"
-#endif
-			),
+            TRANSITIONS(checkingConnectivityWhileInFailureTrans)),
         SMState<H_Message, H_State>(
             H_State::PeriodicRestart, 
             OnPeriodicRestart, 
             OnStateDoNotihng,
    			SMState<H_Message, H_State>::OnExitDoNothing,
-            TRANSITIONS(periodicRestartTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "PeriodicRestart"
-#endif
-			),
+            TRANSITIONS(periodicRestartTrans)),
         SMState<H_Message, H_State>(
             H_State::HWFailure, 
             OnHWFailure,
             OnStateDoNotihng,
    			SMState<H_Message, H_State>::OnExitDoNothing,
-            TRANSITIONS(HWFailureTrans)
-#ifdef DEBUG_STATE_MACHINE
-			, "HWFailure"
-#endif
-			)
+            TRANSITIONS(HWFailureTrans)),
     };
   	m_pSM = new StateMachine<H_Message, H_State>(states, NELEMS(states), this
 #ifdef DEBUG_STATE_MACHINE
@@ -425,5 +391,23 @@ const HistoryStorageItem HistoryControl::GetHistoryItem(int index)
 
     return storage.getItem(index + 1 - (storage.available() < maxHistory));
 }
+
+#ifdef DEBUG_STATE_MACHINE
+#define X(a) {H_State::a, #a},
+template<>
+const std::map<H_State, std::string> StringableEnum<H_State>::strMap = 
+{
+    H_States
+};
+#undef X
+
+#define X(a) {H_Message::a, #a},
+template<>
+const std::map<H_Message, std::string> StringableEnum<H_Message>::strMap = 
+{
+    H_Messages
+};
+#undef X
+#endif
 
 HistoryControl historyControl;
