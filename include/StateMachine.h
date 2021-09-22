@@ -7,7 +7,7 @@
 
 #define TRANSITIONS(a) a, NELEMS(a)
 
-template<typename Verb, typename StateName>
+template<typename Verb, typename State>
 class Transition
 {
 public:
@@ -15,7 +15,7 @@ public:
 	{
 	}
 
-	Transition(Verb verb, StateName state)
+	Transition(Verb verb, State state)
 	{
 		m_verb = verb;
 		m_state = state;
@@ -35,10 +35,10 @@ public:
 	}
 
 	Verb m_verb;
-	StateName m_state;
+	State m_state;
 };
 
-template<typename Verb, typename StateName>
+template<typename Verb, typename State>
 class SMState
 {
 public:
@@ -48,7 +48,7 @@ public:
 
 public:
 	SMState() :
-		m_state((StateName)0),
+		m_state(static_cast<State>(0)),
 		m_onEntry(0),
 		m_onState(0),
 		m_onExit(0),
@@ -66,7 +66,7 @@ public:
 		m_transitions = NULL;
 	}
 
-	SMState(StateName state, OnEntry onEntry, OnState onState, OnExit onExit, const Transition<Verb, StateName> *transitions, int nTransitions
+	SMState(State state, OnEntry onEntry, OnState onState, OnExit onExit, const Transition<Verb, State> *transitions, int nTransitions
 	#ifdef DEBUG_STATE_MACHINE
 		, const char *name
 	#endif
@@ -80,12 +80,12 @@ public:
 		, m_name(name)
 	#endif
 	{
-		m_transitions = new Transition<Verb, StateName>[m_nTransitions];
+		m_transitions = new Transition<Verb, State>[m_nTransitions];
 		for (int i = 0; i < m_nTransitions; i++)
 			m_transitions[i] = transitions[i];
 	}
 
-    SMState(const SMState<Verb, StateName> &other)
+    SMState(const SMState<Verb, State> &other)
     {
         *this = other;
     }
@@ -100,7 +100,7 @@ public:
 #ifdef DEBUG_STATE_MACHINE
 		m_name = other.m_name;
 #endif
-		m_transitions = new Transition <Verb, StateName>[m_nTransitions];
+		m_transitions = new Transition <Verb, State>[m_nTransitions];
 		for (int i = 0; i < m_nTransitions; i++)
 			m_transitions[i] = other.m_transitions[i];
 
@@ -114,7 +114,7 @@ public:
 	}
 #endif // DEBUG_STATE_MACHINE
 
-	StateName PerformTransition(Verb verb)
+	State PerformTransition(Verb verb)
 	{
 		for (int i = 0; i < m_nTransitions; i++)
 		{
@@ -125,7 +125,7 @@ public:
 		Tracef("Error: Transition not found, state=%s, verb=%d\n", m_name, static_cast<int>(verb));
 #endif		
 		assert(false);
-		return (StateName)0;
+		return (State)0;
 	}
 
 	void doEnter(void *param)
@@ -143,7 +143,7 @@ public:
 		return m_onExit(verb, param);
 	}
 
-	StateName State()
+	State getState()
 	{
 		return m_state;
 	}
@@ -159,22 +159,22 @@ public:
 	}
 
 private:
-	StateName m_state;
+	State m_state;
 	OnEntry m_onEntry;
 	OnState m_onState;
 	OnExit m_onExit;
-	Transition<Verb, StateName> *m_transitions;
+	Transition<Verb, State> *m_transitions;
 	int m_nTransitions;
 #ifdef DEBUG_STATE_MACHINE
 	const char *m_name;
 #endif	
 };
 
-template<typename Verb, typename StateName>
+template<typename Verb, typename State>
 struct StateMachine
 {
 public:
-	StateMachine(SMState<Verb, StateName> states[], int nStates, void *param
+	StateMachine(SMState<Verb, State> states[], int nStates, void *param
 #ifdef DEBUG_STATE_MACHINE
 		, const char *name
 #endif
@@ -186,7 +186,7 @@ public:
 		, m_name(name)
 #endif
 	{
-		m_states = new SMState<Verb, StateName>[m_nStates];
+		m_states = new SMState<Verb, State>[m_nStates];
 		for (int i = 0; i < m_nStates; i++)
 			m_states[i] = states[i];
 		m_current = m_states;
@@ -216,14 +216,14 @@ public:
 #ifdef DEBUG_STATE_MACHINE
 				Tracef("State machine: %s, transfering from state: %s, verb: %d\n", m_name, m_current->getStateName(), static_cast<int>(verb));
 #endif
-				StateName state = m_current->PerformTransition(verb);
+				State state = m_current->PerformTransition(verb);
 #ifdef DEBUG_STATE_MACHINE
 				Tracef("State machine: %s, new state: %d\n", m_name, static_cast<int>(state));
 #endif
 				int i = 0;
 				for (; i < m_nStates; i++)
 				{
-					if (m_states[i].State() == state)
+					if (m_states[i].getState() == state)
 						break;
 				}
 #ifdef DEBUG_STATE_MACHINE
@@ -250,15 +250,15 @@ public:
 		ApplyVerb(newVerb);
 	}
 
-	SMState<Verb, StateName> *current()
+	SMState<Verb, State> *current()
 	{
 		return m_current;
 	}
 
 private:
-	SMState<Verb, StateName> *m_current;
+	SMState<Verb, State> *m_current;
 	Verb m_nextVerb;
-	SMState<Verb, StateName> *m_states;
+	SMState<Verb, State> *m_states;
 	int m_nStates;
 	bool m_first;
 	void *m_param;

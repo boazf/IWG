@@ -207,7 +207,7 @@ void HistoryControl::RecoveryStateChanged(const RecoveryStateChangedParams &para
 {
     HistoryControl *historyControl = (HistoryControl *)context;
 
-    if (historyControl->m_pSM->current()->State() == H_State::Init)
+    if (historyControl->m_pSM->current()->getState() == H_State::Init)
         return;
 
     historyControl->recoverySource = params.m_source;
