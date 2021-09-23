@@ -77,11 +77,10 @@ public:
 		m_onEntry(onEntry),
 		m_onState(onState),
 		m_onExit(onExit),
+		m_transitions(NULL),
 		m_nTransitions(nTransitions)
 	{
-		m_transitions = new Transition<Verb, State>[m_nTransitions];
-		for (int i = 0; i < m_nTransitions; i++)
-			m_transitions[i] = transitions[i];
+		CopyTransitions(transitions, nTransitions);
 	}
 
     SMState(const SMState<Verb, State> &other)
@@ -95,10 +94,7 @@ public:
 		m_onEntry = other.m_onEntry;
 		m_onState = other.m_onState;
 		m_onExit = other.m_onExit;
-		m_nTransitions = other.m_nTransitions;
-		m_transitions = new Transition <Verb, State>[m_nTransitions];
-		for (int i = 0; i < m_nTransitions; i++)
-			m_transitions[i] = other.m_transitions[i];
+		CopyTransitions(other.m_transitions, other.m_nTransitions);
 
 		return *this;
 	}
@@ -147,6 +143,16 @@ public:
 	static Verb OnExitDoNothing(Verb verb, void *param)
 	{
 		return verb;
+	}
+
+private:
+	void CopyTransitions(const Transition<Verb, State> *transitions, int nTransitions)
+	{
+		delete m_transitions;
+		m_transitions = new Transition <Verb, State>[nTransitions];
+		m_nTransitions = nTransitions;
+		for (int i = 0; i < nTransitions; i++)
+			m_transitions[i] = transitions[i];
 	}
 
 private:
