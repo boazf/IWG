@@ -335,11 +335,13 @@ void RecoveryControl::AppConfigChanged(const AppConfigChangedParam &param, const
 	}
 
 	time_t nextPeriodicRestart = calcNextPeriodicRestart();
-	if (smParam->nextPeriodicRestart != nextPeriodicRestart)
+	if (smParam->nextPeriodicRestart != nextPeriodicRestart && nextPeriodicRestart != -1)
 	{
-		bool shouldWakeRecoveryWaitThread = smParam->nextPeriodicRestart > nextPeriodicRestart;
+		bool shouldWakeRecoveryThread = 
+			smParam->nextPeriodicRestart == -1 ||
+			smParam->nextPeriodicRestart > nextPeriodicRestart;
 		smParam->nextPeriodicRestart = nextPeriodicRestart;
-		if (shouldWakeRecoveryWaitThread)
+		if (shouldWakeRecoveryThread)
 			xSemaphoreGive(smParam->waitSem);
 	}
 }
@@ -466,7 +468,7 @@ void RecoveryControl::OnEnterInit(void *param)
 
 bool RecoveryControl::isPeriodicRestartEnabled()
 {
-	return AppConfig::getPeriodicallyRestartModem() || AppConfig::getPeriodicallyRestartRouter();
+	return (AppConfig::getPeriodicallyRestartModem() || AppConfig::getPeriodicallyRestartRouter()) && AppConfig::getAutoRecovery();
 }
 
 time_t RecoveryControl::calcNextPeriodicRestart()
@@ -729,7 +731,9 @@ RecoveryMessages RecoveryControl::OnWaitConnectionTestPeriod(void *param)
 		smParam->requestedRecovery = RecoveryMessages::Done;
 	}
 	
-	if (requestedRecovery == RecoveryMessages::Done && isPeriodicRestartEnabled() && t_now >= smParam->nextPeriodicRestart)
+	if (requestedRecovery == RecoveryMessages::Done && 
+		isPeriodicRestartEnabled() && 
+		t_now >= smParam->nextPeriodicRestart)
 	{
 		smParam->nextPeriodicRestart = calcNextPeriodicRestart();
 		requestedRecovery = RecoveryMessages::PeriodicRestart;
