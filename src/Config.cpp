@@ -21,6 +21,7 @@ byte Config::modemRelay = 0;
 byte Config::routerRelay = 0;
 bool Config::singleDevice = false;
 const char *Config::deviceName = "Router";
+time_t Config::skipRouterTime = 60 * 60;
 #ifdef USE_WIFI
 const char *Config::ssid /* = "Your SSID" */;
 const char *Config::password /* = "Your password" */;
@@ -121,7 +122,8 @@ void Config::Init()
     { String("ModemRelay"), ParseByte, &modemRelay },
     { String("RouterRelay"), ParseByte, &routerRelay},
     { String("SingleDevice"), ParseBoolean, &singleDevice},
-    { String("DeviceName"), ParseString, &deviceName}
+    { String("DeviceName"), ParseString, &deviceName},
+    { String("SkipRouterTime"), ParseLong, &skipRouterTime}
   #ifdef USE_WIFI
     , { String("SSID"), ParseString, &ssid },
     { String("Password"), ParseString, &password }

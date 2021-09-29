@@ -464,12 +464,15 @@ void RecoveryControl::OnEnterInit(void *param)
 	SMParam *smParam = (SMParam *)param;
 	smParam->t0 = max<int>(AppConfig::getRReconnect(), AppConfig::getMReconnect()) * 1000 + millis();
 	smParam->nextPeriodicRestart = calcNextPeriodicRestart();
+	smParam->cycles = millis() / 1000;
 }
 
 bool RecoveryControl::isPeriodicRestartEnabled()
 {
 	return (AppConfig::getPeriodicallyRestartModem() || AppConfig::getPeriodicallyRestartRouter()) && AppConfig::getAutoRecovery();
 }
+
+#define SECONDS_IN_24HOURS (24 * 60 * 60)
 
 time_t RecoveryControl::calcNextPeriodicRestart()
 {
@@ -485,7 +488,7 @@ time_t RecoveryControl::calcNextPeriodicRestart()
 	time_t lastMidnight = mktime(&tr);
 	time_t nextPeriodicRestart = lastMidnight + AppConfig::getPeriodicRestartTime();
 	if (nextPeriodicRestart <= now)
-		nextPeriodicRestart += 24 * 3600;
+		nextPeriodicRestart += SECONDS_IN_24HOURS;
 
 #ifdef DEBUG_RECOVERY_CONTROL
 	char buff[128];
@@ -659,7 +662,7 @@ RecoveryMessages RecoveryControl::DecideRecoveryPath(RecoveryMessages message, v
 			if (Config::singleDevice ||
 				!smParam->lanConnected || 
 				smParam->lastRecovery == INT32_MAX || 
-				t_now - smParam->lastRecovery > 3600)
+				t_now - smParam->lastRecovery > Config::skipRouterTime)
 				message = RecoveryMessages::DisconnectRouter;
 			else
 				message = smParam->lastRecoveryType == RecoveryTypes::Router ? RecoveryMessages::DisconnectModem : RecoveryMessages::DisconnectRouter;

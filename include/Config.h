@@ -24,6 +24,7 @@ public:
     static byte routerRelay;
     static bool singleDevice;
     static const char *deviceName;
+    static time_t skipRouterTime;
 #ifdef USE_WIFI
     static const char *ssid;
     static const char *password;
