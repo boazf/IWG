@@ -5,7 +5,7 @@ How many times have you lost internet connectivity, then you had to go to your r
 <br/><br/>
 This project is intended to run on ESP32 with SD card reader and optionally a wired ethernet adapter. The code is developed using platformio in visual studio code.
 <br/><br/>
-What it does is basically continuously ping a server on the internet and optionally a local address on the LAN. If ping fails, it switches the router power to off and then on after several seconds. Then it waits for internet connectivity to resume. If internet connectivity is not resumed after some time, it switches the modem power to off and then on after several seconds. Then it waits for internet connectivity to resume. If internet connectivity is not resume, it goes again through the recovery attempt cycles until internet connectivity resumes, or maximum recovery cycles exceeded.
+What it does is basically periodcall ping a server on the internet and optionally a local address on the LAN. If ping fails, it switches the router power to off and then on after several seconds. Then it waits for internet connectivity to resume. If internet connectivity is not resumed after some time, it switches the modem power to off and then on after several seconds. Then it waits for internet connectivity to resume. If internet connectivity is not resume, it goes again through the recovery attempt cycles until internet connectivity resumes, or maximum recovery cycles exceeded.
 <br/><br/>
 There are quite a few configurable parameters to this software, like name of server on the internet to ping, an optional alternative internet server to ping if the ping to the first server failed. Also the time for power disconnect and waiting time for connection to resume are configurable and more.
 <br/><br/>
