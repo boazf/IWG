@@ -13,6 +13,7 @@
 #include <Relays.h>
 #include <esp_task_wdt.h>
 #include <Indicators.h>
+#include <Buttons.h>
 
 void initProgress(bool last = false)
 {
@@ -55,6 +56,8 @@ void setup() {
   InitViews();
   InitHTTPServer();
   initProgress(true);
+  InitIndicators();
+  InitButtons();
 }
 
 void loop() 

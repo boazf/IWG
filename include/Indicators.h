@@ -18,6 +18,7 @@ public:
     Indicator(uint8_t _channel, uint8_t pin);
     void set(ledState state);
     ledState get() { return currState; }
+    void changeChannel(uint8_t channel);
 
 private:
     static LinkedList<Indicator *> blinkingIndicators;
@@ -28,9 +29,12 @@ private:
     void setInternal(ledState state);
 
 private:
-    const uint8_t channel;
+    uint8_t channel;
+    const uint8_t pin;
     ledState currState;
 };
+
+bool InitIndicators();
 
 extern Indicator mri;
 extern Indicator rri;
