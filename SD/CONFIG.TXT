@@ -5,7 +5,5 @@ MACAddress=0xA8,0x61,0x0A,0xAE,0x66,0x34
 IP=192.168.0.75
 Gateway=192.168.0.138
 Subnet=255.255.255.0
-ModemRelay=25
-RouterRelay=26
 SSID=??????
 Password=??????
