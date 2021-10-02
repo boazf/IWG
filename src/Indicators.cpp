@@ -1,6 +1,5 @@
 #include <Indicators.h>
 #include <Trace.h>
-#include <Config.h>
 
 #define LED_FREQ 5000
 #define LED_RESOLUTION 5
@@ -14,9 +13,8 @@
 LinkedList<Indicator *> Indicator::blinkingIndicators;
 TaskHandle_t Indicator::blinkerTaskHandle = NULL;
 
-Indicator::Indicator(uint8_t _channel, uint8_t _pin) : 
-    channel(_channel),
-    pin(_pin)
+Indicator::Indicator(uint8_t _channel, uint8_t pin) : 
+    channel(_channel)
 {
     ledcSetup(channel, LED_FREQ, LED_RESOLUTION);
     ledcAttachPin(pin, channel);
@@ -36,14 +34,6 @@ Indicator::Indicator(uint8_t _channel, uint8_t _pin) :
             }
         }, "Blinker", 8*1024, NULL, tskIDLE_PRIORITY, &blinkerTaskHandle);
     }
-}
-
-void Indicator::changeChannel(uint8_t _channel)
-{
-    ledcDetachPin(pin);
-    channel = _channel;
-    ledcAttachPin(pin, channel);
-    set(currState);
 }
 
 void Indicator::Blink()
@@ -92,8 +82,8 @@ void Indicator::set(ledState state)
     }
 }
 
-#define MODEM_RECOVERY_INDICATOR 2
-#define ROUTER_RECOVERY_INDICATOR 4
+#define MODEM_RECOVERY_INDICATOR 4
+#define ROUTER_RECOVERY_INDICATOR 2
 #define ULOCK_INDICATOR 21
 #define OPERATIONAL_INDICATOR 22
 
@@ -106,13 +96,3 @@ Indicator mri(MODEM_RECOVERY_INDICATOR_LED_CH, MODEM_RECOVERY_INDICATOR);
 Indicator rri(ROUTER_RECOVERY_INDICATOR_LED_CH, ROUTER_RECOVERY_INDICATOR);
 Indicator opi(OPERATIONAL_INDICATOR_LED_CH, OPERATIONAL_INDICATOR);
 Indicator uli(UNLOCK_INDICATOR_LED_CH, ULOCK_INDICATOR);
-
-bool InitIndicators()
-{
-    if (!Config::singleDevice)
-        return true;
-
-    mri.changeChannel(ROUTER_RECOVERY_INDICATOR_LED_CH);
-
-    return true;
-}

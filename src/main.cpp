@@ -13,12 +13,11 @@
 #include <Relays.h>
 #include <esp_task_wdt.h>
 #include <Indicators.h>
-#include <Buttons.h>
 
 void initProgress(bool last = false)
 {
   static int state = 0;
-  static Indicator indicators[] = { opi, mri, uli, rri };
+  static Indicator indicators[] = { opi, rri, uli, mri };
 
   if (state > 0)
     indicators[state - 1].set(ledState::LED_ON);
@@ -56,8 +55,6 @@ void setup() {
   InitViews();
   InitHTTPServer();
   initProgress(true);
-  InitIndicators();
-  InitButtons();
 }
 
 void loop() 
