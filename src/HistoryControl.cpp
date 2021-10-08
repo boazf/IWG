@@ -49,6 +49,7 @@ void HistoryControl::Init()
     Transition<H_Message, H_State> recoveringRouterTrans[] =
     { 
         { H_Message::ModemRecovery, H_State::RecoveringModem },
+        { H_Message::RouterRecovery, H_State::RecoveringRouter },
         { H_Message::RecoveryFailure, H_State::RecoveryFailed },
         { H_Message::RecoverySuccess, H_State::Connected },
         { H_Message::HWFailure, H_State::HWFailure}
