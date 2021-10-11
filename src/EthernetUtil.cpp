@@ -6,6 +6,9 @@
 #include <AppConfig.h>
 #ifdef USE_WIFI
 #include <ping.h>
+#ifdef DEBUG_ETHERNET
+#include <map>
+#endif
 #else
 #include <Dns.h>
 #endif
@@ -418,6 +421,22 @@ bool WaitForDNS()
   return success;
 }
 
+#ifdef USE_WIFI
+#ifdef DEBUG_ETHERNET
+static std::map<wl_status_t, std::string> statusNames = 
+{
+  { WL_NO_SHIELD, "WL_NO_SHIELD" },
+  { WL_IDLE_STATUS, "WL_IDLE_STATUS" },
+  { WL_NO_SSID_AVAIL, "WL_NO_SSID_AVAIL" },
+  { WL_SCAN_COMPLETED, "WL_SCAN_COMPLETED" },
+  { WL_CONNECTED, "WL_CONNECTED" },
+  { WL_CONNECT_FAILED, "WL_CONNECT_FAILED" },
+  { WL_CONNECTION_LOST, "WL_CONNECTION_LOST" },
+  { WL_DISCONNECTED, "WL_DISCONNECTED" }
+};
+#endif
+#endif
+
 void MaintainEthernet()
 {
 #ifndef USE_WIFI
@@ -472,7 +491,7 @@ void MaintainEthernet()
       break;
   }
 #endif // DEBUG_ETHERNET
-#else
+#else // USE_WIFI
   static bool connected = true;
   static time_t tReconnect;
 #ifdef DEBUG_ETHERNET
@@ -494,7 +513,7 @@ void MaintainEthernet()
     if (tLastUpdate != t_now)
     {
       tLastUpdate = t_now;
-      Tracef("WiFi status: %d\n", status);
+      Tracef("WiFi status: %s\n", statusNames[status].c_str());
     }
 #endif
     if (t_now - tReconnect > 60)
@@ -512,10 +531,10 @@ void MaintainEthernet()
     if (connected)
       return;
 #ifdef DEBUG_ETHERNET
-    Tracef("WiFi status: %d\n", status);
+    Tracef("WiFi status: %s\n", statusNames[status].c_str());
 #endif
     delay(2000);
-    if (!ping_start(Config::gateway, 4, 0, 0, 1000))
+    if (!ping_start(Eth.gatewayIP(), 4, 0, 0, 1000))
     {
 #ifdef DEBUG_ETHERNET
       Traceln("Failed to ping gateway after network reconnect!\nReconnecting");

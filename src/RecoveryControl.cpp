@@ -15,6 +15,7 @@
 #ifdef DEBUG_STATE_MACHINE
 #include <StringableEnum.h>
 #endif
+#include <GWConnTest.h>
 
 RecoveryControl::RecoveryControl() :
 	m_currentRecoveryState(RecoveryTypes::ConnectivityCheck)
@@ -773,10 +774,11 @@ void RecoveryControl::OnEnterDisconnectRouter(void *param, bool signalStateChang
 		smParam->m_recoveryControl->RaiseRecoveryStateChanged(RecoveryTypes::Router, smParam->m_recoverySource);
 	delay(500);
 	smParam->recoveryStart = t_now;
-	SetRouterPowerState(PowerState::POWER_OFF);
 #ifdef DEBUG_RECOVERY_CONTROL
 	Traceln("Disconnecting Router");
 #endif
+	SetRouterPowerState(PowerState::POWER_OFF);
+	gwConnTest.Start(AppConfig::getRDisconnect() * 1000);
 }
 
 RecoveryMessages RecoveryControl::OnDisconnectRouter(void *param)

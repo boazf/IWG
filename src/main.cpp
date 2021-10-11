@@ -13,6 +13,7 @@
 #include <Relays.h>
 #include <esp_task_wdt.h>
 #include <Indicators.h>
+#include <GWConnTest.h>
 
 void initProgress(bool last = false)
 {
@@ -60,7 +61,7 @@ void setup() {
 void loop() 
 {
   MaintainEthernet();
-  if (recoveryControl.GetRecoveryState() != RecoveryTypes::Router)
+  if (gwConnTest.IsConnected())
   {
     DoSFTService();
     DoHTTPService();
