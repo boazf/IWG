@@ -796,19 +796,14 @@ RecoveryMessages RecoveryControl::OnDisconnectRouter(void *param)
 		smParam->t0 = t_now;
 	}
 
-#ifndef USE_WIFI
-	if (t_now - smParam->t0 < Config::routerInitTimeSec)
-		return RecoveryMessages::None;
-
-	InitEthernet();
-#endif
-
 	return RecoveryMessages::Done;
 }
 
 RecoveryMessages RecoveryControl::OnWaitWhileRecovering(void *param)
 {
 	delay(5000);
+	while (!gwConnTest.IsConnected())
+		delay(100);
 	return RecoveryMessages::Done;
 }
 
