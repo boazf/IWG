@@ -107,79 +107,83 @@
     }
 
     $(document).ready(async function () {
-        $("#makeDirectory").on("shown.bs.modal", function() {
-            $("#directoryName")[0].focus();
-        })
-        $("#directoryName").on("keyup", function(event) {
-            if (event.keyCode == 13)
-                $("#makeDirOK")[0].click();
-        });
-        var dir=$(document)[0].location.pathname;
-        if (dir.length < "/files/".length)
-            dir = "";
-        else
-            dir = dir.substr(7);
-        var ul = $("<ul></ul>");
-        ul.addClass("breadcrumb");
-        ul.css("margin-bottom", "0px");
-        var li = $("<li></li>");
-        ul.append(li);
-        var anchor = $("<a></a>");
-        var subPath = "/files";
-        anchor.attr("href", subPath);
-        anchor.append("~");
-        li.append(anchor);
-        var dirPart = dir;
-        var iSlash = dirPart.indexOf('/');
-        while (iSlash != -1) {
-            subDir = dirPart.substr(0, iSlash);
-            subPath = addCrumb(ul, subPath, subDir);
-            dirPart = dirPart.substr(iSlash+1);
-            iSlash = dirPart.indexOf('/');
-        }
-        if (dirPart != "")
-            addCrumb(ul, subPath, dirPart);
-        $("#dirCrumbs").append(ul);
-        var filesData = await getFiles($(document)[0].location.pathname);
-        if (filesData[0].result == 0) {
-            var table = $("<table></table>");
-            table.addClass("table");
-            table.addClass("table-striped");
-            for (var i = 0; i < filesData[1].files.length; i++)
-            {
-                var fileInfo = filesData[1].files[i];
-                var tr = $("<tr></tr>");
-                tr.addClass(i % 2 == 0 ? "gray" : "blue");
-                if (fileInfo.isDir) {
-                    tr.append("<td class=\"narrow\"><span class='glyphicon  glyphicon-trash' onclick=\"deleteDir('" + fileInfo.name + "')\" data-toggle=\"tooltip\" title=\"Remove Directory\"></span></td>");
-                    tr.append("<td class=\"narrow\"><a href='/files" + fileInfo.name + "'><span class='glyphicon  glyphicon-hand-right' data-toggle=\"tooltip\" title=\"Change Directory\"></span></a></td>");
-                } else {
-                    tr.append("<td class=\"narrow\"><span class='glyphicon  glyphicon-trash' onclick=\"deleteFile('" + fileInfo.name + "')\" data-toggle=\"tooltip\" title=\"Delete File\"></span></td>");
-                    tr.append("<td class=\"narrow\"><a href='/api/files" + fileInfo.name + "' download><span class='glyphicon glyphicon-download' data-toggle=\"tooltip\" title=\"Download File\"></span></a></td>");
-                }
-                td = $("<td></td>");
-                td.append(fileInfo.time);
-                tr.append(td);
-                td = $("<td></td>");
-                td.append(fileInfo.isDir ? "&#60;DIR&#62;" : "");
-                tr.append(td);
-                td = $("<td></td>");
-                td.append(fileInfo.isDir ? "" : fileInfo.size);
-                td.addClass("right");
-                tr.append(td);    
-                td = $("<td></td>");
-                td.append(fileInfo.name.substr(fileInfo.name.lastIndexOf('/') + 1));
-                tr.append(td);    
-                table.append(tr);
+        try {
+            $("#makeDirectory").on("shown.bs.modal", function() {
+                $("#directoryName")[0].focus();
+            })
+            $("#directoryName").on("keyup", function(event) {
+                if (event.keyCode == 13)
+                    $("#makeDirOK")[0].click();
+            });
+            var dir=$(document)[0].location.pathname;
+            if (dir.length < "/files/".length)
+                dir = "";
+            else
+                dir = dir.substr(7);
+            var ul = $("<ul></ul>");
+            ul.addClass("breadcrumb");
+            ul.css("margin-bottom", "0px");
+            var li = $("<li></li>");
+            ul.append(li);
+            var anchor = $("<a></a>");
+            var subPath = "/files";
+            anchor.attr("href", subPath);
+            anchor.append("~");
+            li.append(anchor);
+            var dirPart = dir;
+            var iSlash = dirPart.indexOf('/');
+            while (iSlash != -1) {
+                subDir = dirPart.substr(0, iSlash);
+                subPath = addCrumb(ul, subPath, subDir);
+                dirPart = dirPart.substr(iSlash+1);
+                iSlash = dirPart.indexOf('/');
             }
-            $("#dirList").replaceWith(table);
-            $('[data-toggle="tooltip"]').tooltip();
-        }
-        else
-        {
-            $("#dirList").replaceWith("<div class=\"alert alert-danger\">Error: no such directory!</div>");
-            $("#makeDir").prop("disabled", true);
-            $("#uploadFile").prop("disabled", true);
+            if (dirPart != "")
+                addCrumb(ul, subPath, dirPart);
+            $("#dirCrumbs").append(ul);
+            var filesData = await getFiles($(document)[0].location.pathname);
+            if (filesData[0].result == 0) {
+                var table = $("<table></table>");
+                table.addClass("table");
+                table.addClass("table-striped");
+                for (var i = 0; i < filesData[1].files.length; i++)
+                {
+                    var fileInfo = filesData[1].files[i];
+                    var tr = $("<tr></tr>");
+                    tr.addClass(i % 2 == 0 ? "gray" : "blue");
+                    if (fileInfo.isDir) {
+                        tr.append("<td class=\"narrow\"><span class='glyphicon  glyphicon-trash' onclick=\"deleteDir('" + fileInfo.name + "')\" data-toggle=\"tooltip\" title=\"Remove Directory\"></span></td>");
+                        tr.append("<td class=\"narrow\"><a href='/files" + fileInfo.name + "'><span class='glyphicon  glyphicon-hand-right' data-toggle=\"tooltip\" title=\"Change Directory\"></span></a></td>");
+                    } else {
+                        tr.append("<td class=\"narrow\"><span class='glyphicon  glyphicon-trash' onclick=\"deleteFile('" + fileInfo.name + "')\" data-toggle=\"tooltip\" title=\"Delete File\"></span></td>");
+                        tr.append("<td class=\"narrow\"><a href='/api/files" + fileInfo.name + "' download><span class='glyphicon glyphicon-download' data-toggle=\"tooltip\" title=\"Download File\"></span></a></td>");
+                    }
+                    td = $("<td></td>");
+                    td.append(fileInfo.time);
+                    tr.append(td);
+                    td = $("<td></td>");
+                    td.append(fileInfo.isDir ? "&#60;DIR&#62;" : "");
+                    tr.append(td);
+                    td = $("<td></td>");
+                    td.append(fileInfo.isDir ? "" : fileInfo.size);
+                    td.addClass("right");
+                    tr.append(td);    
+                    td = $("<td></td>");
+                    td.append(fileInfo.name.substr(fileInfo.name.lastIndexOf('/') + 1));
+                    tr.append(td);    
+                    table.append(tr);
+                }
+                $("#dirList").replaceWith(table);
+                $('[data-toggle="tooltip"]').tooltip();
+            }
+            else
+            {
+                $("#dirList").replaceWith("<div class=\"alert alert-danger\">Error: no such directory!</div>");
+                $("#makeDir").prop("disabled", true);
+                $("#uploadFile").prop("disabled", true);
+            }
+        } catch {
+            location.replace(document.location.pathname);
         }
     });
 
