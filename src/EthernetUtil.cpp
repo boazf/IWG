@@ -5,7 +5,7 @@
 #include <TimeUtil.h>
 #include <AppConfig.h>
 #ifdef USE_WIFI
-#include <ping.h>
+#include <GWConnTest.h>
 #ifdef DEBUG_ETHERNET
 #include <map>
 #endif
@@ -339,16 +339,16 @@ bool InitEthernet()
 {
   // start the Ethernet connection:
 #ifndef USE_WIFI
-    Eth.init(CS_P);
-    WizReset();
+  Eth.init(CS_P);
+  WizReset();
+#else
+  WiFi.mode(WIFI_MODE_STA);
 #endif
 
   if (!IsZeroIPAddress(Config::ip) && !IsZeroIPAddress(Config::gateway) && !IsZeroIPAddress(Config::mask))
   {
 #ifdef USE_WIFI
-    WiFi.mode(WIFI_MODE_STA);
     WiFi.config(Config::ip, Config::gateway, Config::mask, Config::gateway);
-    WiFi.setAutoReconnect(true);
 #else
     Eth.begin(Config::mac, Config::ip, Config::gateway, Config::gateway, Config::mask);
 #endif
@@ -359,16 +359,40 @@ bool InitEthernet()
     Eth.begin(Config::mac);
   }
 #else // USE_WIFI
-  WiFi.begin(Config::ssid, Config::password);
-  while(WiFi.waitForConnectResult() != WL_CONNECTED)
+  WiFi.setAutoReconnect(true);
+  uint8_t *mac = IsZeroIPAddress(Config::mac) ? NULL : Config::mac;
+  WiFi.begin(Config::ssid, Config::password, 0, mac);
+  while(true)
   {
-    delay(500);
+    if (WiFi.waitForConnectResult() != WL_CONNECTED)
+    {
+      delay(500);
 #ifdef DEBUG_ETHERNET
-    Trace('.');
+      Trace('.');
 #endif      
-  }
+    }
+    else
+    {
+      delay(2000);
 #ifdef DEBUG_ETHERNET
-  Traceln(" Connected!");
+      Tracef("\nPinging gateway: %s\n", Eth.gatewayIP().toString().c_str());
+#endif
+      if (!GWConnTest::ping(20, 100))
+      {
+#ifdef DEBUG_ETHERNET
+        Traceln("Failed to ping gateway!\nReconnecting");
+#endif
+      }
+      else
+        break;
+      WiFi.reconnect();
+      delay(2000);
+    }
+  }
+
+#ifdef DEBUG_ETHERNET
+  Traceln("Connected!");
+  Tracef("RSSI: %ddb, BSSID:%s\n", WiFi.RSSI(), WiFi.BSSIDstr().c_str());
 #endif      
 #endif // USE_WIFI
 
@@ -379,6 +403,7 @@ bool InitEthernet()
     Traceln(Eth.localIP());
   }
 #endif
+
   return true;
 }
 
@@ -492,6 +517,11 @@ void MaintainEthernet()
   }
 #endif // DEBUG_ETHERNET
 #else // USE_WIFI
+#define WIFI_RECONNECT() \
+  WiFi.reconnect(); \
+  tReconnect = t_now; \
+  delay(2000);
+
   static bool connected = true;
   static time_t tReconnect;
 #ifdef DEBUG_ETHERNET
@@ -506,7 +536,7 @@ void MaintainEthernet()
       Traceln("Network disconnected, trying to reconnect");
       tLastUpdate = 0;
 #endif
-      tReconnect = t_now;
+      WIFI_RECONNECT();
       connected = false;
     }
 #ifdef DEBUG_ETHERNET
@@ -521,9 +551,7 @@ void MaintainEthernet()
 #ifdef DEBUG_ETHERNET
       Traceln("Reconnecting");
 #endif
-      WiFi.reconnect();
-      tReconnect = t_now;
-      delay(2000);
+      WIFI_RECONNECT();
     }
   }
   else
@@ -534,19 +562,18 @@ void MaintainEthernet()
     Tracef("WiFi status: %s\n", statusNames[status].c_str());
 #endif
     delay(2000);
-    if (!ping_start(Eth.gatewayIP(), 4, 0, 0, 1000))
+    if (!GWConnTest::ping(5, 1000))
     {
 #ifdef DEBUG_ETHERNET
       Traceln("Failed to ping gateway after network reconnect!\nReconnecting");
 #endif
-      WiFi.reconnect();
-      tReconnect = t_now;
-      delay(2000);
+      WIFI_RECONNECT();
     }
     else
     {
 #ifdef DEBUG_ETHERNET
       Traceln("Connected!");
+      Tracef("RSSI: %ddb, BSSID:%s\n", WiFi.RSSI(), WiFi.BSSIDstr().c_str());
 #endif
       connected = true;
     }

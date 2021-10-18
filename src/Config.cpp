@@ -4,10 +4,13 @@
 
 // Default MAC address
 // Newer Ethernet shields have a MAC address printed on a sticker on the shield
+byte Config::mac[6] = 
 #ifndef USE_WIFI
-byte Config::mac[6] =  { 0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02 };
+  { 0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02 };
 long Config::routerInitTimeSec = 10;
 long Config::timeUpdatePeriodMin = 20;
+#else
+  {0, 0, 0, 0, 0, 0};
 #endif
 long Config::dnsAvailTimeSec = 5 * 60; // 5 Minutes
 byte Config::ip[4] = { 0, 0, 0, 0 };
@@ -111,8 +114,8 @@ void Config::Init()
     { String("TimeZone"), ParseLong, &timeZone },
     { String("DST"), ParseLong, &DST },
     { String("DNSAvailTimeSec"), ParseLong, &dnsAvailTimeSec },
-  #ifndef USE_WIFI
     { String("MACAddress"), ParseMACAddress, mac },
+  #ifndef USE_WIFI
     { String("RouterInitTimeSec"), ParseLong, &routerInitTimeSec },
     { String("TimeUpdatePriodMin"), ParseLong, &timeUpdatePeriodMin },
   #endif
@@ -155,25 +158,30 @@ void Config::Init()
   {
     bool eol = false;
     String configLine = "";
+    bool skipLine = false;
     do
     {
       int16_t nextChar = config.read();
-      if (nextChar == -1)
+      switch(nextChar)
       {
+      case -1:
         eol = true;
         eof = true;
-      }
-      else if ((char)nextChar == '\n')
-      {
+        break;
+
+      case '\n':
         eol = true;
-      }
-      else if ((char) nextChar == '\r')
-      {
-          continue;
-      }
-      else
-      {
-        configLine += (char)nextChar;
+        break;
+
+      case '\r':
+        continue;
+
+      case ';': // Comment
+        skipLine = configLine.isEmpty();
+      default:
+        if (!skipLine)
+          configLine += (char)nextChar;
+        break;
       }
     } while (!eol);
     if (configLine.equals(""))

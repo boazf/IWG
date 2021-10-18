@@ -21,29 +21,37 @@ void GWConnTest::gwConnTestTask(void *param)
     ((GWConnTest *)param)->gwConnTestTask();
 }
 
+bool GWConnTest::ping(int attempts, int tInterval)
+{
+    bool success = true;
+
+    for (int i = 0; i < attempts && success; i++)
+    {
+        delay(tInterval);
+        success = ping();
+    }
+
+    return success;
+}
+
+bool GWConnTest::ping()
+{
+    IPAddress gw = Eth.gatewayIP();
+#ifdef USE_WIFI
+    return ping_start(gw, 1);
+#else
+    ICMPPing ping(MAX_SOCK_NUM, 2);
+    return ping(gw, 1).status == SUCCESS;
+#endif
+}
+
 void GWConnTest::gwConnTestTask()
 {
     delay(tDelay);
-    IPAddress gw = Eth.gatewayIP();
 #ifdef DEBUG_ETHERNET
-    Tracef("GWConnTest: Starting pinging %s\n", gw.toString().c_str());
+    Tracef("GWConnTest: Starting pinging %s\n", Eth.gatewayIP().toString().c_str());
 #endif
-    int attempts = 0;
-#ifndef USE_WIFI
-    ICMPPing ping(MAX_SOCK_NUM, 2);
-#endif
-    while (attempts < 5)
-    {
-#ifdef USE_WIFI
-        if (ping_start(gw, 1, 0, 0, 1000))
-#else
-        if (ping(gw, 1).status == SUCCESS)
-#endif
-            attempts++;
-        else
-            attempts = 0;
-        delay(500);
-    }
+    while (!ping(5, 500));
 #ifdef DEBUG_ETHERNET
     Traceln("GW Connection retrieved!");
 #endif

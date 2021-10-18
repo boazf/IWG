@@ -28,7 +28,7 @@ struct ping_resp {
 
 bool ping_start(struct ping_option *ping_opt);
 void ping(const char *name, int count, int interval, int size, int timeout);
-bool ping_start(IPAddress adr, int count, int interval, int size, int timeout);
+bool ping_start(IPAddress adr, int count = 0, int interval = 0, int size = 0, int timeout = 0);
 
 #endif // _PING_
 #endif // USE_WIFI

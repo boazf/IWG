@@ -8,8 +8,8 @@
 class Config
 {
 public:
-#ifndef USE_WIFI
     static byte mac[6];
+#ifndef USE_WIFI
     static long routerInitTimeSec;
     static long timeUpdatePeriodMin;
 #endif

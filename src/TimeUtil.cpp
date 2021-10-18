@@ -10,6 +10,8 @@
 
 static bool DST;
 
+#define MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC 30
+
 static void setTime(bool ignoreFailure)
 {
 #ifdef USE_WIFI
@@ -17,12 +19,13 @@ static void setTime(bool ignoreFailure)
   tm tr1;
   delay(2000);
   tr1.tm_year = 0;
-  getLocalTime(&tr1, 5 * 60 * 1000);
+  getLocalTime(&tr1, MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC * 1000);
 #else
   {
     unsigned long t0 = millis();
     time_t utc = 0;
-    while(millis() - t0 < 5*60*1000 && (utc = NTPClient::getUTC()) == 0);
+    while(millis() - t0 < MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC * 1000 && (utc = NTPClient::getUTC()) == 0)
+      delay(100);
     if (utc == 0 && !ignoreFailure)
     {
 #ifdef DEBUG_TIME

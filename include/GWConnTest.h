@@ -13,6 +13,7 @@ public:
 
     void Start(time_t delay);
     bool IsConnected();
+    static bool ping(int attempts, int tInterval);
 
 private:
     TaskHandle_t hGWConnTestTask;
@@ -21,6 +22,7 @@ private:
 private:
     static void gwConnTestTask(void *param);
     void gwConnTestTask();
+    static bool ping();
 };
 
 extern GWConnTest gwConnTest;

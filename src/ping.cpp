@@ -255,7 +255,7 @@ bool ping_start(struct ping_option *ping_o) {
 
 static CriticalSection csPing;
 
-bool ping_start(IPAddress adr, int count=0, int interval=0, int size=0, int timeout=0) {
+bool ping_start(IPAddress adr, int count, int interval, int size, int timeout) {
 	Lock lock(csPing);
 //	driver_error_t *error;
 	struct sockaddr_in address;
