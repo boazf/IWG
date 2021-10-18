@@ -10,7 +10,7 @@ How many times have you lost internet connectivity, then you had to go to your r
   <li>Supports recovering of an access point.</li>
   <li>Highly configurable.</li>
   <li>Supports HTML interface for controlling, configuring and monitoring the device.</li>
-  <li>Supports either WiFi or Wired (w5500) Ethernet.</li>
+  <li>Supports either WiFi or Wired (w5500) Ethernet connection.</li>
   <li>Supports manual control using LED indicators and pushbuttons.</li>
   <li>Include PCB design and packaging design.</li>
 </ul>
