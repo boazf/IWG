@@ -53,19 +53,19 @@ public:
 private:
     static void RecoveryStateChanged(const RecoveryStateChangedParams &params, const void* context);
     static void MaxHistoryChanged(const MaxHistoryRecordChangedParams &params, const void* context);
-    static H_Message OnInit(void *param);
-    static void OnConnected(void *param);
-    static void OnCheckingConnectivity(void *param);
-    static void OnRecoveringModem(void *param);
-    static void OnRecoveringRouter(void *param);
-    static void OnRecoveryFailed(void *param);
-    static void OnPeriodicRestart(void *param);
-    static void OnHWFailure(void *param);
-    static H_Message AddToHistory(H_Message message, void *param);
-    static H_Message OnStateDoNotihng(void *param);
+    static H_Message OnInit(HistoryControl *param);
+    static void OnConnected(HistoryControl *param);
+    static void OnCheckingConnectivity(HistoryControl *param);
+    static void OnRecoveringModem(HistoryControl *param);
+    static void OnRecoveringRouter(HistoryControl *param);
+    static void OnRecoveryFailed(HistoryControl *param);
+    static void OnPeriodicRestart(HistoryControl *param);
+    static void OnHWFailure(HistoryControl *param);
+    static H_Message AddToHistory(H_Message message, HistoryControl *param);
+    static H_Message OnStateDoNotihng(HistoryControl *param);
 
 private:
-    StateMachine<H_Message, H_State> *m_pSM;
+    StateMachine<H_Message, H_State, HistoryControl> *m_pSM;
     int maxHistory;
     RecoverySource recoverySource;
     HistoryStorage storage;

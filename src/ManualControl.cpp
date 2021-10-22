@@ -27,100 +27,102 @@ void ManualControl::Init()
         { MC_Message::PeriodicRestart, MC_State::PeriodicRestart }
     };
 
-    SMState<MC_Message, MC_State> states[] =
+    typedef SMState<MC_Message, MC_State, ManualControl> ManualState;
+    
+    ManualState states[] =
     {
-        SMState<MC_Message, MC_State>
+        ManualState
         {
             MC_State::Init,
-            SMState<MC_Message, MC_State>::OnEnterDoNothing,
+            ManualState::OnEnterDoNothing,
             OnInit,
-            SMState<MC_Message, MC_State>::OnExitDoNothing,
+            ManualState::OnExitDoNothing,
             TRANSITIONS(initTrans)
         },
 
-        SMState<MC_Message, MC_State>
+        ManualState
         {
             MC_State::Connected,
             OnEnterConnected,
             OnConnected,
-            SMState<MC_Message, MC_State>::OnExitDoNothing,
+            ManualState::OnExitDoNothing,
             TRANSITIONS(transitions)
         },
 
-        SMState<MC_Message, MC_State>
+        ManualState
         {
             MC_State::CheckConnectivity,
             OnEnterCheckConnectivity,
             OnCheckConnectivity,
-            SMState<MC_Message, MC_State>::OnExitDoNothing,
+            ManualState::OnExitDoNothing,
             TRANSITIONS(transitions)
         },
 
-        SMState<MC_Message, MC_State>
+        ManualState
         {
             MC_State::ModemRecovery,
             OnEnterModemRecovery,
             OnModemRecovery,
-            SMState<MC_Message, MC_State>::OnExitDoNothing,
+            ManualState::OnExitDoNothing,
             TRANSITIONS(transitions)
         },
 
-        SMState<MC_Message, MC_State>
+        ManualState
         {
             MC_State::RouterRecovery,
             OnEnterRouterRecovery,
             OnRouterRecovery,
-            SMState<MC_Message, MC_State>::OnExitDoNothing,
+            ManualState::OnExitDoNothing,
             TRANSITIONS(transitions)
         },
 
-        SMState<MC_Message, MC_State>
+        ManualState
         {
             MC_State::PeriodicRestart,
             OnEnterPeriodicRestart,
             OnPeriodicRestart,
-            SMState<MC_Message, MC_State>::OnExitDoNothing,
+            ManualState::OnExitDoNothing,
             TRANSITIONS(transitions)
         },
 
-        SMState<MC_Message, MC_State>
+        ManualState
         {
             MC_State::Unlock,
             OnEnterUnlock,
             OnUnlock,
-            SMState<MC_Message, MC_State>::OnExitDoNothing,
+            ManualState::OnExitDoNothing,
             TRANSITIONS(transitions)
         },
 
-        SMState<MC_Message, MC_State>
+        ManualState
         {
             MC_State::RecoveryFailure,
             OnEnterRecoveryFailure,
             OnRecoveryFailure,
-            SMState<MC_Message, MC_State>::OnExitDoNothing,
+            ManualState::OnExitDoNothing,
             TRANSITIONS(transitions)
         },
 
-        SMState<MC_Message, MC_State>
+        ManualState
         {
             MC_State::Disconnected,
             OnEnterDisconnected,
             OnDisconnected,
-            SMState<MC_Message, MC_State>::OnExitDoNothing,
+            ManualState::OnExitDoNothing,
             TRANSITIONS(transitions)
         },
 
-        SMState<MC_Message, MC_State>
+        ManualState
         {
             MC_State::HWFailure,
             OnEnterHWFailure,
             OnHWFailure,
-            SMState<MC_Message, MC_State>::OnExitDoNothing,
+            ManualState::OnExitDoNothing,
             TRANSITIONS(transitions)
         }
     };
 
-	m_pSM = new StateMachine<MC_Message, MC_State>(states, NELEMS(states), this
+	m_pSM = new StateMachine<MC_Message, MC_State, ManualControl>(states, NELEMS(states), this
 #ifdef DEBUG_STATE_MACHINE
 			, "MenualControl"
 #endif
@@ -132,7 +134,7 @@ void ManualControl::PerformCycle()
 	m_pSM->HandleState();
 }
 
-MC_Message ManualControl::OnInit(void *param)
+MC_Message ManualControl::OnInit(ManualControl *control)
 {
     if (recoveryControl.GetRecoveryState() != RecoveryTypes::ConnectivityCheck)
         return MC_Message::Connected;
@@ -191,14 +193,13 @@ MC_Message ManualControl::transitionMessage(MC_State currState)
 #define DO_TRANSITION(curr) { MC_Message msg = transitionMessage(curr); if (msg != MC_Message::None) return msg; }
 
 
-void ManualControl::OnEnterState(void *param)
+void ManualControl::OnEnterState(ManualControl *control)
 {
-    ManualControl *mc = (ManualControl *)param;
-    mc->t0 = millis();
-    mc->rrState = rr.state();
-    mc->mrState = mr.state();
-    mc->ulState = ul.state();
-    mc->ccState = cc.state();
+    control->t0 = millis();
+    control->rrState = rr.state();
+    control->mrState = mr.state();
+    control->ulState = ul.state();
+    control->ccState = cc.state();
     opi.set(ledState::LED_IDLE);
     uli.set(ledState::LED_IDLE);
     mri.set(ledState::LED_IDLE);
@@ -206,80 +207,76 @@ void ManualControl::OnEnterState(void *param)
     delay(5);
 }
 
-void ManualControl::OnEnterConnected(void *param)
+void ManualControl::OnEnterConnected(ManualControl *control)
 {
-    OnEnterState(param);
+    OnEnterState(control);
     opi.set(ledState::LED_ON);
 }
 
-MC_Message ManualControl::CheckUnlock(void *param)
+MC_Message ManualControl::CheckUnlock(ManualControl *control)
 {
-    ManualControl *mc = (ManualControl *)param;
-
     if (ul.state() == buttonState::BUTTON_ON)
     {
-        if (mc->ulState == buttonState::BUTTON_OFF && mr.state() == buttonState::BUTTON_OFF && rr.state() == buttonState::BUTTON_OFF)
+        if (control->ulState == buttonState::BUTTON_OFF && mr.state() == buttonState::BUTTON_OFF && rr.state() == buttonState::BUTTON_OFF)
         {
             return MC_Message::Unlock;
         }
     }
     else
-        mc->ulState = buttonState::BUTTON_OFF;
+        control->ulState = buttonState::BUTTON_OFF;
 
     return MC_Message::None;
 }
 
-MC_Message ManualControl::CheckCheckConnectivity(void *param)
+MC_Message ManualControl::CheckCheckConnectivity(ManualControl *control)
 {
-    ManualControl *mc = (ManualControl *)param;
-
     if (cc.state() == buttonState::BUTTON_ON)
     {
-        if (mc->ccState == buttonState::BUTTON_OFF)
+        if (control->ccState == buttonState::BUTTON_OFF)
         {
-            mc->ccState = buttonState::BUTTON_ON;
+            control->ccState = buttonState::BUTTON_ON;
             recoveryControl.StartRecoveryCycles(RecoveryTypes::ConnectivityCheck);
         }
     }
     else
     {
-        mc->ccState = buttonState::BUTTON_OFF;
+        control->ccState = buttonState::BUTTON_OFF;
     }
 
     return MC_Message::None;
 }
 
-MC_Message ManualControl::CheckButtons(void *param)
+MC_Message ManualControl::CheckButtons(ManualControl *control)
 {
-    MC_Message ulMsg = CheckUnlock(param);
+    MC_Message ulMsg = CheckUnlock(control);
     if (ulMsg != MC_Message::None)
         return ulMsg;
 
-    return CheckCheckConnectivity(param);
+    return CheckCheckConnectivity(control);
 }
 
-MC_Message ManualControl::OnConnected(void *param)
+MC_Message ManualControl::OnConnected(ManualControl *control)
 {
     DO_TRANSITION(MC_State::Connected);
 
-    return CheckButtons(param);
+    return CheckButtons(control);
 }
 
-void ManualControl::OnEnterCheckConnectivity(void *param)
+void ManualControl::OnEnterCheckConnectivity(ManualControl *control)
 {
-    OnEnterState(param);
+    OnEnterState(control);
     opi.set(ledState::LED_BLINK);
 }
 
-MC_Message ManualControl::OnCheckConnectivity(void *param)
+MC_Message ManualControl::OnCheckConnectivity(ManualControl *control)
 {
     DO_TRANSITION(MC_State::CheckConnectivity);
     return MC_Message::None;
 }
 
-void ManualControl::OnEnterRecovery(void *param)
+void ManualControl::OnEnterRecovery(ManualControl *control)
 {
-    OnEnterState(param);
+    OnEnterState(control);
     opi.set(ledState::LED_OFF);
     uli.set(ledState::LED_OFF);
     mri.set(ledState::LED_OFF);
@@ -287,67 +284,67 @@ void ManualControl::OnEnterRecovery(void *param)
     delay(5);
 }
 
-void ManualControl::OnEnterModemRecovery(void *param)
+void ManualControl::OnEnterModemRecovery(ManualControl *control)
 {
-    OnEnterRecovery(param);
+    OnEnterRecovery(control);
     mri.set(ledState::LED_BLINK);
 }
 
-MC_Message ManualControl::OnModemRecovery(void *param)
+MC_Message ManualControl::OnModemRecovery(ManualControl *control)
 {
     DO_TRANSITION(MC_State::ModemRecovery);
 
     return MC_Message::None;
 }
 
-void ManualControl::OnEnterRouterRecovery(void *param)
+void ManualControl::OnEnterRouterRecovery(ManualControl *control)
 {
-    OnEnterRecovery(param);
+    OnEnterRecovery(control);
     rri.set(ledState::LED_BLINK);
 }
 
-MC_Message ManualControl::OnRouterRecovery(void *param)
+MC_Message ManualControl::OnRouterRecovery(ManualControl *control)
 {
     DO_TRANSITION(MC_State::RouterRecovery);
 
     return MC_Message::None;
 }
 
-void ManualControl::OnEnterPeriodicRestart(void *param)
+void ManualControl::OnEnterPeriodicRestart(ManualControl *control)
 {
-    OnEnterRecovery(param);
+    OnEnterRecovery(control);
     if (AppConfig::getPeriodicallyRestartRouter())
         rri.set(ledState::LED_BLINK);
     if (AppConfig::getPeriodicallyRestartModem())
         mri.set(ledState::LED_BLINK);
 }
 
-MC_Message ManualControl::OnPeriodicRestart(void *param)
+MC_Message ManualControl::OnPeriodicRestart(ManualControl *control)
 {
     DO_TRANSITION(MC_State::PeriodicRestart);
 
     return MC_Message::None;
 }
 
-void ManualControl::OnEnterDisconnected(void *param)
+void ManualControl::OnEnterDisconnected(ManualControl *control)
 {
-    OnEnterState(param);
+    OnEnterState(control);
     opi.set(ledState::LED_OFF);
 }
 
-MC_Message ManualControl::OnDisconnected(void *param)
+MC_Message ManualControl::OnDisconnected(ManualControl *control)
 {
     DO_TRANSITION(MC_State::Disconnected);
 
-    return CheckButtons(param);
+    return CheckButtons(control);
 }
 
-void ManualControl::OnEnterHWFailure(void *param)
+void ManualControl::OnEnterHWFailure(ManualControl *control)
 {
-    OnEnterRecovery(param);
+    OnEnterRecovery(control);
 }
 
-MC_Message ManualControl::OnHWFailure(void *param)
+MC_Message ManualControl::OnHWFailure(ManualControl *control)
 {
     DO_TRANSITION(MC_State::HWFailure);
     mri.set(ledState::LED_BLINK);
@@ -355,37 +352,35 @@ MC_Message ManualControl::OnHWFailure(void *param)
     return MC_Message::None;
 }
 
-void ManualControl::OnEnterRecoveryFailure(void *param)
+void ManualControl::OnEnterRecoveryFailure(ManualControl *control)
 {
-    OnEnterState(param);
+    OnEnterState(control);
     opi.set(ledState::LED_OFF);
 }
 
-MC_Message ManualControl::OnRecoveryFailure(void *param)
+MC_Message ManualControl::OnRecoveryFailure(ManualControl *control)
 {
     DO_TRANSITION(MC_State::RecoveryFailure);
 
-    return CheckButtons(param);
+    return CheckButtons(control);
 }
 
-void ManualControl::OnEnterUnlock(void *param)
+void ManualControl::OnEnterUnlock(ManualControl *control)
 {
     ledState opiState = opi.get();
-    OnEnterState(param);
+    OnEnterState(control);
     opi.set(opiState);
     uli.set(ledState::LED_OFF);
 }
 
-MC_Message ManualControl::OnUnlock(void *param)
+MC_Message ManualControl::OnUnlock(ManualControl *control)
 {
-    ManualControl *mc = (ManualControl *)param;
-        
-    if (millis() - mc->t0 < 1000)
+    if (millis() - control->t0 < 1000)
     {
         if (ul.state() == buttonState::BUTTON_OFF || rr.state() == buttonState::BUTTON_ON || mr.state() == buttonState::BUTTON_ON)
             return MC_Message::Connected;
     }
-    else if (millis() - mc->t0 < 4000)
+    else if (millis() - control->t0 < 4000)
     {
         mri.set(ledState::LED_ON);
         rri.set(ledState::LED_ON);

@@ -41,13 +41,13 @@ public:
 	State m_state;
 };
 
-template<typename Verb, typename State>
+template<typename Verb, typename State, typename Param>
 class SMState
 {
 public:
-	typedef void (*OnEntry)(void *param);
-	typedef Verb(*OnState)(void *param);
-	typedef Verb(*OnExit)(Verb verb, void *param);
+	typedef void (*OnEntry)(Param *param);
+	typedef Verb(*OnState)(Param *param);
+	typedef Verb(*OnExit)(Verb verb, Param *param);
 
 public:
 	SMState() :
@@ -83,7 +83,7 @@ public:
 		CopyTransitions(transitions, nTransitions);
 	}
 
-    SMState(const SMState<Verb, State> &other)
+    SMState(const SMState<Verb, State, Param> &other)
     {
         *this = other;
     }
@@ -115,17 +115,17 @@ public:
 		return (State)0;
 	}
 
-	void doEnter(void *param)
+	void doEnter(Param *param)
 	{
 		m_onEntry(param);
 	}
 
-	Verb doState(void *param)
+	Verb doState(Param *param)
 	{
 		return m_onState(param);
 	}
 
-	Verb doExit(Verb verb, void *param)
+	Verb doExit(Verb verb, Param *param)
 	{
 		return m_onExit(verb, param);
 	}
@@ -136,11 +136,11 @@ public:
 	}
 
 public:
-	static void OnEnterDoNothing(void *param)
+	static void OnEnterDoNothing(Param *param)
 	{
 	}
 
-	static Verb OnExitDoNothing(Verb verb, void *param)
+	static Verb OnExitDoNothing(Verb verb, Param *param)
 	{
 		return verb;
 	}
@@ -164,11 +164,11 @@ private:
 	int m_nTransitions;
 };
 
-template<typename Verb, typename State>
+template<typename Verb, typename State, typename Param>
 struct StateMachine
 {
 public:
-	StateMachine(SMState<Verb, State> states[], int nStates, void *param
+	StateMachine(SMState<Verb, State, Param> states[], int nStates, Param *param
 #ifdef DEBUG_STATE_MACHINE
 		, const char *name
 #endif
@@ -180,7 +180,7 @@ public:
 		, m_name(name)
 #endif
 	{
-		m_states = new SMState<Verb, State>[m_nStates];
+		m_states = new SMState<Verb, State, Param>[m_nStates];
 		for (int i = 0; i < m_nStates; i++)
 			m_states[i] = states[i];
 		m_current = m_states;
@@ -258,18 +258,18 @@ public:
 		ApplyVerb(newVerb);
 	}
 
-	SMState<Verb, State> *current()
+	SMState<Verb, State, Param> *current()
 	{
 		return m_current;
 	}
 
 private:
-	SMState<Verb, State> *m_current;
+	SMState<Verb, State, Param> *m_current;
 	Verb m_nextVerb;
-	SMState<Verb, State> *m_states;
+	SMState<Verb, State, Param> *m_states;
 	int m_nStates;
 	bool m_first;
-	void *m_param;
+	Param *m_param;
 	const char *m_name;
 };
 

@@ -216,7 +216,7 @@ public:
 	void StartRecoveryCycles(RecoveryTypes recoveryType);
 
 private:
-	StateMachine<RecoveryMessages, RecoveryStates> *m_pSM;
+	StateMachine<RecoveryMessages, RecoveryStates, SMParam> *m_pSM;
 	SMParam *m_param;
 	Observers<RecoveryStateChangedParams> m_recoveryStateChanged;
 	Observers<PowerStateChangedParams> m_modemPowerStateChanged;
@@ -226,30 +226,30 @@ private:
 	RecoveryTypes m_currentRecoveryState;
 
 private:
-	static void OnEnterInit(void *param);
-	static RecoveryMessages OnInit(void *param);
-	static void OnEnterCheckConnectivity(void *param);
-	static RecoveryMessages OnCheckConnectivity(void *param);
-	static RecoveryMessages OnWaitConnectionTestPeriod(void *param);
-	static RecoveryMessages OnStartCheckConnectivity(void *param);
-	static void OnEnterDisconnectRouter(void *param);
-	static void OnEnterDisconnectRouter(void *param, bool signalStateChanged);
-	static RecoveryMessages OnDisconnectRouter(void *param);
-	static RecoveryMessages OnWaitWhileRecovering(void *param);
-	static RecoveryMessages OnCheckRouterRecoveryTimeout(void *param);
-	static void OnEnterDisconnectModem(void *param);
-	static void OnEnterDisconnectModem(void *param, bool signalStateChanged);
-	static RecoveryMessages OnDisconnectModem(void *param);
-	static RecoveryMessages OnCheckModemRecoveryTimeout(void *param);
-	static RecoveryMessages OnCheckMaxCyclesExceeded(void *param);
-	static void OnEnterHWError(void *param);
-	static RecoveryMessages OnHWError(void *param);
-	static RecoveryMessages DecideRecoveryPath(RecoveryMessages message, void *param);
-	static RecoveryMessages UpdateRecoveryState(RecoveryMessages message, void *param);
-	static void OnEnterPeriodicRestart(void *param);
-	static RecoveryMessages OnPeriodicRestart(void *param);
-	static RecoveryMessages OnCheckPeriodicRestartTimeout(void *param);
-	static RecoveryMessages DecideUponPeriodicRestartTimeout(RecoveryMessages message, void *param);
+	static void OnEnterInit(SMParam *smParam);
+	static RecoveryMessages OnInit(SMParam *smParam);
+	static void OnEnterCheckConnectivity(SMParam *smParam);
+	static RecoveryMessages OnCheckConnectivity(SMParam *smParam);
+	static RecoveryMessages OnWaitConnectionTestPeriod(SMParam *smParam);
+	static RecoveryMessages OnStartCheckConnectivity(SMParam *smParam);
+	static void OnEnterDisconnectRouter(SMParam *smParam);
+	static void OnEnterDisconnectRouter(SMParam *smParam, bool signalStateChanged);
+	static RecoveryMessages OnDisconnectRouter(SMParam *smParam);
+	static RecoveryMessages OnWaitWhileRecovering(SMParam *smParam);
+	static RecoveryMessages OnCheckRouterRecoveryTimeout(SMParam *smParam);
+	static void OnEnterDisconnectModem(SMParam *smParam);
+	static void OnEnterDisconnectModem(SMParam *smParam, bool signalStateChanged);
+	static RecoveryMessages OnDisconnectModem(SMParam *smParam);
+	static RecoveryMessages OnCheckModemRecoveryTimeout(SMParam *smParam);
+	static RecoveryMessages OnCheckMaxCyclesExceeded(SMParam *smParam);
+	static void OnEnterHWError(SMParam *smParam);
+	static RecoveryMessages OnHWError(SMParam *smParam);
+	static RecoveryMessages DecideRecoveryPath(RecoveryMessages message, SMParam *smParam);
+	static RecoveryMessages UpdateRecoveryState(RecoveryMessages message, SMParam *smParam);
+	static void OnEnterPeriodicRestart(SMParam *smParam);
+	static RecoveryMessages OnPeriodicRestart(SMParam *smParam);
+	static RecoveryMessages OnCheckPeriodicRestartTimeout(SMParam *smParam);
+	static RecoveryMessages DecideUponPeriodicRestartTimeout(RecoveryMessages message, SMParam *smParam);
 	void RaiseRecoveryStateChanged(RecoveryTypes recoveryType, RecoverySource recoverySource);
 	static void AppConfigChanged(const AppConfigChangedParam &param, const void *context);
 	static void RecoveryControlTask(void *param);
