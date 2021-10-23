@@ -2,6 +2,7 @@
 #define Observers_h
 
 #include <LinkedList.h>
+#include <atomic>
 
 template <typename EventData>
 class Observers
@@ -84,7 +85,7 @@ public:
 	}
 
 private:
-	int m_token;
+	std::atomic<int> m_token;
 	LinkedList<ObserverData> m_observers;
 };
 
