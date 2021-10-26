@@ -123,46 +123,6 @@ public:
 	int m_maxRecords;
 };
 
-class RecoveryControl;
-
-class SMParam
-{
-public:
-	SMParam(RecoveryControl *recoveryControl, time_t _lastRecovery, RecoverySource recoverySource = RecoverySource::Auto) :
-		m_recoveryControl(recoveryControl),
-		m_recoverySource(recoverySource),
-		lastRecovery(_lastRecovery),
-		lanConnected(false),
-		lastRecoveryType(RecoveryTypes::NoRecovery),
-		requestedRecovery(RecoveryMessages::Done),
-		updateConnState(false),
-		cycles(0),
-		autoRecovery(AppConfig::getAutoRecovery()),
-		maxHistory(AppConfig::getMaxHistory()),
-		stateParam(NULL),
-		nextPeriodicRestart(-1)
-	{
-		waitSem = xSemaphoreCreateBinary();
-	}
-
-	RecoveryControl *m_recoveryControl;
-	RecoverySource m_recoverySource;
-	time_t lastRecovery;
-	bool lanConnected;
-	RecoveryTypes lastRecoveryType;
-	RecoveryMessages requestedRecovery;
-	bool updateConnState;
-	time_t recoveryStart;
-	time_t t0;
-	int cycles;
-	bool autoRecovery;
-	int maxHistory;
-	void *stateParam;
-    xSemaphoreHandle waitSem;
-	time_t nextPeriodicRestart;
-	CriticalSection csLock;
-};
-
 class RecoveryControl
 {
 public:
@@ -204,57 +164,73 @@ public:
 
 	time_t GetLastRecovery()
 	{
-		return m_param->lastRecovery;
+		return lastRecovery;
 	}
 
 	bool GetAutoRecovery()
 	{
-		return m_param->autoRecovery;
+		return autoRecovery;
 	}
 
 public:
 	void StartRecoveryCycles(RecoveryTypes recoveryType);
 
 private:
-	StateMachine<RecoveryMessages, RecoveryStates, SMParam> *m_pSM;
-	SMParam *m_param;
+	StateMachine<RecoveryMessages, RecoveryStates, RecoveryControl> *m_pSM;
 	Observers<RecoveryStateChangedParams> m_recoveryStateChanged;
 	Observers<PowerStateChangedParams> m_modemPowerStateChanged;
 	Observers<PowerStateChangedParams> m_routerPowerStateChanged;
 	Observers<AutoRecoveryStateChangedParams> m_autoRecoveryStateChanged;
 	Observers<MaxHistoryRecordChangedParams> m_maxHistoryRecordsChanged;
-	RecoveryTypes m_currentRecoveryState;
 
 private:
-	static void OnEnterInit(SMParam *smParam);
-	static RecoveryMessages OnInit(SMParam *smParam);
-	static void OnEnterCheckConnectivity(SMParam *smParam);
-	static RecoveryMessages OnCheckConnectivity(SMParam *smParam);
-	static RecoveryMessages OnWaitConnectionTestPeriod(SMParam *smParam);
-	static RecoveryMessages OnStartCheckConnectivity(SMParam *smParam);
-	static void OnEnterDisconnectRouter(SMParam *smParam);
-	static void OnEnterDisconnectRouter(SMParam *smParam, bool signalStateChanged);
-	static RecoveryMessages OnDisconnectRouter(SMParam *smParam);
-	static RecoveryMessages OnWaitWhileRecovering(SMParam *smParam);
-	static RecoveryMessages OnCheckRouterRecoveryTimeout(SMParam *smParam);
-	static void OnEnterDisconnectModem(SMParam *smParam);
-	static void OnEnterDisconnectModem(SMParam *smParam, bool signalStateChanged);
-	static RecoveryMessages OnDisconnectModem(SMParam *smParam);
-	static RecoveryMessages OnCheckModemRecoveryTimeout(SMParam *smParam);
-	static RecoveryMessages OnCheckMaxCyclesExceeded(SMParam *smParam);
-	static void OnEnterHWError(SMParam *smParam);
-	static RecoveryMessages OnHWError(SMParam *smParam);
-	static RecoveryMessages DecideRecoveryPath(RecoveryMessages message, SMParam *smParam);
-	static RecoveryMessages UpdateRecoveryState(RecoveryMessages message, SMParam *smParam);
-	static void OnEnterPeriodicRestart(SMParam *smParam);
-	static RecoveryMessages OnPeriodicRestart(SMParam *smParam);
-	static RecoveryMessages OnCheckPeriodicRestartTimeout(SMParam *smParam);
-	static RecoveryMessages DecideUponPeriodicRestartTimeout(RecoveryMessages message, SMParam *smParam);
+	static void OnEnterInit(RecoveryControl *control);
+	static RecoveryMessages OnInit(RecoveryControl *control);
+	static void OnEnterCheckConnectivity(RecoveryControl *control);
+	static RecoveryMessages OnCheckConnectivity(RecoveryControl *control);
+	static RecoveryMessages OnWaitConnectionTestPeriod(RecoveryControl *control);
+	static RecoveryMessages OnStartCheckConnectivity(RecoveryControl *control);
+	static void OnEnterDisconnectRouter(RecoveryControl *control);
+	static void OnEnterDisconnectRouter(RecoveryControl *control, bool signalStateChanged);
+	static RecoveryMessages OnDisconnectRouter(RecoveryControl *control);
+	static RecoveryMessages OnWaitWhileRecovering(RecoveryControl *control);
+	static RecoveryMessages OnCheckRouterRecoveryTimeout(RecoveryControl *control);
+	static void OnEnterDisconnectModem(RecoveryControl *control);
+	static void OnEnterDisconnectModem(RecoveryControl *control, bool signalStateChanged);
+	static RecoveryMessages OnDisconnectModem(RecoveryControl *control);
+	static RecoveryMessages OnCheckModemRecoveryTimeout(RecoveryControl *control);
+	static RecoveryMessages OnCheckMaxCyclesExceeded(RecoveryControl *control);
+	static void OnEnterHWError(RecoveryControl *control);
+	static RecoveryMessages OnHWError(RecoveryControl *control);
+	static RecoveryMessages DecideRecoveryPath(RecoveryMessages message, RecoveryControl *control);
+	static RecoveryMessages UpdateRecoveryState(RecoveryMessages message, RecoveryControl *control);
+	static void OnEnterPeriodicRestart(RecoveryControl *control);
+	static RecoveryMessages OnPeriodicRestart(RecoveryControl *control);
+	static RecoveryMessages OnCheckPeriodicRestartTimeout(RecoveryControl *control);
+	static RecoveryMessages DecideUponPeriodicRestartTimeout(RecoveryMessages message, RecoveryControl *control);
 	void RaiseRecoveryStateChanged(RecoveryTypes recoveryType, RecoverySource recoverySource);
 	static void AppConfigChanged(const AppConfigChangedParam &param, const void *context);
 	static void RecoveryControlTask(void *param);
 	static bool isPeriodicRestartEnabled();
 	static time_t calcNextPeriodicRestart();
+
+private:
+	RecoveryTypes m_currentRecoveryState;
+	RecoverySource m_recoverySource;
+	time_t lastRecovery;
+	bool lanConnected;
+	RecoveryTypes lastRecoveryType;
+	RecoveryMessages requestedRecovery;
+	bool updateConnState;
+	time_t recoveryStart;
+	time_t t0;
+	int cycles;
+	bool autoRecovery;
+	int maxHistory;
+	void *stateParam;
+    xSemaphoreHandle waitSem;
+	time_t nextPeriodicRestart;
+	CriticalSection csLock;
 };
 
 extern RecoveryControl recoveryControl;
