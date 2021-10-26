@@ -51,7 +51,12 @@ public:
     void PerformCycle();
 
 private:
-    static void OnEnterState(ManualControl *control);
+    void OnEnterState();
+    MC_Message CheckUnlock();
+    MC_Message CheckCheckConnectivity();
+    MC_Message CheckButtons();
+
+private:
     static MC_Message OnInit(ManualControl *control);
     static void OnEnterConnected(ManualControl *control);
     static MC_Message OnConnected(ManualControl *control);
@@ -73,9 +78,6 @@ private:
     static void OnEnterRecoveryFailure(ManualControl *control);
     static MC_Message OnRecoveryFailure(ManualControl *control);
     static MC_Message transitionMessage(MC_State currState);
-    static MC_Message CheckUnlock(ManualControl *control);
-    static MC_Message CheckCheckConnectivity(ManualControl *param);
-    static MC_Message CheckButtons(ManualControl *control);
 
 private:
 	StateMachine<MC_Message, MC_State, ManualControl> *m_pSM;

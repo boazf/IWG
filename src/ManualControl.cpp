@@ -193,13 +193,13 @@ MC_Message ManualControl::transitionMessage(MC_State currState)
 #define DO_TRANSITION(curr) { MC_Message msg = transitionMessage(curr); if (msg != MC_Message::None) return msg; }
 
 
-void ManualControl::OnEnterState(ManualControl *control)
+void ManualControl::OnEnterState()
 {
-    control->t0 = millis();
-    control->rrState = rr.state();
-    control->mrState = mr.state();
-    control->ulState = ul.state();
-    control->ccState = cc.state();
+    t0 = millis();
+    rrState = rr.state();
+    mrState = mr.state();
+    ulState = ul.state();
+    ccState = cc.state();
     opi.set(ledState::LED_IDLE);
     uli.set(ledState::LED_IDLE);
     mri.set(ledState::LED_IDLE);
@@ -209,62 +209,62 @@ void ManualControl::OnEnterState(ManualControl *control)
 
 void ManualControl::OnEnterConnected(ManualControl *control)
 {
-    OnEnterState(control);
+    control->OnEnterState();
     opi.set(ledState::LED_ON);
 }
 
-MC_Message ManualControl::CheckUnlock(ManualControl *control)
+MC_Message ManualControl::CheckUnlock()
 {
     if (ul.state() == buttonState::BUTTON_ON)
     {
-        if (control->ulState == buttonState::BUTTON_OFF && mr.state() == buttonState::BUTTON_OFF && rr.state() == buttonState::BUTTON_OFF)
+        if (ulState == buttonState::BUTTON_OFF && mr.state() == buttonState::BUTTON_OFF && rr.state() == buttonState::BUTTON_OFF)
         {
             return MC_Message::Unlock;
         }
     }
     else
-        control->ulState = buttonState::BUTTON_OFF;
+        ulState = buttonState::BUTTON_OFF;
 
     return MC_Message::None;
 }
 
-MC_Message ManualControl::CheckCheckConnectivity(ManualControl *control)
+MC_Message ManualControl::CheckCheckConnectivity()
 {
     if (cc.state() == buttonState::BUTTON_ON)
     {
-        if (control->ccState == buttonState::BUTTON_OFF)
+        if (ccState == buttonState::BUTTON_OFF)
         {
-            control->ccState = buttonState::BUTTON_ON;
+            ccState = buttonState::BUTTON_ON;
             recoveryControl.StartRecoveryCycles(RecoveryTypes::ConnectivityCheck);
         }
     }
     else
     {
-        control->ccState = buttonState::BUTTON_OFF;
+        ccState = buttonState::BUTTON_OFF;
     }
 
     return MC_Message::None;
 }
 
-MC_Message ManualControl::CheckButtons(ManualControl *control)
+MC_Message ManualControl::CheckButtons()
 {
-    MC_Message ulMsg = CheckUnlock(control);
+    MC_Message ulMsg = CheckUnlock();
     if (ulMsg != MC_Message::None)
         return ulMsg;
 
-    return CheckCheckConnectivity(control);
+    return CheckCheckConnectivity();
 }
 
 MC_Message ManualControl::OnConnected(ManualControl *control)
 {
     DO_TRANSITION(MC_State::Connected);
 
-    return CheckButtons(control);
+    return control->CheckButtons();
 }
 
 void ManualControl::OnEnterCheckConnectivity(ManualControl *control)
 {
-    OnEnterState(control);
+    control->OnEnterState();
     opi.set(ledState::LED_BLINK);
 }
 
@@ -276,7 +276,7 @@ MC_Message ManualControl::OnCheckConnectivity(ManualControl *control)
 
 void ManualControl::OnEnterRecovery(ManualControl *control)
 {
-    OnEnterState(control);
+    control->OnEnterState();
     opi.set(ledState::LED_OFF);
     uli.set(ledState::LED_OFF);
     mri.set(ledState::LED_OFF);
@@ -328,7 +328,7 @@ MC_Message ManualControl::OnPeriodicRestart(ManualControl *control)
 
 void ManualControl::OnEnterDisconnected(ManualControl *control)
 {
-    OnEnterState(control);
+    control->OnEnterState();
     opi.set(ledState::LED_OFF);
 }
 
@@ -336,7 +336,7 @@ MC_Message ManualControl::OnDisconnected(ManualControl *control)
 {
     DO_TRANSITION(MC_State::Disconnected);
 
-    return CheckButtons(control);
+    return control->CheckButtons();
 }
 
 void ManualControl::OnEnterHWFailure(ManualControl *control)
@@ -354,7 +354,7 @@ MC_Message ManualControl::OnHWFailure(ManualControl *control)
 
 void ManualControl::OnEnterRecoveryFailure(ManualControl *control)
 {
-    OnEnterState(control);
+    control->OnEnterState();
     opi.set(ledState::LED_OFF);
 }
 
@@ -362,13 +362,13 @@ MC_Message ManualControl::OnRecoveryFailure(ManualControl *control)
 {
     DO_TRANSITION(MC_State::RecoveryFailure);
 
-    return CheckButtons(control);
+    return control->CheckButtons();
 }
 
 void ManualControl::OnEnterUnlock(ManualControl *control)
 {
     ledState opiState = opi.get();
-    OnEnterState(control);
+    control->OnEnterState();
     opi.set(opiState);
     uli.set(ledState::LED_OFF);
 }
