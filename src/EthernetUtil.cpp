@@ -593,7 +593,7 @@ bool TryGetHostAddress(IPAddress &address, String server)
   {
     Lock lock(csSpi);
     
-    dns.begin(Config::gateway);
+    dns.begin(Eth.gatewayIP());
 
     failed = dns.getHostByName(server.c_str(), address) != 1;
   }
