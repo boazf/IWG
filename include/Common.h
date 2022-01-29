@@ -4,7 +4,7 @@
 #include <Trace.h>
 #include <Lock.h>
 
-// #define DEBUG_SD
+//#define DEBUG_SD
 // #define DEBUG_ETHERNET
 // #define DEBUG_TIME
 // #define DEBUG_SFT
@@ -13,6 +13,7 @@
 // #define DEBUG_RECOVERY_CONTROL
 // #define DEBUG_HISTORY
 // #define DEBUG_STATE_MACHINE
+// #define DEBUG_POWER
 
 #define NELEMS(a) (sizeof(a)/sizeof(*a))
 #define MAX_PATH 128
