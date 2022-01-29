@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Config.h>
 #include <SDUtil.h>
+#include <PwrCntl.h>
 
 // Default MAC address
 // Newer Ethernet shields have a MAC address printed on a sticker on the shield
@@ -22,9 +23,11 @@ const char *Config::timeServer = "time.nist.gov";
 const char *Config::configFileName = "config.txt";
 byte Config::modemRelay = 26;
 byte Config::routerRelay = 25;
-bool Config::singleDevice = false;
+bool Config::singleDevice = false; // Default is two devices: router and modem
 const char *Config::deviceName = "Router";
-time_t Config::skipRouterTime = 60 * 60;
+time_t Config::skipRouterTime = 60 * 60; // One hour
+long Config::hardResetPeriodDays = 3; // 3 days
+long Config::hardResetTime = 3 * 60 * 60; // 3AM
 #ifdef USE_WIFI
 const char *Config::ssid /* = "Your SSID" */;
 const char *Config::password /* = "Your password" */;
@@ -98,6 +101,22 @@ bool Config::ParseBoolean(const String &configValue, void *parsedBoolean)
   }
 }
 
+bool Config::ParseTime(const String &configValue, void *parsedTime)
+{
+  u_int h, m;
+
+  if (sscanf(configValue.c_str(), "%d:%d", &h, &m) != 2)
+    return false;
+
+  if (h > 23 || m > 60)
+    return false;
+
+  *((unsigned long *)parsedTime) = (h * 60 + m) * 60;
+
+  return true;
+}
+
+
 void Config::Init()
 {
   AutoSD autoSD;
@@ -123,10 +142,12 @@ void Config::Init()
     { String("Gateway"), ParseIPAddress, gateway },
     { String("Subnet"), ParseIPAddress, mask },
     { String("ModemRelay"), ParseByte, &modemRelay },
-    { String("RouterRelay"), ParseByte, &routerRelay},
-    { String("SingleDevice"), ParseBoolean, &singleDevice},
-    { String("DeviceName"), ParseString, &deviceName},
-    { String("SkipRouterTime"), ParseLong, &skipRouterTime}
+    { String("RouterRelay"), ParseByte, &routerRelay },
+    { String("SingleDevice"), ParseBoolean, &singleDevice },
+    { String("DeviceName"), ParseString, &deviceName },
+    { String("SkipRouterTime"), ParseLong, &skipRouterTime },
+    { String("HardResetPeriodDays"), ParseLong, &hardResetPeriodDays },
+    { String("HardResetTime"), ParseTime, &hardResetTime }
   #ifdef USE_WIFI
     , { String("SSID"), ParseString, &ssid },
     { String("Password"), ParseString, &password }
@@ -150,6 +171,7 @@ void Config::Init()
 #ifdef DEBUG_CONFIG
     Traceln("Failed to open configuration file");
 #endif
+    HardReset();
     return;
   }
 

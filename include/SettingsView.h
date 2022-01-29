@@ -32,6 +32,7 @@ enum class settingsKeys
 class SettingsView : public HtmlFillerView
 {
     typedef std::map<settingsKeys, bool> SettingsValuesSetMap;
+    typedef std::map<const std::string, settingsKeys> SettingsMap;
 
 public:
     SettingsView(const char *_viewName, const char *_viewFile);     
@@ -42,7 +43,7 @@ protected:
 
 private:
     static ViewFiller fillers[];
-    static std::map<const std::string, settingsKeys> settingsMap;
+    static SettingsMap settingsMap;
 
 private:
     bool parseBool(const String &val);

@@ -14,6 +14,7 @@
 #include <esp_task_wdt.h>
 #include <Indicators.h>
 #include <GWConnTest.h>
+#include <PwrCntl.h>
 
 void initProgress(bool last = false)
 {
@@ -33,6 +34,7 @@ void setup() {
   initProgress();
   esp_task_wdt_init(30, false);
   InitSerialTrace();
+  InitPowerControl();
   InitSD();
   InitConfig();
   InitAppConfig();

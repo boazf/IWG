@@ -9,6 +9,14 @@ static char logFileName[80];
 
 #define LOG_DIR "/logs"
 
+static bool traceStop = false;
+
+void TraceStop()
+{
+    traceStop = true;
+    AutoSD::WaitForIdle();
+}
+
 static time_t GetFileTimeFromFileName(SdFile file)
 {
     const char *fileName = file.name();
@@ -172,6 +180,9 @@ void InitFileTrace()
 
 size_t Trace(const char *message) 
 { 
+    if (traceStop)
+        return 0;
+
     LOCK_TRACE();
     
     size_t ret = Serial.print(message);

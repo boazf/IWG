@@ -362,9 +362,10 @@ bool InitEthernet()
   WiFi.setAutoReconnect(true);
   uint8_t *mac = IsZeroIPAddress(Config::mac) ? NULL : Config::mac;
   WiFi.begin(Config::ssid, Config::password, 0, mac);
+  unsigned long t0 = millis();
   while(true)
   {
-    if (WiFi.waitForConnectResult() != WL_CONNECTED)
+    if (WiFi.waitForConnectResult() != WL_CONNECTED && millis() - t0 < 60000)
     {
       delay(500);
 #ifdef DEBUG_ETHERNET
@@ -387,6 +388,7 @@ bool InitEthernet()
         break;
       WiFi.reconnect();
       delay(2000);
+      t0 = millis();
     }
   }
 

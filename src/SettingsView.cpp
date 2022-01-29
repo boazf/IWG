@@ -78,7 +78,7 @@ time_t SettingsView::parseTime(const String &val)
 }
 
 #define X(a) { #a, settingsKeys::a },
-std::map<const std::string, settingsKeys> SettingsView::settingsMap = 
+SettingsView::SettingsMap SettingsView::settingsMap = 
 {
     SETTINGS_KEYS
 };
@@ -93,7 +93,7 @@ void SettingsView::SetConfigValue(const String &pair, SettingsValuesSetMap &sett
     String var = pair.substring(0, eqIndex);
     String val = pair.substring(eqIndex + 1);
 
-    std::map<const std::string, settingsKeys>::iterator i = settingsMap.find(var.c_str());
+    SettingsMap::iterator i = settingsMap.find(var.c_str());
     if (i == settingsMap.end())
     {
         Tracef("Unknown settings key variable: %s\n", var.c_str());

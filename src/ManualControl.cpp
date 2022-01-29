@@ -6,6 +6,7 @@
 #ifdef DEBUG_STATE_MACHINE
 #include <StringableEnum.h>
 #endif
+#include <PwrCntl.h>
 
 void ManualControl::Init()
 {
@@ -124,7 +125,7 @@ void ManualControl::Init()
 
 	m_pSM = new StateMachine<MC_Message, MC_State, ManualControl>(states, NELEMS(states), this
 #ifdef DEBUG_STATE_MACHINE
-			, "MenualControl"
+			, "ManualControl"
 #endif
         );
 }
@@ -394,6 +395,14 @@ MC_Message ManualControl::OnUnlock(ManualControl *control)
         {
             recoveryControl.StartRecoveryCycles(RecoveryTypes::Modem);        
             return transitionMessage(MC_State::Unlock);
+        }
+        else if (cc.state() == buttonState::BUTTON_ON)
+        {
+            opi.set(ledState::LED_BLINK);
+            uli.set(ledState::LED_OFF);
+            rri.set(ledState::LED_OFF);
+            mri.set(ledState::LED_OFF);
+            HardReset();
         }
     }
     else

@@ -22,6 +22,19 @@ AutoSD::~AutoSD()
     SD.end();
 }
 
+void AutoSD::WaitForIdle()
+{
+  delay(1);
+  do
+  {
+    cs.Enter();
+    if (count == 0)
+      return;
+    cs.Leave();
+    delay(1);
+  } while(true);
+}
+
 #undef SD
 
 bool SDExClass::begin(uint8_t ssPin, SPIClass &spi, uint32_t frequency, const char * mountpoint, uint8_t max_files)

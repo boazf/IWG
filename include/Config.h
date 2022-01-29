@@ -25,6 +25,8 @@ public:
     static bool singleDevice;
     static const char *deviceName;
     static time_t skipRouterTime;
+    static long hardResetPeriodDays;
+    static long hardResetTime;
 #ifdef USE_WIFI
     static const char *ssid;
     static const char *password;
@@ -46,6 +48,7 @@ private:
     static bool ParseMACAddress(const String &configValue, void *parsedMACAddress);
     static bool ParseIPAddress(const String &configValue, void *parsedIPAddress);
     static bool ParseBoolean(const String &configValue, void *parsedBoolean);
+    static bool ParseTime(const String &configValue, void *parsedTime);
 };
 
 void InitConfig();

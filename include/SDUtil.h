@@ -12,6 +12,7 @@ class AutoSD
 public:
   AutoSD();
   ~AutoSD();
+  static void WaitForIdle();
 
 private:
   static int count;

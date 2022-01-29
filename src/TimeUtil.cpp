@@ -9,6 +9,7 @@
 #include <AppConfig.h>
 
 static bool DST;
+Observers<TimeChangedParam> timeChanged;
 
 #define MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC 30
 
@@ -19,21 +20,26 @@ static void setTime(bool ignoreFailure)
   tm tr1;
   delay(2000);
   tr1.tm_year = 0;
-  getLocalTime(&tr1, MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC * 1000);
+  if (!getLocalTime(&tr1, MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC * 1000))
 #else
+  unsigned long t0 = millis();
+  time_t utc = 0;
+  while(millis() - t0 < MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC * 1000 && (utc = NTPClient::getUTC()) == 0)
+    delay(100);
+  if (utc == 0)
+#endif
   {
-    unsigned long t0 = millis();
-    time_t utc = 0;
-    while(millis() - t0 < MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC * 1000 && (utc = NTPClient::getUTC()) == 0)
-      delay(100);
-    if (utc == 0 && !ignoreFailure)
+    if (!ignoreFailure)
     {
 #ifdef DEBUG_TIME
       Traceln("Failed to query current time from time server!");
 #endif
       return;
     }
-
+  }
+#ifndef USE_WIFI
+  else
+  {
     time_t now = utc + Config::timeZone * 60 + (DST ? (Config::DST * 60) : 0);
     timeval tv = {now, 0};
     settimeofday(&tv, NULL);
@@ -49,6 +55,8 @@ static void setTime(bool ignoreFailure)
   strftime(buff, sizeof(buff), "DateTime: %a %d/%m/%Y %T%n", &tr);
   Trace(buff);
 #endif
+
+  timeChanged.callObservers(TimeChangedParam(t_now));
 }
 
 static void appConfigChanged(const AppConfigChangedParam &param, const void *context)
