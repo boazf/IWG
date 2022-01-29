@@ -3,6 +3,7 @@
 #include <HistoryControl.h>
 #include <Common.h>
 #include <Config.h>
+#include <TimeUtil.h>
 
 typedef bool(*fillFile)(SdFile &file);
 
@@ -121,7 +122,9 @@ bool HistoryView::open(byte *buff, int buffSize)
     }
 
     historyFile = SD.open(TEMP_HISTORY_FILE_PATH, FILE_READ);
-    if (!historyFile || historyFile.getLastWrite() < historyControl.getLastUpdate())
+    if (!historyFile || 
+        historyFile.getLastWrite() > t_now || // Handle case where current time wasn't set well
+        historyFile.getLastWrite() < historyControl.getLastUpdate())
     {
         if (historyFile)
             historyFile.close();
