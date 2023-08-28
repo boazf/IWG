@@ -31,7 +31,7 @@ bool FilesView::post(EthClient &client, const String &resource, const String &id
             char buff[64];
             localtime_r(&fileTime, &tmFile);
             strftime(buff, sizeof(buff), "%d/%m/%Y %H:%M", &tmFile);
-            resp += String(first ? "" : ",\n") + "{ \"time\": \"" + buff + "\", \"name\": \"" + file.name() + "\", \"isDir\": " + (file.isDirectory() ? "true" : "false") + ", \"size\": " + file.size() + " }";
+            resp += String(first ? "" : ",\n") + "{ \"time\": \"" + buff + "\", \"name\": \"" + file.path() + "\", \"isDir\": " + (file.isDirectory() ? "true" : "false") + ", \"size\": " + file.size() + " }";
             file.close();
             file = dir.openNextFile(FILE_READ);
             first = false;

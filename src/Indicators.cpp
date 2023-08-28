@@ -4,7 +4,7 @@
 #define LED_FREQ 5000
 #define LED_RESOLUTION 5
 
-#define LED_ON_DUTY 31
+#define LED_ON_DUTY 32
 #define LED_OFF_DUTY 0
 #define LED_IDLE_DUTY 1
 

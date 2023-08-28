@@ -89,6 +89,12 @@ time_t FileEx::getLastWrite()
     return file.getLastWrite();
 }
 
+const char* FileEx::path() const
+{
+    Lock lock(csSpi);
+    return file.path();
+}
+
 const char* FileEx::name() const
 {
     Lock lock(csSpi);
