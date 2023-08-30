@@ -108,7 +108,8 @@ void RecoveryControl::Init()
 
 	RecoveryTransition checkRouterRecoveryTimeoutTrans[] =
 	{
-		{ RecoveryMessages::Timeout, Config::singleDevice ? RecoveryStates::CheckMaxCyclesExceeded : RecoveryStates::DisconnectModem },
+		{ RecoveryMessages::Timeout, RecoveryStates::CheckMaxCyclesExceeded },
+		{ RecoveryMessages::DisconnectModem, RecoveryStates::DisconnectModem },
 		{ RecoveryMessages::NoTimeout, RecoveryStates::WaitAfterRouterRecovery }
 	};
 
@@ -213,7 +214,7 @@ void RecoveryControl::Init()
 			RecoveryStates::CheckRouterRecoveryTimeout, 
 			RecoveryState::OnEnterDoNothing, 
 			OnCheckRouterRecoveryTimeout, 
-			RecoveryState::OnExitDoNothing, 
+			OnExitCheckRouterRecoveryTimeout, 
 			TRANSITIONS(checkRouterRecoveryTimeoutTrans)),
 		RecoveryState(
 			RecoveryStates::DisconnectModem, 
@@ -519,6 +520,7 @@ RecoveryMessages RecoveryControl::OnInit(RecoveryControl *control)
 #ifdef DEBUG_RECOVERY_CONTROL
 		Traceln("Timeout: could not establish connectivity upon initialization, starting recovery cycles");
 #endif
+		control->cycles = 0;
 		return RecoveryMessages::Disconnected;
 	}
 
@@ -812,6 +814,14 @@ RecoveryMessages RecoveryControl::OnCheckRouterRecoveryTimeout(RecoveryControl *
 	return t_now - control->recoveryStart > static_cast<time_t>(AppConfig::getRReconnect()) ? RecoveryMessages::Timeout : RecoveryMessages::NoTimeout;
 }
 
+RecoveryMessages RecoveryControl::OnExitCheckRouterRecoveryTimeout(RecoveryMessages message, RecoveryControl *control)
+{
+	if (message != RecoveryMessages::Timeout || Config::singleDevice)
+		return message;
+		
+	return RecoveryMessages::DisconnectModem;
+}
+
 void RecoveryControl::OnEnterDisconnectModem(RecoveryControl *control)
 {
 	OnEnterDisconnectModem(control, true);
@@ -856,6 +866,7 @@ RecoveryMessages RecoveryControl::OnCheckMaxCyclesExceeded(RecoveryControl *cont
 		return RecoveryMessages::NotExceeded;
 
 	control->RaiseRecoveryStateChanged(RecoveryTypes::Failed, RecoverySource::Auto);
+	control->cycles = 0;
 	return RecoveryMessages::Exceeded;
 }
 

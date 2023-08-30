@@ -195,6 +195,7 @@ private:
 	static RecoveryMessages OnDisconnectRouter(RecoveryControl *control);
 	static RecoveryMessages OnWaitWhileRecovering(RecoveryControl *control);
 	static RecoveryMessages OnCheckRouterRecoveryTimeout(RecoveryControl *control);
+	static RecoveryMessages OnExitCheckRouterRecoveryTimeout(RecoveryMessages message, RecoveryControl *control);
 	static void OnEnterDisconnectModem(RecoveryControl *control);
 	static void OnEnterDisconnectModem(RecoveryControl *control, bool signalStateChanged);
 	static RecoveryMessages OnDisconnectModem(RecoveryControl *control);
