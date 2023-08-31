@@ -41,14 +41,22 @@ bool FilesView::post(EthClient &client, const String &resource, const String &id
 #ifdef DEBUG_HTTP_SERVER
     Traceln(resp);
 #endif
+    unsigned int len = resp.length();
+
     client.println("HTTP/1.1 200 OK");
     client.print("Content-Length: ");
-    client.println(resp.length());
+    client.println(len);
     client.println("Content-Type: application/json");
     client.println("Connection: close"); 
     client.println("Server: Arduino");
     client.println();
-    client.print(resp);
+
+    // Send the response in slices because of a limitation of W5500. In case of WiFi this doesn't matter.
+    unsigned int index = 0;
+    #define BUFF_SIZE 1024U
+
+    for (unsigned int index = 0; index < len; index += BUFF_SIZE)
+        client.print(resp.substring(index, min<unsigned int>(index + BUFF_SIZE, len)));
 
     return true;
 }
