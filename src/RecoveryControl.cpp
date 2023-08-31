@@ -777,7 +777,10 @@ void RecoveryControl::OnEnterDisconnectRouter(RecoveryControl *control, bool sig
 	control->lastRecovery = INT32_MAX;
 	if (signalStateChanged)
 		control->RaiseRecoveryStateChanged(
-			Config::singleDevice? RecoveryTypes::RouterSingleDevice : RecoveryTypes::Router, control->m_recoverySource);
+			Config::singleDevice? 
+				RecoveryTypes::RouterSingleDevice : 
+				RecoveryTypes::Router, 
+			control->m_recoverySource);
 	delay(500);
 	control->recoveryStart = t_now;
 #ifdef DEBUG_RECOVERY_CONTROL
