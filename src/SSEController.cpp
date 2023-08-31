@@ -144,6 +144,9 @@ void SSEController::NotifyState(const String &id)
             
         return true;
     }, &params);
+
+    if (state.recoveryType == RecoveryTypes::RouterSingleDevice)
+        state.recoveryType = RecoveryTypes::Router;
 }
 
 void SSEController::Init()

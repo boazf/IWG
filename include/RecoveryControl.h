@@ -62,6 +62,7 @@ enum class RecoveryTypes
 {
 	NoRecovery,
 	Router,
+	RouterSingleDevice,
 	Modem,
 	ConnectivityCheck,
 	Failed,

@@ -178,6 +178,7 @@ MC_Message ManualControl::transitionMessage(MC_State currState)
             break;
 
         case RecoveryTypes::Router:
+        case RecoveryTypes::RouterSingleDevice:
             if (currState != MC_State::RouterRecovery)
                 return MC_Message::RouterRecovery;
             break;

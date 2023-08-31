@@ -687,6 +687,8 @@ RecoveryMessages RecoveryControl::DecideRecoveryPath(RecoveryMessages message, R
 void RecoveryControl::RaiseRecoveryStateChanged(RecoveryTypes recoveryType, RecoverySource recoverySource)
 {
 	m_currentRecoveryState = recoveryType;
+	if (m_currentRecoveryState == RecoveryTypes::RouterSingleDevice)
+		m_currentRecoveryState = RecoveryTypes::Router;
     RecoveryStateChangedParams params(recoveryType, recoverySource);
 	m_recoveryStateChanged.callObservers(params);
 }
@@ -774,7 +776,8 @@ void RecoveryControl::OnEnterDisconnectRouter(RecoveryControl *control, bool sig
 	control->lastRecoveryType = RecoveryTypes::Router;
 	control->lastRecovery = INT32_MAX;
 	if (signalStateChanged)
-		control->RaiseRecoveryStateChanged(RecoveryTypes::Router, control->m_recoverySource);
+		control->RaiseRecoveryStateChanged(
+			Config::singleDevice? RecoveryTypes::RouterSingleDevice : RecoveryTypes::Router, control->m_recoverySource);
 	delay(500);
 	control->recoveryStart = t_now;
 #ifdef DEBUG_RECOVERY_CONTROL

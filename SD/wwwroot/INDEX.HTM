@@ -74,12 +74,13 @@
     const recoveryTypes = {
         NONE: 0,
         ROUTER: 1,
-        MODEM: 2,
-        TEST_CONNECTION: 3,
-        FAILED: 4,
-        HW_FAILURE: 5,
-        DISCONNECTED: 6,
-        PERIODIC : 7
+        ROUTER_SINGLE_DEVICE: 2,
+        MODEM: 3,
+        TEST_CONNECTION: 4,
+        FAILED: 5,
+        HW_FAILURE: 6,
+        DISCONNECTED: 7,
+        PERIODIC : 8
     };
 
     const powerStates = {
@@ -157,6 +158,10 @@
                 if (recoveryType != recoveryTypes.ROUTER)
                     RecoveryAutoPilot(recoveryTypes.ROUTER);
                 break;
+            case recoveryTypes.ROUTER_SINGLE_DEVICE:
+                $("#glassPane").css("visibility", "visible");
+                RecoveryAutoPilot(recoveryTypes.ROUTER);
+                break;
             case recoveryTypes.PERIODIC:
                 $("#glassPane").css("visibility", "visible");
                 if (recoveryType != recoveryTypes.PERIODIC)
@@ -185,6 +190,8 @@
             HideLastRecovery();
         }
         recoveryType = state.recoveryType;
+        if (recoveryType == recoveryTypes.ROUTER_SINGLE_DEVICE)
+            recoveryType = recoveryTypes.ROUTER;
     }
 
     function HideLastRecovery() {
@@ -203,6 +210,7 @@
                 return "Connected.";
                 break;
             case recoveryTypes.ROUTER:
+            case recoveryTypes.ROUTER_SINGLE_DEVICE:
                 return "Disconnected - Waiting for " + deviceName + " recovery.";
                 break;
             case recoveryTypes.MODEM:
@@ -230,6 +238,7 @@
                 $("#connection").addClass("alert-success");
                 break;
             case recoveryTypes.ROUTER:
+            case recoveryTypes.ROUTER_SINGLE_DEVICE:
             case recoveryTypes.MODEM:
             case recoveryTypes.FAILED:
             case recoveryTypes.HW_FAILURE:
@@ -254,6 +263,7 @@
                 statusGlyphicon = 'glyphicon-ok';
                 break;
             case recoveryTypes.ROUTER:
+            case recoveryTypes.ROUTER_SINGLE_DEVICE:
             case recoveryTypes.MODEM:
             case recoveryTypes.FAILED:
             case recoveryTypes.HW_FAILURE:

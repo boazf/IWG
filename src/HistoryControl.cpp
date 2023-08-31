@@ -195,6 +195,7 @@ void HistoryControl::RecoveryStateChanged(const RecoveryStateChangedParams &para
         historyControl->m_pSM->ApplyVerb(H_Message::ModemRecovery);
         break;
     case RecoveryTypes::Router:
+    case RecoveryTypes::RouterSingleDevice:
         historyControl->m_pSM->ApplyVerb(H_Message::RouterRecovery);
         break;
     case RecoveryTypes::HWFailure:
