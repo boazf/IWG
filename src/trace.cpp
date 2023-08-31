@@ -8,6 +8,7 @@
 static char logFileName[80];
 
 #define LOG_DIR "/logs"
+#define MAX_LOG_FILE_SIZE (4 * 1024 * 1024)
 
 static bool traceStop = false;
 
@@ -24,7 +25,7 @@ static time_t GetFileTimeFromFileName(SdFile file)
     memset(&tmFile, 0, sizeof(tm));
     int n = sscanf(
                 fileName, 
-                LOG_DIR "/Log%d-%d-%d-%d-%d-%d.txt", 
+                "Log%d-%d-%d-%d-%d-%d.txt", 
                 &tmFile.tm_year, 
                 &tmFile.tm_mon, 
                 &tmFile.tm_mday, 
@@ -121,7 +122,7 @@ static void FileLoggerTask(void *parameter)
             SdFile logFile = SD.open(logFileName, FILE_APPEND);
 
             size_t fileSize = logFile.size();
-            if (fileSize > 4 * 1024 * 1024)
+            if (fileSize > MAX_LOG_FILE_SIZE)
             {
                 logFile.close();
                 CreateNewLogFileName();
@@ -156,7 +157,7 @@ void InitFileTrace()
         time_t fileTime = GetFileTimeFromFileName(fileInLogDir);
         if (lastTime < fileTime)
         {
-            strcpy(logFileName, fileInLogDir.name());
+            strcpy(logFileName, fileInLogDir.path());
             lastTime = fileTime;
         }
         fileInLogDir.close();
