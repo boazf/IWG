@@ -99,16 +99,6 @@ static xSemaphoreHandle wdSem = NULL;
 void InitPowerControl()
 {
   pinMode(WATCHDOG_LOADED_PIN, INPUT);
-  if (digitalRead(WATCHDOG_LOADED_PIN) == HIGH)
-  {
-  #ifdef DEBUG_POWER
-    Serial.println("Watchdog is loaded. Performing hard reset!");
-  #endif
-    // If we got here and the watchdog is loaded it means that an unhandled exception ocurred.
-    // So in this case we wait for the watchdog to expire. This will cause a hard reset.
-    while (true)
-      delay(1000);
-  }
 
   timeChanged.addObserver(InitHardReset, NULL);
 
