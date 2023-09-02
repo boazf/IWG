@@ -136,7 +136,7 @@ void Config::Init()
     { String("MACAddress"), ParseMACAddress, mac },
   #ifndef USE_WIFI
     { String("RouterInitTimeSec"), ParseLong, &routerInitTimeSec },
-    { String("TimeUpdatePriodMin"), ParseLong, &timeUpdatePeriodMin },
+    { String("TimeUpdatePeriodMin"), ParseLong, &timeUpdatePeriodMin },
   #endif
     { String("IP"), ParseIPAddress, ip },
     { String("Gateway"), ParseIPAddress, gateway },
