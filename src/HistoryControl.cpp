@@ -99,49 +99,49 @@ void HistoryControl::Init()
         HistoryState(
             H_State::Connected, 
             OnConnected, 
-            OnStateDoNotihng,
+            OnStateDoNothing,
    			HistoryState::OnExitDoNothing,
             TRANSITIONS(connectedTrans)),
         HistoryState(
             H_State::CheckingConnectivity, 
             OnCheckingConnectivity,
-            OnStateDoNotihng,
+            OnStateDoNothing,
    			HistoryState::OnExitDoNothing,
             TRANSITIONS(checkingConnectivityTrans)),
         HistoryState(
             H_State::RecoveringModem, 
             OnRecoveringModem,
-            OnStateDoNotihng,
+            OnStateDoNothing,
    			HistoryState::OnExitDoNothing,
             TRANSITIONS(recoveringModemTrans)),
         HistoryState(
             H_State::RecoveringRouter, 
             OnRecoveringRouter,
-            OnStateDoNotihng,
+            OnStateDoNothing,
    			HistoryState::OnExitDoNothing,
             TRANSITIONS(recoveringRouterTrans)),
         HistoryState(
             H_State::RecoveryFailed, 
             OnRecoveryFailed,
-            OnStateDoNotihng,
+            OnStateDoNothing,
             AddToHistory,
             TRANSITIONS(recoveryFailedTrans)),
         HistoryState(
             H_State::CheckingConnectivityWhileInFailure, 
             OnCheckingConnectivity, 
-            OnStateDoNotihng,
+            OnStateDoNothing,
             AddToHistory,
             TRANSITIONS(checkingConnectivityWhileInFailureTrans)),
         HistoryState(
             H_State::PeriodicRestart, 
             OnPeriodicRestart, 
-            OnStateDoNotihng,
+            OnStateDoNothing,
    			HistoryState::OnExitDoNothing,
             TRANSITIONS(periodicRestartTrans)),
         HistoryState(
             H_State::HWFailure, 
             OnHWFailure,
-            OnStateDoNotihng,
+            OnStateDoNothing,
    			HistoryState::OnExitDoNothing,
             TRANSITIONS(HWFailureTrans)),
     };
@@ -228,7 +228,7 @@ void HistoryControl::MaxHistoryChanged(const MaxHistoryRecordChangedParams &para
     historyControl->lastUpdate = t_now;
 }
 
-H_Message HistoryControl::OnStateDoNotihng(HistoryControl *control)
+H_Message HistoryControl::OnStateDoNothing(HistoryControl *control)
 {
     return H_Message::None;
 }

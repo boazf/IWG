@@ -4,7 +4,7 @@
 #include <SDUtil.h>
 #include <TimeUtil.h>
 
-void FilesController::normilizePath(String &path)
+void FilesController::normalizePath(String &path)
 {
     path.replace("%20", " ");
 }
@@ -14,7 +14,7 @@ bool FilesController::Get(EthClient &client, String &resource)
 #ifdef DEBUG_HTTP_SERVER
     Tracef("FilesController Get %s\n", resource.c_str());
 #endif
-    normilizePath(resource);
+    normalizePath(resource);
     SdFile file = SD.open("/" + resource, FILE_READ);
 
     if (!file)
@@ -63,7 +63,7 @@ void FilesController::parseUploadHeaders(const String &header, String &boundary,
 
 bool FilesController::Post(EthClient &client, String &resource, size_t contentLength, String contentType)
 {
-    normilizePath(resource);
+    normalizePath(resource);
 #ifdef DEBUG_HTTP_SERVER
     Tracef("FilesController Post resource=%s, contentLength=%lu, contentType=%s\n", resource.c_str(), contentLength, contentType.c_str());
 #endif
@@ -178,7 +178,7 @@ bool FilesController::Put(EthClient &client, String &resource)
     Tracef("FilesController Put %s\n", resource.c_str());
 #endif
 
-    normilizePath(resource);
+    normalizePath(resource);
     String dirPath = "/" + resource;
 
     if (SD.exists(dirPath) || !SD.mkdir(dirPath))
@@ -203,7 +203,7 @@ bool FilesController::Delete(EthClient &client, String &resource)
     Tracef("FilesController Delete %s\n", resource.c_str());
 #endif
 
-    normilizePath(resource);
+    normalizePath(resource);
     String path = "/" + resource;
 
     if (!SD.exists(path))

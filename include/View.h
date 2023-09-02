@@ -44,7 +44,7 @@ public:
     virtual bool open(byte *buff, int buffSize);
     virtual void close();
     virtual bool redirect(EthClient &client, const String &id);
-    bool getLastModifiedTime(String &lastModifiedtimeStr);
+    bool getLastModifiedTime(String &lastModifiedTimeStr);
     virtual CONTENT_TYPE getContentType();
     virtual long getViewSize();
     virtual int read();

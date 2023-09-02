@@ -13,7 +13,7 @@ time_t HistoryStorage::getLastRecovery()
 }
 
 #ifdef DEBUG_HISTORY
-void HistoryStorage::ReportIntializationResult()
+void HistoryStorage::ReportInitializationResult()
 {
     LOCK_TRACE();
     Trace("startIndex=");
@@ -54,7 +54,7 @@ void HistoryStorage::init(int _maxRecords)
         else
             lastRecovery = INT32_MAX;
 #ifdef DEBUG_HISTORY
-        ReportIntializationResult();
+        ReportInitializationResult();
 #endif
         return;
     }
@@ -81,7 +81,7 @@ void HistoryStorage::init(int _maxRecords)
     }
 
 #ifdef DEBUG_HISTORY
-        ReportIntializationResult();
+        ReportInitializationResult();
 #endif
 }
 

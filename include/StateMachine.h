@@ -210,7 +210,7 @@ public:
 #endif
 				Verb verb = m_current->doExit(m_nextVerb, m_param);
 #ifdef DEBUG_STATE_MACHINE
-				Tracef("State machine: %s, transfering from state: %s, verb: %s\n", 
+				Tracef("State machine: %s, transferring from state: %s, verb: %s\n", 
 					m_name, 
 					StringableEnum<State>(m_current->getState()).ToString().c_str(), 
 					StringableEnum<Verb>(verb).ToString().c_str());

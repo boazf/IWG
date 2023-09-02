@@ -62,7 +62,7 @@ private:
     static void OnPeriodicRestart(HistoryControl *param);
     static void OnHWFailure(HistoryControl *param);
     static H_Message AddToHistory(H_Message message, HistoryControl *param);
-    static H_Message OnStateDoNotihng(HistoryControl *param);
+    static H_Message OnStateDoNothing(HistoryControl *param);
 
 private:
     StateMachine<H_Message, H_State, HistoryControl> *m_pSM;

@@ -169,7 +169,7 @@ bool ICMPPing::openSocket()
     }
 #endif
     {
-        AutoSpiTrans spiStrans;
+        AutoSpiTrans spiTrans;
         W5100Ex.writeSnIR(_socket, 0xFF);
         W5100Ex.writeSnMR(_socket, SnMR::IPRAW);
         W5100Ex.writeSnPROTO(_socket, IPPROTO::ICMP);

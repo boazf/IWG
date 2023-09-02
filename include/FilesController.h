@@ -16,7 +16,7 @@ public:
     bool Delete(EthClient &client, String &resource);
 
 private:
-    void normilizePath(String &path);
+    void normalizePath(String &path);
     void parseUploadHeaders(const String &header, String &boundary, String &fileName);
 };
 

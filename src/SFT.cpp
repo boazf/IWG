@@ -26,7 +26,7 @@ void SFT::Connect(EthClient &client)
 }
 
 // Wait for any information data from the client to become available
-// Waitnig for at most 2 seconds (1.5 seconds on average).
+// Waiting for at most 2 seconds (1.5 seconds on average).
 bool SFT::WaitForClient(EthClient &client)
 {
   time_t t0 = t_now;
@@ -49,7 +49,7 @@ char *combinePath(char *dstPath, const char *srcPath1, const char *srcPath2)
 }
 
 // Upload a file from the client to Arduino
-// Currently the destination file can only be put in the currect directoy.
+// Currently the destination file can only be put in the current directory.
 // It is not possible to include a path in the destination, only a file name
 void SFT::Upload(EthClient &client)
 {
@@ -161,7 +161,7 @@ void SFT::Upload(EthClient &client)
 
 // Download a file from Arduino to the client
 // File will be looked up only in the current directory.
-// Curently the source file cannot contain path, only a file name
+// Currently the source file cannot contain path, only a file name
 void SFT::Download(EthClient &client)
 {
   byte buff[FILE_TRANSFER_BUFF_SIZE];
@@ -227,7 +227,7 @@ void SFT::Download(EthClient &client)
     if (!WaitForClient(client))
     {
 #ifdef DEBUG_SFT    
-      Traceln("Failed to receive dowload buffer request");
+      Traceln("Failed to receive download buffer request");
 #endif
       fail = true;
       continue;
@@ -239,7 +239,7 @@ void SFT::Download(EthClient &client)
     {
 #ifdef DEBUG_SFT    
   		LOCK_TRACE();
-      Trace("Enexpected buffer request: res = ");
+      Trace("Unexpected buffer request: res = ");
       Trace(reqRes);
       Trace(", data = ");
       Traceln((char) req);
@@ -262,7 +262,7 @@ void SFT::Download(EthClient &client)
       continue;
     }
 
-    // Read the nect file content block, if the file was not read yet completely.
+    // Read the next file content block, if the file was not read yet completely.
     if (offset < size)
       rres = file.read(buff, sizeof(buff));
   }
@@ -321,7 +321,7 @@ typedef struct FILE_INFO_
   char name[MAX_FILE_NAME];     // File name
 } __attribute__((__packed__)) FILE_INFO;
 
-// Send to the client information about all entries in the curernt directory
+// Send to the client information about all entries in the current directory
 void SFT::ListDirectory(EthClient &client)
 {
 #ifdef DEBUG_SFT
@@ -392,9 +392,9 @@ void SFT::ListDirectory(EthClient &client)
 }
 
 // Change curent directory
-// Currentl the requested directory can only be relative to the current directory
+// Current the requested directory can only be relative to the current directory
 // and can contain only one directory down (sending the directory name), or onr directory
-// up (sending ..). The client can also send no direcotory, this will result in sending the
+// up (sending ..). The client can also send no directory, this will result in sending the
 // path of the curent directory. In any case the path of the new current directory is sent
 // back to the client
 void SFT::ChangeDirectory(EthClient &client)
@@ -490,7 +490,7 @@ void SFT::ChangeDirectory(EthClient &client)
 }
 
 // Make new sub-directory
-// Curerntly it is possible to only request to create a new sub-directory
+// Currently it is possible to only request to create a new sub-directory
 // that is directly under the current directory. The requested directory
 // cannot contain path, only one directory name.
 void SFT::MakeDirectory(EthClient &client)
@@ -572,7 +572,7 @@ void SFT::Delete(EthClient &client)
 }
 
 // Delete a sub-directory
-// Currently it is possibleto only delete a sub-directory of the current directory.
+// Currently it is possible to only delete a sub-directory of the current directory.
 // It is not possible to send a path to a directory for deletion
 void SFT::RemoveDirectory(EthClient &client)
 {
@@ -630,7 +630,7 @@ void SFT::Init()
 #endif
 }
 
-// See if the clien sent a request and handle it
+// See if the client sent a request and handle it
 void SFT::DoService()
 {
     EthClient client = server.available();

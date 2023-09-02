@@ -40,7 +40,7 @@ void RecoveryControl::Init()
 		{ RecoveryMessages::Disconnected , RecoveryStates::CheckConnectivity }
 	};
 
-	RecoveryTransition checkConnecticityTrans[] =
+	RecoveryTransition checkConnectivityTrans[] =
 	{
 		{ RecoveryMessages::Disconnected, RecoveryStates::WaitWhileRecoveryFailure },
 		{ RecoveryMessages::Done, RecoveryStates::CheckConnectivity },
@@ -179,7 +179,7 @@ void RecoveryControl::Init()
 			OnEnterCheckConnectivity, 
 			OnCheckConnectivity, 
 			DecideRecoveryPath, 
-			TRANSITIONS(checkConnecticityTrans)),
+			TRANSITIONS(checkConnectivityTrans)),
 		RecoveryState(
 			RecoveryStates::WaitWhileConnected, 
 			RecoveryState::OnEnterDoNothing,
@@ -731,8 +731,8 @@ RecoveryMessages RecoveryControl::OnWaitConnectionTestPeriod(RecoveryControl *co
 		{
 			// Periodic restart time had changed, we need to recalculate wait time.
 			// We do it by triggering connection check. This will cause the connection test to
-			// happne sonner than the usual connection test period. However, if we'd just recalculate
-			// the waiting time and periodic restart is not the next scheduled operation then nect
+			// happen sooner than the usual connection test period. However, if we'd just recalculate
+			// the waiting time and periodic restart is not the next scheduled operation then next
 			// connection check will happen longer than the configured connection test period. It is
 			// possible to recalculate the waiting time without triggering connection check sooner
 			// than needed, but this will complicate the code.

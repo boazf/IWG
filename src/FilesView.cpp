@@ -8,12 +8,12 @@ FilesView::FilesView(const char *_viewName, const char *_viewFile) :
 
 bool FilesView::post(EthClient &client, const String &resource, const String &id)
 {
-    String normilizedPath = "/" + id;
-    normilizedPath.replace("%20", " ");
+    String normalizedPath = "/" + id;
+    normalizedPath.replace("%20", " ");
 #ifdef DEBUG_HTTP_SERVER
-    Tracef("FilesView: POST: resource=%s, id=%s, path=%s\n", resource.c_str(), id.c_str(), normilizedPath.c_str());
+    Tracef("FilesView: POST: resource=%s, id=%s, path=%s\n", resource.c_str(), id.c_str(), normalizedPath.c_str());
 #endif
-    SdFile dir = SD.open(normilizedPath, FILE_READ);
+    SdFile dir = SD.open(normalizedPath, FILE_READ);
     String resp;
     if (!dir)
     {

@@ -74,7 +74,7 @@ static void appConfigChanged(const AppConfigChangedParam &param, const void *con
 #ifndef USE_WIFI
 static TaskHandle_t timeUpdateTaskHandle;
 
-#define TIME_INIT_UPDATE_PERIODE_SEC 30
+#define TIME_INIT_UPDATE_PERIOD_SEC 30
 
 void timeUpdateTask(void *param)
 {
@@ -83,7 +83,7 @@ void timeUpdateTask(void *param)
     tm tr;
     time_t now = t_now;
     localtime_r(&now, &tr);
-    TickType_t tWait = (tr.tm_year < 100 ? TIME_INIT_UPDATE_PERIODE_SEC : (Config::timeUpdatePeriodMin * 60)) * 1000 / portTICK_PERIOD_MS;
+    TickType_t tWait = (tr.tm_year < 100 ? TIME_INIT_UPDATE_PERIOD_SEC : (Config::timeUpdatePeriodMin * 60)) * 1000 / portTICK_PERIOD_MS;
     vTaskDelay(tWait);
     setTime(false);
   }

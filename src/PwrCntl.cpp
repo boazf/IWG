@@ -59,7 +59,7 @@ void hardResetTask(void *param)
 }
 
 #define MIN_HARD_RESET_PERIOD 1
-#define MAX_HARD_RESET_PEIORD 45
+#define MAX_HARD_RESET_PERIOD 45
 
 void InitHardReset(const TimeChangedParam &now, const void *param)
 {
@@ -68,13 +68,13 @@ void InitHardReset(const TimeChangedParam &now, const void *param)
   if (hHardResetTask == NULL)
   {
     if (Config::hardResetPeriodDays < MIN_HARD_RESET_PERIOD || 
-        MAX_HARD_RESET_PEIORD < Config::hardResetPeriodDays)
+        MAX_HARD_RESET_PERIOD < Config::hardResetPeriodDays)
     {
 #ifdef DEBUG_POWER
       Tracef("Periodic hard reset is disabled! Configuration value (HardResetPeriodDays): %d. Allowed range is %d-%d.\n", 
         Config::hardResetPeriodDays,
         MIN_HARD_RESET_PERIOD,
-        MAX_HARD_RESET_PEIORD);
+        MAX_HARD_RESET_PERIOD);
 #endif
       return;
     }

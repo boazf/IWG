@@ -39,7 +39,7 @@ EthernetHardwareStatus EthernetClassEx::hardwareStatus()
   return EthernetClass::hardwareStatus();
 }
 
-// Manaul configuration
+// Manual configuration
 void EthernetClassEx::begin(uint8_t *mac, IPAddress ip)
 {
   Lock lock(csSpi);

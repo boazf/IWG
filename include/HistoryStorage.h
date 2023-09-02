@@ -169,7 +169,7 @@ private:
     void putAvailableRecords();
     void getAvailableRecords();
 #ifdef DEBUG_HISTORY
-    void ReportIntializationResult();
+    void ReportInitializationResult();
 #endif
 };
 
