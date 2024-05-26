@@ -5,6 +5,8 @@
 #include <Observers.h>
 
 void InitTime();
+bool isValidTime(time_t t);
+
 #define t_now (([]()->time_t{time_t now; time(&now); return now; })())
 
 class TimeChangedParam

@@ -8,15 +8,6 @@
 #define WATCHDOG_TRIGGER_PIN 32
 #define WATCHDOG_LOADED_PIN 33
 
-static bool isValidTime(time_t t)
-{
-  struct tm stm;
-
-  localtime_r(&t, &stm);
-
-  return stm.tm_year >= 2016 - 1900;
-}
-
 static xSemaphoreHandle waitSem = NULL;
 
 void hardResetTask(void *param)
@@ -114,7 +105,7 @@ void InitPowerControl()
       delay(WATCHDOG_TRIGGER_HALF_CYCLE_TIME_MS);
       digitalWrite(WATCHDOG_TRIGGER_PIN, LOW);
     } while (xSemaphoreTake(wdSem, WATCHDOG_TRIGGER_HALF_CYCLE_TIME_MS) == pdFALSE);
-    vTaskDelete(NULL);  
+        vTaskDelete(NULL);  
   }, "WatchdogTask", 4 * 1024, NULL, tskIDLE_PRIORITY, &hWdTask);
 
   // Wait for watchdog timer to load

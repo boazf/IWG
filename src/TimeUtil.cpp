@@ -24,16 +24,16 @@ static void setTime(bool ignoreFailure)
 #else
   unsigned long t0 = millis();
   time_t utc = 0;
-  while(millis() - t0 < MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC * 1000 && (utc = NTPClient::getUTC()) == 0)
+  while(millis() - t0 < MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC * 1000 && !isValidTime(utc = NTPClient::getUTC()))
     delay(100);
-  if (utc == 0)
+  if (!isValidTime(utc))
 #endif
   {
+#ifdef DEBUG_TIME
+    Traceln("Failed to query current time from time server!");
+#endif
     if (!ignoreFailure)
     {
-#ifdef DEBUG_TIME
-      Traceln("Failed to query current time from time server!");
-#endif
       return;
     }
   }
@@ -106,3 +106,14 @@ void InitTime()
   xTaskCreate(timeUpdateTask, "TimeUpdate", 8*1024, NULL, tskIDLE_PRIORITY, &timeUpdateTaskHandle);
 #endif
 }
+
+bool isValidTime(time_t t)
+{
+  struct tm stm;
+
+  localtime_r(&t, &stm);
+
+  return stm.tm_year >= 2016 - 1900;
+}
+
+
