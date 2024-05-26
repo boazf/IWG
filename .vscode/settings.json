@@ -1,5 +1,35 @@
 {
     "files.associations": {
         "system_error": "cpp"
-    }
+    },
+    "cSpell.words": [
+        "addri",
+        "ASYNCH",
+        "asyncstart",
+        "asyncstatus",
+        "BSSID",
+        "DIPR",
+        "DOYIELD",
+        "ECHOREP",
+        "ECHOREQ",
+        "EEPROM",
+        "fontobject",
+        "GPIO",
+        "ICMPPING",
+        "IPRAW",
+        "maxindex",
+        "NELEMS",
+        "ooooh",
+        "rres",
+        "RSSI",
+        "sadcomp",
+        "sres",
+        "ssid",
+        "sspin",
+        "Stringable",
+        "Traceln",
+        "Tracevf",
+        "valist",
+        "wwwroot"
+    ]
 }
