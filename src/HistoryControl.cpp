@@ -6,7 +6,8 @@
 #include <StringableEnum.h>
 #endif
 HistoryControl::HistoryControl() :
-    currStorageItem(NULL)
+    currStorageItem(NULL),
+    m_pSM(NULL)
 {
 }
 

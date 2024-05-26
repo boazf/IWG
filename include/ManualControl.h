@@ -45,7 +45,7 @@ enum class MC_State
 class ManualControl
 {
 public:
-    ManualControl() {};
+    ManualControl() : m_pSM(NULL) {};
     ~ManualControl() { delete m_pSM; };
     void Init();
     void PerformCycle();

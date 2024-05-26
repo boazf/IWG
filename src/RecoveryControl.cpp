@@ -25,7 +25,8 @@ RecoveryControl::RecoveryControl() :
 		updateConnState(false),
 		cycles(0),
 		stateParam(NULL),
-		nextPeriodicRestart(-1)
+		nextPeriodicRestart(-1),
+		m_pSM(NULL)
 {
 	waitSem = xSemaphoreCreateBinary();
 }
