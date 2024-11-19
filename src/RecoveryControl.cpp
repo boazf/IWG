@@ -304,7 +304,7 @@ void RecoveryControl::Init()
     xTaskCreatePinnedToCore(
         RecoveryControlTask,
         "RecoveryControlTask",
-        1024*16,
+        1024*8,
         this,
         1,
         NULL,

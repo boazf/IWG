@@ -32,7 +32,7 @@ Indicator::Indicator(uint8_t _channel, uint8_t pin) :
                 }, NULL);
                 vTaskDelay(1000 / BLINK_FREQ / 2 / portTICK_PERIOD_MS);
             }
-        }, "Blinker", 8*1024, NULL, tskIDLE_PRIORITY, &blinkerTaskHandle);
+        }, "Blinker", 2*1024, NULL, tskIDLE_PRIORITY, &blinkerTaskHandle);
     }
 }
 

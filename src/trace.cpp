@@ -172,7 +172,7 @@ void InitFileTrace()
     xTaskCreatePinnedToCore(
         FileLoggerTask,
         "FileLoggerTask",
-        1024*16,
+        1024*8,
         NULL,
         1,
         NULL,

@@ -52,6 +52,7 @@ bool HTTPServer::DoController(PClientContext context, String &resource, HTTP_REQ
 #ifdef DEBUG_HTTP_SERVER
     {
         LOCK_TRACE();
+        Tracef("%d ", context->client.remotePort());
         Trace("controller: ");
         Trace(controllerName.c_str());
         Trace(" id=");
@@ -82,7 +83,7 @@ bool HTTPServer::DoController(PClientContext context, String &resource, HTTP_REQ
     if (controller == NULL)
     {
 #ifdef DEBUG_HTTP_SERVER
-        Traceln("Controller was not found!");
+        Tracef("%d Controller was not found!\n", context->client.remotePort());
 #endif
         return false;
     }
@@ -190,6 +191,7 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
 #ifdef DEBUG_HTTP_SERVER
     {
         LOCK_TRACE();
+        Tracef("%d ", context->client.remotePort());
         Trace("View=");
         Trace(view->viewPath);
         Trace(", id=");
@@ -218,6 +220,7 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
 #ifdef DEBUG_HTTP_SERVER
             {
                 LOCK_TRACE();
+                Tracef("%d ", context->client.remotePort());
                 Trace("Resource: ");
                 Trace(resource);
                 Trace(" File was not modified. ");
@@ -303,6 +306,7 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
 #ifdef DEBUG_HTTP_SERVER
     {
         LOCK_TRACE();
+        Tracef("%d ", context->client.remotePort());
         Trace("Done sending ");
         Trace(view->viewFilePath.c_str());
         Trace(" Sent ");
@@ -393,7 +397,7 @@ void HTTPServer::ServiceRequest(PClientContext context)
 {
     AutoSD autoSD;
 #ifdef DEBUG_HTTP_SERVER
-    Traceln(context->request);
+    Tracef("%d %s\n", context->client.remotePort(), context->request.c_str());
 #endif
     String resource = RequestResource(context->request);
     String resourceOrg = resource;
@@ -454,17 +458,22 @@ void HTTPServer::ServeClient()
 #endif
         PClientContext context = new ClientContext(client);
         TaskHandle_t requestTaskHandle;
-        xTaskCreate(RequestTask, "HTTPRequest", 16*1024, context, tskIDLE_PRIORITY + 1, &requestTaskHandle);
+        BaseType_t ret = xTaskCreate(RequestTask, "HTTPRequest", 8*1024, context, tskIDLE_PRIORITY + 1, &requestTaskHandle);
+        if (ret != pdPASS)
+        {
+#ifdef DEBUG_HTTP_SERVER
+            Tracef("%d Failed to create request task, error = %d\n", client.remotePort(), ret);
+#endif
+            client.stop();
+        }
         client = server.accept();
     }
 }
 
 void HTTPServer::RequestTask(void *params)
 {
-
     PClientContext context = (PClientContext)params;
     EthClient *client = &context->client;
-
     do
     {
         delay(1);
