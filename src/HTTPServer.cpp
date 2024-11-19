@@ -478,7 +478,7 @@ void HTTPServer::RequestTask(void *params)
     do
     {
         delay(1);
-        word remotePort;
+        uint16_t remotePort;
         try
         {
             remotePort = client->remotePort();
@@ -518,6 +518,9 @@ void HTTPServer::RequestTask(void *params)
                 client->stop();
             }
 
+#ifdef DEBUG_HTTP_SERVER
+            Tracef("%d Task stack high watermark: %d\n", context->remotePort, uxTaskGetStackHighWaterMark(NULL));
+#endif
             delete context;
             vTaskDelete(NULL);
         }

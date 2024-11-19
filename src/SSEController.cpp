@@ -244,8 +244,7 @@ void SSEController::DeleteClient(const ClientInfo &clientInfo, bool stopClient)
     if (clientInfo.client != NULL)
     {
         LOCK_TRACE();
-        Trace("Deleting previous session id=");
-        Trace(clientInfo.id);
+        Tracef("%d Deleting previous session id=%s", clientInfo.client->remotePort(), clientInfo.id.c_str());
 #ifndef USE_WIFI
         Trace(", socket=");
         Traceln(clientInfo.client->getSocketNumber());
