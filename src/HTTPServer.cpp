@@ -465,6 +465,7 @@ void HTTPServer::ServeClient()
             Tracef("%d Failed to create request task, error = %d\n", client.remotePort(), ret);
 #endif
             client.stop();
+            delete context;
         }
         client = server.accept();
     }
