@@ -466,8 +466,8 @@ void HTTPServer::ServeClient()
             ret = xTaskCreate(RequestTask, "HTTPRequest", 8*1024, context, tskIDLE_PRIORITY + 1, &requestTaskHandle);
             if (ret == pdPASS)
             {
-                if (i > 0)
 #ifdef DEBUG_HTTP_SERVER
+                if (i > 0)
                     Tracef("%d Succeeded to create request task after %d retries\n", client.remotePort(), i);
 #endif
                 break;
