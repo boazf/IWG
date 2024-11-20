@@ -463,7 +463,7 @@ void HTTPServer::ServeClient()
         BaseType_t ret;
         for (int i = 0; i <= TASK_CREATE_MAX_RETRIES; i++)
         {
-            ret = xTaskCreate(RequestTask, "HTTPRequest", 16*1024, context, tskIDLE_PRIORITY + 1, &requestTaskHandle);
+            ret = xTaskCreate(RequestTask, "HTTPRequest", 8*1024, context, tskIDLE_PRIORITY + 1, &requestTaskHandle);
             if (ret == pdPASS)
             {
                 if (i > 0)
