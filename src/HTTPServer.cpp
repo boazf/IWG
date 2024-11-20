@@ -447,6 +447,8 @@ void HTTPServer::Init()
 #endif
 }
 
+#define TASK_CREATE_MAX_RETRIES 20
+
 void HTTPServer::ServeClient()
 {
     // listen for incoming clients
@@ -458,12 +460,33 @@ void HTTPServer::ServeClient()
 #endif
         PClientContext context = new ClientContext(client);
         TaskHandle_t requestTaskHandle;
-        BaseType_t ret = xTaskCreate(RequestTask, "HTTPRequest", 8*1024, context, tskIDLE_PRIORITY + 1, &requestTaskHandle);
+        BaseType_t ret;
+        for (int i = 0; i <= TASK_CREATE_MAX_RETRIES; i++)
+        {
+            ret = xTaskCreate(RequestTask, "HTTPRequest", 16*1024, context, tskIDLE_PRIORITY + 1, &requestTaskHandle);
+            if (ret == pdPASS)
+            {
+                if (i > 0)
+#ifdef DEBUG_HTTP_SERVER
+                    Tracef("%d Succeeded to create request task after %d retries\n", client.remotePort(), i);
+#endif
+                break;
+            }
+#ifdef DEBUG_HTTP_SERVER
+            if (i == 0)
+                Tracef("%d Failed to create request task, error = %d will attempt again\n", client.remotePort(), ret);
+#endif
+            delay(1000); // Wait before reattempting creating the task
+        }
         if (ret != pdPASS)
         {
 #ifdef DEBUG_HTTP_SERVER
-            Tracef("%d Failed to create request task, error = %d\n", client.remotePort(), ret);
+            Tracef("%d Failed to create request task after %d attempts, error = %d\n", client.remotePort(), TASK_CREATE_MAX_RETRIES, ret);
 #endif
+            client.println("HTTP/1.1 500 Internal Server Error");
+            client.println("Connection: close"); 
+            client.println("Server: Arduino");
+            client.println();
             client.stop();
             delete context;
         }
