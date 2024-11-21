@@ -463,7 +463,7 @@ void HTTPServer::ServeClient()
         BaseType_t ret;
         for (int i = 0; i <= TASK_CREATE_MAX_RETRIES; i++)
         {
-            ret = xTaskCreate(RequestTask, "HTTPRequest", 8*1024, context, tskIDLE_PRIORITY + 1, &requestTaskHandle);
+            ret = xTaskCreate(RequestTask, "HTTPRequest", 4*1024, context, tskIDLE_PRIORITY + 1, &requestTaskHandle);
             if (ret == pdPASS)
             {
 #ifdef DEBUG_HTTP_SERVER
@@ -483,6 +483,14 @@ void HTTPServer::ServeClient()
 #ifdef DEBUG_HTTP_SERVER
             Tracef("%d Failed to create request task after %d attempts, error = %d\n", client.remotePort(), TASK_CREATE_MAX_RETRIES, ret);
 #endif
+            // Drain the client
+            while(client.available())
+            {
+                uint8_t buff[128];
+                client.read(buff, NELEMS(buff));
+            }
+            // Send reply
+            // TODO: make reply code use common methods to eliminate code duplications.
             client.println("HTTP/1.1 500 Internal Server Error");
             client.println("Connection: close"); 
             client.println("Server: Arduino");
