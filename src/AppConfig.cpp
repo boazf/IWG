@@ -410,7 +410,7 @@ String AppConfig::internalGetServer1()
 
     for(size_t i = 0; i < sizeof(AppConfigStore::server1) - 1; i++)
     {
-        buff[i] = EEPROM.read(APP_CONFIG_EEPROM_START_ADDR + offsetof(AppConfigStore, server1) + i);
+        getField<char>(offsetof(AppConfigStore, server1) + i, buff[i]);
     }
 
     return String(buff);
@@ -420,9 +420,9 @@ void AppConfig::internalSetServer1(const String &value)
 {
     for(size_t i = 0; i < value.length(); i++)
     {
-        EEPROM.write(APP_CONFIG_EEPROM_START_ADDR + offsetof(AppConfigStore, server1) + i, value[i]);
+        putField<char>(offsetof(AppConfigStore, server1) + i, value[i]);
     }
-    EEPROM.write(APP_CONFIG_EEPROM_START_ADDR + offsetof(AppConfigStore, server1) + value.length(), 0);
+    putField<char>(offsetof(AppConfigStore, server1) + value.length(), 0);
 }
 
 String AppConfig::internalGetServer2()
@@ -431,7 +431,7 @@ String AppConfig::internalGetServer2()
 
     for(size_t i = 0; i < sizeof(AppConfigStore::server2) - 1; i++)
     {
-        buff[i] = EEPROM.read(APP_CONFIG_EEPROM_START_ADDR + offsetof(AppConfigStore, server2) + i);
+        getField<char>(offsetof(AppConfigStore, server2) + i, buff[i]);
     }
 
     return String(buff);
@@ -441,9 +441,9 @@ void AppConfig::internalSetServer2(const String &value)
 {
     for(size_t i = 0; i < value.length(); i++)
     {
-        EEPROM.write(APP_CONFIG_EEPROM_START_ADDR + offsetof(AppConfigStore, server2) + i, value[i]);
+        putField<char>(offsetof(AppConfigStore, server2) + i, value[i]);
     }
-    EEPROM.write(APP_CONFIG_EEPROM_START_ADDR + offsetof(AppConfigStore, server2) + value.length(), 0);
+    putField<char>(offsetof(AppConfigStore, server2) + value.length(), 0);
 }
 
 IPAddress AppConfig::internalGetLANAddr()
@@ -452,7 +452,7 @@ IPAddress AppConfig::internalGetLANAddr()
 
     for(size_t i = 0; i < sizeof(AppConfigStore::lanAddress); i++)
     {
-        buff[i] = EEPROM.read(APP_CONFIG_EEPROM_START_ADDR + offsetof(AppConfigStore, lanAddress) + i);
+        getField<uint8_t>(offsetof(AppConfigStore, lanAddress) + i, buff[i]);
     }
 
     return IPAddress(buff);
@@ -462,7 +462,7 @@ void AppConfig::internalSetLANAddr(const IPAddress &value)
 {
     for(size_t i = 0; i < sizeof(AppConfigStore::lanAddress); i++)
     {
-        EEPROM.write(APP_CONFIG_EEPROM_START_ADDR + offsetof(AppConfigStore, lanAddress) + i, value[i]);
+        putField<uint8_t>(offsetof(AppConfigStore, lanAddress) + i, value[i]);
     }
 }
 

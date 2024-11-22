@@ -128,7 +128,7 @@ private:
     }
 
     template<typename T>
-    static void putField(int offset, T &value)
+    static void putField(int offset, const T &value)
     {
         EEPROM.put<T>(APP_CONFIG_EEPROM_START_ADDR + offset, value);
     }
