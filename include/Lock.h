@@ -17,13 +17,13 @@ public:
         vSemaphoreDelete(_binarySem);
     }
 
-    void Enter()
+    void Enter() const
     {
         //portENTER_CRITICAL(&mux);
         xSemaphoreTakeRecursive(_binarySem, portMAX_DELAY);
     }
 
-    void Leave()
+    void Leave() const
     {
         //portEXIT_CRITICAL(&mux);
         xSemaphoreGiveRecursive(_binarySem);
@@ -37,7 +37,7 @@ private:
 class Lock
 {
 public:
-    Lock(CriticalSection &cs) : _cs(cs)
+    Lock(const CriticalSection &cs) : _cs(cs)
     {
         _cs.Enter();
     }
@@ -48,6 +48,6 @@ public:
     }
 
 private:
-    CriticalSection &_cs;
+    const CriticalSection &_cs;
 };
 #endif // Lock_h
