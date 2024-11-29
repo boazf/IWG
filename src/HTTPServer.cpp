@@ -435,7 +435,11 @@ void HTTPServer::ServeClient()
     while (client)
     {
 #ifdef DEBUG_HTTP_SERVER
+#ifndef USE_WIFI
         Tracef("New client: IP=%s, port=%d, socket: %d\n", client.remoteIP().toString().c_str(), client.remotePort(), client.getSocketNumber());
+#else
+        Tracef("New client: IP=%s, port=%d\n", client.remoteIP().toString().c_str(), client.remotePort());
+#endif
 #endif
         PClientContext context = new ClientContext(client);
         TaskHandle_t requestTaskHandle;
