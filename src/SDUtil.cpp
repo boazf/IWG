@@ -22,9 +22,10 @@ AutoSD::~AutoSD()
     SD.end();
 }
 
-void AutoSD::WaitForIdle()
+void AutoSD::WaitForIdle(int timeout)
 {
   delay(1);
+  unsigned long t0 = millis();
   do
   {
     cs.Enter();
@@ -32,7 +33,7 @@ void AutoSD::WaitForIdle()
       return;
     cs.Leave();
     delay(1);
-  } while(true);
+  } while(timeout == portMAX_DELAY || millis() - t0 < timeout);
 }
 
 #undef SD

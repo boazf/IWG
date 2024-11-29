@@ -12,7 +12,7 @@ class AutoSD
 public:
   AutoSD();
   ~AutoSD();
-  static void WaitForIdle();
+  static void WaitForIdle(int timeout = portMAX_DELAY);
 
 private:
   static int count;

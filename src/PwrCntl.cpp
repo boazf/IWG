@@ -45,7 +45,7 @@ void hardResetTask(void *param)
     }
   } while (xSemaphoreTake(waitSem, (tWait * 1000) / portTICK_PERIOD_MS) == pdTRUE);
 
-  HardReset();
+  HardReset(3000);
   vTaskDelete(NULL);
 }
 
@@ -120,12 +120,12 @@ void InitPowerControl()
 #endif  
 }
 
-void HardReset()
+void HardReset(int timeout)
 {
 #ifdef DEBUG_POWER
   Traceln("Performing hard reset");
 #endif
-  TraceStop();
+  TraceStop(timeout);
   // Signal the watchdog semaphore. This will cause the watchdog task to end. This will
   // cause the watchdog triggers to stop. This will cause the watchdog to temporarily disconnect
   // the power. This will cause a hard reset.
