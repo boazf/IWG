@@ -171,7 +171,7 @@ void Config::Init()
 #ifdef DEBUG_CONFIG
     Traceln("Failed to open configuration file");
 #endif
-    HardReset();
+    HardReset(0);
     return;
   }
 

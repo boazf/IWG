@@ -12,10 +12,10 @@ static char logFileName[80];
 
 static bool traceStop = false;
 
-void TraceStop()
+void TraceStop(int timeout)
 {
     traceStop = true;
-    AutoSD::WaitForIdle();
+    AutoSD::WaitForIdle(timeout);
 }
 
 static time_t GetFileTimeFromFileName(SdFile file)

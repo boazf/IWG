@@ -403,7 +403,7 @@ MC_Message ManualControl::OnUnlock(ManualControl *control)
             uli.set(ledState::LED_OFF);
             rri.set(ledState::LED_OFF);
             mri.set(ledState::LED_OFF);
-            HardReset();
+            HardReset(3000);
         }
     }
     else
