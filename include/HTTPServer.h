@@ -9,7 +9,7 @@
 
 typedef struct ClientContext_
 {
-    ClientContext_(EthClient _client)
+    ClientContext_(EthClient &_client)
     {
         client = _client;
         remotePort = _client.remotePort();

@@ -65,9 +65,40 @@ bool SSEController::Put(EthClient &client, String &resource)
     return false;
 }
 
-bool SSEController::Delete(EthClient &client, String &resource)
+bool SSEController::Delete(EthClient &client, String &id)
 {
-    return false;
+    Tracef("%d sse delete id=%s\n", client.remotePort(), id.c_str());
+
+    struct Params
+    {
+        SSEController *controller;
+        const String &id;
+    } params = { this, id };
+
+    clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
+    {
+        Params *params = (Params *)param;
+        String id = params->id;
+        if (clientInfo.id.equals(id))
+        {
+            params->controller->DeleteClient(clientInfo, true);
+            return false;
+        }
+
+        return true;
+    }, &params);
+
+    client.println("HTTP/1.1 200 OK");
+    client.println("Connection: close");  // the connection will be closed after completion of the response
+    client.println("Access-Control-Allow-Origin: *");  // allow any connection.
+    client.println("Cache-Control: no-cache");
+    client.println("Content-Length: 0");
+    client.println();
+#ifdef USE_WIFI
+    client.flush();
+#endif
+
+    return true;
 }
 
 void SSEController::NotifyState(const String &id)
@@ -253,7 +284,7 @@ void SSEController::DeleteClient(const ClientInfo &clientInfo, bool stopClient)
 #endif
     }
 #endif
-    if (clientInfo.client != NULL && stopClient)
+    if (clientInfo.client != NULL && clientInfo.client && stopClient)
     {
         clientInfo.client->stop();
     }

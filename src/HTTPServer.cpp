@@ -331,32 +331,11 @@ void HTTPServer::NotModified(EthClient &client)
 
 void HTTPServer::PageNotFound(EthClient &client)
 {
-    // const char *lines[] =
-    // {
-    //     "<!DOCTYPE html>",
-    //     "<html lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">",
-    //     "<head>",
-    //     "<meta charset=\"utf-8\" />",
-    //     "<title>404 - Not Found</title>",
-    //     "</head>",
-    //     "<body>",
-    //     "<img alt=\"sad-computer\" src=\"/Images/sadcomp.jpg\" width=\"50%\" style=\"position:fixed; z-index:-1\" />",
-    //     "<h1 style=\"z-index:1; color:red\">404 - Not Found :(</h1>",
-    //     "</body>",
-    //     "</html>"
-    // };
-
-    // int len = 0;
-    // for (size_t i = 0; i < NELEMS(lines); i++)
-    //     len += strlen(lines[i])+2;
     client.println("HTTP/1.1 404 Not Found");
     client.println("Content-Length: 0");
-    // client.println(len);
     client.println("Server: Arduino");
     client.println("Connection: close"); 
     client.println();
-    // for (size_t i = 0; i < NELEMS(lines); i++)
-    //     client.println(lines[i]);
 }
 
 HTTP_REQ_TYPE HTTPServer::RequestType(String &request)
@@ -456,7 +435,7 @@ void HTTPServer::ServeClient()
     while (client)
     {
 #ifdef DEBUG_HTTP_SERVER
-        Tracef("New client: IP=%s, port=%d\n", client.remoteIP().toString().c_str(), client.remotePort());
+        Tracef("New client: IP=%s, port=%d, socket: %d\n", client.remoteIP().toString().c_str(), client.remotePort(), client.getSocketNumber());
 #endif
         PClientContext context = new ClientContext(client);
         TaskHandle_t requestTaskHandle;
@@ -506,9 +485,11 @@ void HTTPServer::RequestTask(void *params)
 {
     PClientContext context = (PClientContext)params;
     EthClient *client = &context->client;
+    bool requestServed = false;
+
     do
     {
-        delay(1);
+        delay(requestServed ? 1000 : 1);
         uint16_t remotePort;
         try
         {
@@ -519,7 +500,7 @@ void HTTPServer::RequestTask(void *params)
             remotePort = 0;
         }
 
-        bool brokenClient = context->remotePort != remotePort;
+        bool brokenClient = client->connected() && context->remotePort != remotePort;
 #ifdef DEBUG_HTTP_SERVER
         if (brokenClient)
         {
@@ -544,7 +525,7 @@ void HTTPServer::RequestTask(void *params)
                 Tracef("Client disconnected, IP=%s, port=%d\n", client->remoteIP().toString().c_str(), client->remotePort());
 #endif
 #endif
-            if (!sseController.DeleteClient(*client, !brokenClient) && !brokenClient)
+            if (!sseController.DeleteClient(*client, !brokenClient) && !brokenClient && *client)
             {
                 client->stop();
             }
@@ -564,7 +545,10 @@ void HTTPServer::RequestTask(void *params)
         else if (c == '\n')
         {
             if (!ProcessLine(context))
+            {
                 ServiceRequest(context);
+                requestServed = true;
+            }
         }
         else
             context->reqLine += c;

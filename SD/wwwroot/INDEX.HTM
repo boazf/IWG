@@ -131,6 +131,11 @@
 
     var source = new EventSource(appBase + 'api/sse/' + id);
 
+    window.addEventListener("beforeunload", async function(event) {
+        source.close();
+        await fetch(appBase + "api/sse/" + id, { method: "DELETE" });
+    });
+
     source.onopen = function (event) {
         //$("#spnMessage")[0].innerHTML += "Opened";
     }
