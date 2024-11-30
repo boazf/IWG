@@ -28,7 +28,7 @@
                     <ul class="nav navbar-nav">
                         <li><a href="/Index"><span class="glyphicon glyphicon-dashboard"></span> Control</a></li>
                         <li><a href="/Settings"><span class="glyphicon glyphicon-wrench"></span> Settings</a></li>
-                        <li><a href="/History"><span class="glyphicon  glyphicon-time"></span> History</a></li>
+                        <li><a href="/History"><span class="glyphicon glyphicon-time"></span> History</a></li>
                     </ul>
                 </div>
             </div>
@@ -43,6 +43,7 @@
                     <li class="active"><a data-toggle="tab" href="#Basic" aria-expanded="true">Basic</a></li>
                     <li><a data-toggle="tab" href="#Advanced" aria-expanded="false">Advanced</a></li>
                     <li><a data-toggle="tab" href="#History" aria-expanded="false">History</a></li>
+                    <li><a data-toggle="tab" href="#Update" aria-expanded="false">Update</a></li>
                 </ul>
                 <div class="text-danger col-xs-12 validation-summary-valid" data-valmsg-summary="true"><ul><li style="display:none"></li>
                 </div>
@@ -178,8 +179,39 @@
                             <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="maxHistoryRecords" data-valmsg-replace="true"></span>
                         </div>
                     </div>
+                    <div id="Update" class="tab-pane fade">
+                        <table style="border-collapse: separate; border-spacing: 10px;width: 95%;">
+                            <tr>
+                                <td style="width: 25%">Current Version:</td>
+                                <td style="width: 10%">%19      </td>
+                                <td  style="width: 15%"></td>
+                                <td  style="width: 50%"
+                            </tr>
+                            <tr>
+                                <td>OTA Version:</td>
+                                <td id="OTAVersion">%20      </td>
+                                <td>
+                                    <button id="refreshBtn" type="button" class="btn-sm btn-block btn-primary" onclick="refreshVersion()">Refresh</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <button id="updateBtn" type="button" class="btn-sm btn-block btn-success" onclick="updateVersion()">Upgrade</button>
+                                </td>
+                                <td colspan="3">
+                                    <div id="progressRow" style="display: flex; visibility: hidden; width:100%; height: 22px">
+                                        <div class="progress" style="width:90%">
+                                            <div id="progress" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <span id="total" style="margin-left:5px"></span>
+                                    </div>
+                                    <span id="waitForRestart" style="visibility: hidden">Waiting for the device to restart...</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
-                <div class="form-group row">
+                <div id="buttonsRow" class="form-group row">
                     <div class="col-lg-2 col-md-2 col-sm-3 col-xs-4">
                         <button type="submit" class="btn-sm btn-primary btn-default btn-success btn-block">Save</button>
                     </div>
@@ -195,6 +227,11 @@
                 <input name="periodicallyRestartModem" type="hidden" value="false" />
             </form>
             <script type="text/javascript">
+                var appBase = %21                                                                                                                    ;
+                $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                    var target = $(e.target).attr("href") // activated tab
+                    $("#buttonsRow").css("display", target == "#Update" ? "none" : "inherit");
+                });
                 function checkLoadError() {
                     if (loadError)
                         location.replace(document.location.pathname);
@@ -234,8 +271,68 @@
                     });
 
                 jQuery.validator.unobtrusive.adapters.addBool("verifyservername");
+
+                function setDisableUpdateButtons(state)
+                {
+                    $("#updateBtn")[0].disabled = state;
+                    $("#refreshBtn")[0].disabled = state;
+                }
+                async function refreshVersion()
+                {
+                    setDisableUpdateButtons(true);
+                    var response = await fetch(appBase + "api/version/info", { method: "GET"} );
+                    var json = await response.json();
+                    $("#OTAVersion")[0].innerHTML = json.Version;
+                    $("#OTAVersion")[0].style.backgroundColor = "LightYellow";
+                    setTimeout(function() {
+                        $("#OTAVersion")[0].style.backgroundColor = "inherit";
+                        setDisableUpdateButtons(false);
+                    }, 500);
+                }
+
+                var source;
+                async function onMessage(event) {
+                    var notification = JSON.parse(event.data);
+                    switch(notification.type)
+                    {
+                        case "start":
+                            $("#progressRow")[0].style.visibility = "visible";
+                        break;
+                        case "progress":
+                            $("#progress")[0].innerHTML = notification.sent;
+                            $("#progress")[0].style.width = (notification.sent * 100 / notification.total) + "%";
+                            $("#total")[0].textContent = notification.total;
+                            break;
+                        case "end":
+                            source.close();
+                            $("#waitForRestart")[0].style.visibility = "visible";
+                            await WaitForServerToBeAccessible(180000);
+                            location.href = appBase + "index";
+                            break;
+                        case "error":
+                            source.close();
+                            if (notification.code != 0)
+                                alert("Error while updating firmware!\nError code: " + notification.code + "\n" + notification.message);
+                            else
+                                alert(notification.message);
+                            setDisableUpdateButtons(false);
+                            break;
+                    }
+                }
+                function onError(event) {
+                    alert("Unexpected error occurred while trying to upgrade firmware!");
+                    setDisableUpdateButtons(false);
+                    source.close();
+                }
+                async function updateVersion() {
+                    setDisableUpdateButtons(true);
+                    source = new EventSource(appBase + 'api/version/update');
+                    source.onmessage = onMessage;
+                    source.onerror = onError;
+                }
             </script>
         </div>
+        <script onerror="loadError=true" src="/lib/site/util.js"></script>
         <script onerror="loadError=true" src="/lib/bstrap/js/bstrap.js"></script>
     </body>
 </html>

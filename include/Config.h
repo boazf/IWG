@@ -27,6 +27,7 @@ public:
     static time_t skipRouterTime;
     static long hardResetPeriodDays;
     static long hardResetTime;
+    static const char *otaServer;
 #ifdef USE_WIFI
     static const char *ssid;
     static const char *password;

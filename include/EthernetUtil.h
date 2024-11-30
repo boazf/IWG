@@ -49,7 +49,7 @@ private:
 
 extern EthernetClassEx EthernetEx;
 
-class EthernetClientEx
+class EthernetClientEx : public Client
 {
 public:
     EthernetClientEx() {}
@@ -73,7 +73,10 @@ public:
     size_t print(int n);
     size_t println(int n);
     size_t println();
-	virtual void flush();
+	void flush();
+    int connect(IPAddress ip, uint16_t port);
+    int connect(const char *host, uint16_t port);
+    int peek();
 
 private:
     EthernetClient client;
@@ -114,6 +117,15 @@ private:
 #define EthServer EthernetServerEx
 #define EthUDP EthernetUDPEx
 #endif // USE_WIFI
+
+class AutoStopClient : public EthClient
+{
+public:
+	~AutoStopClient()
+	{
+		stop();
+	}
+};
 
 bool WaitForDNS();
 

@@ -28,6 +28,7 @@ const char *Config::deviceName = "Router";
 time_t Config::skipRouterTime = 60 * 60; // One hour
 long Config::hardResetPeriodDays = 3; // 3 days
 long Config::hardResetTime = 3 * 60 * 60; // 3AM
+const char *Config::otaServer = NULL;
 #ifdef USE_WIFI
 const char *Config::ssid /* = "Your SSID" */;
 const char *Config::password /* = "Your password" */;
@@ -147,9 +148,10 @@ void Config::Init()
     { String("DeviceName"), ParseString, &deviceName },
     { String("SkipRouterTime"), ParseLong, &skipRouterTime },
     { String("HardResetPeriodDays"), ParseLong, &hardResetPeriodDays },
-    { String("HardResetTime"), ParseTime, &hardResetTime }
+    { String("HardResetTime"), ParseTime, &hardResetTime },
+    { String("OTAServer"), ParseString, &otaServer },
   #ifdef USE_WIFI
-    , { String("SSID"), ParseString, &ssid },
+    { String("SSID"), ParseString, &ssid },
     { String("Password"), ParseString, &password }
   #endif
   };

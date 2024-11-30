@@ -237,6 +237,24 @@ uint16_t EthernetClientEx::remotePort()
   return client.remotePort();
 }
 
+int EthernetClientEx::connect(IPAddress ip, uint16_t port)
+{
+  Lock lock(csSpi);
+  return client.connect(ip, port);
+}
+
+int EthernetClientEx::connect(const char *host, uint16_t port)
+{
+  Lock lock(csSpi);
+  return client.connect(host, port);
+}
+
+int EthernetClientEx::peek()
+{
+  Lock lock(csSpi);
+  return client.peek();
+}
+
 EthernetClientEx EthernetServerEx::available()
 {
   Lock lock(csSpi);
@@ -587,9 +605,9 @@ bool TryGetHostAddress(IPAddress &address, String server)
 {
 	if (server.equals(""))
 		return false;
-  bool failed;
+  int error;
 #ifdef USE_WIFI
-	failed = WiFi.hostByName(server.c_str(), address) != 1;
+	error = WiFi.hostByName(server.c_str(), address);
 #else
 	DNSClient dns;
   {
@@ -597,15 +615,13 @@ bool TryGetHostAddress(IPAddress &address, String server)
     
     dns.begin(Eth.gatewayIP());
 
-    failed = dns.getHostByName(server.c_str(), address) != 1;
+    error = dns.getHostByName(server.c_str(), address);
   }
 #endif
-  if (failed)
+  if (error != 1)
   {
 #ifdef DEBUG_ETHERNET
-    LOCK_TRACE();
-    Trace("Failed to get host address for ");
-    Traceln(server.c_str());
+    Tracef("Failed to get host address for %s, error: %d\n", server.c_str(), error);
 #endif
     return false;
   }
