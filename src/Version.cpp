@@ -12,7 +12,7 @@ const String Version::unknownVersion = "Unknown";
 #define API_KEY "d54ef031-6f61-4f00-bcdc-c803c3fa8ce8"
 #endif
 
-#define APP_VERSION "1.0.11"
+#define APP_VERSION "1.0.12"
 
 const char *Version::apiKey = API_KEY;
 
@@ -28,6 +28,10 @@ String Version::getOtaVersion()
     String url = getOtaDriveBaseUrl() + "update?" + getBaseParams();
     http.begin(url);
     http.get();
+    int code = http.responseStatusCode();
+    if (code == 304)
+        return getCurrentVersion();
+
     HttpClientEx::Headers headers[] = {{"X-Version"}};
     http.collectHeaders(headers, NELEMS(headers));
 
