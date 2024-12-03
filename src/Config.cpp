@@ -28,7 +28,7 @@ const char *Config::deviceName = "Router";
 time_t Config::skipRouterTime = 60 * 60; // One hour
 long Config::hardResetPeriodDays = 3; // 3 days
 long Config::hardResetTime = 3 * 60 * 60; // 3AM
-const char *Config::otaServer = NULL;
+const char *Config::otaServer = "otadrive.com";
 #ifdef USE_WIFI
 const char *Config::ssid /* = "Your SSID" */;
 const char *Config::password /* = "Your password" */;
