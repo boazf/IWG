@@ -91,7 +91,6 @@
     var recoveryType = %9   ;
     var id = GetId();
     var autoPilot = false;
-    var inactive = true;
     var mDisco = 5000;
     var rDisco = 5000;
     var mPeriodic = false;
@@ -137,7 +136,6 @@
     });
 
     source.onmessage = function (event) {
-        inactive = false;
         var state = JSON.parse(event.data);
         mDisco = state.mDisco * 1000;
         rDisco = state.rDisco * 1000 - 500;
