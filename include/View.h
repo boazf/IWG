@@ -4,21 +4,7 @@
 #include <Arduino.h>
 #include <SDUtil.h>
 #include <EthernetUtil.h>
-
-enum class CONTENT_TYPE
-{
-    UNKNOWN,
-    JAVASCRIPT,
-    ICON,
-    HTML,
-    CSS,
-    JPEG,
-    EOT,
-    SVG,
-    TTF,
-    WOFF,
-    WOFF2
-};
+#include <HttpHeaders.h>
 
 struct View
 {

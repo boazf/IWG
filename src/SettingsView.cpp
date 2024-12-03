@@ -4,6 +4,7 @@
 #include <AppConfig.h>
 #include <EthernetUtil.h>
 #include <Version.h>
+#include <HttpHeaders.h>
 
 SettingsView::SettingsView(const char *_viewName, const char *_viewFile) : 
     HtmlFillerView(_viewName, _viewFile)
@@ -196,13 +197,9 @@ bool SettingsView::post(EthClient &client, const String &resource, const String 
     SetConfigValue(pair, settingsValuesSetMap);
     AppConfig::commit();
 
-    client.println("HTTP/1.1 302 Found");
-    client.println("Location: /index");
-    client.println("Server: Arduino");
-    client.println("Access-Control-Allow-Origin: *");
-    client.println("Connection: close"); 
-    client.println("Content-Length: 0");
-    client.println();
+    HttpHeaders::Header additionalHeaders[] = { {"Access-Control-Allow-Origin", "*" }, {"Location", "/index"} };
+    HttpHeaders headers(client);
+    headers.sendHeaderSection(302, true, additionalHeaders, NELEMS(additionalHeaders));
 
     return true;
 }

@@ -2,6 +2,7 @@
 #include <Version.h>
 #include <HttpUpdate.h>
 #include <Trace.h>
+#include <HttpHeaders.h>
 
 bool VersionController::sendVersionInfo(EthClient &client)
 {
@@ -9,15 +10,12 @@ bool VersionController::sendVersionInfo(EthClient &client)
     String version = Version::getOtaVersion();
     String versionJson = "{ \"Version\" : \"" + version + "\" }";
 
-    client.println("HTTP/1.1 200 OK");
-    client.print("Content-Length: ");
-    client.println(versionJson.length());
-    client.println("Content-Type: application/json");
-    client.println("Connection: close");
-    client.println("Access-Control-Allow-Origin: *");
-    client.println("Server: Arduino");
-    client.println();
+    HttpHeaders::Header additionalHeaders[] = {{CONTENT_TYPE::JSON}, {"Access-Control-Allow-Origin", "*"}};
+    HttpHeaders headers(client);
+    headers.sendHeaderSection(200, true, additionalHeaders, NELEMS(additionalHeaders), versionJson.length());
+
     client.print(versionJson.c_str());
+
     return true;
 }
 
@@ -63,14 +61,10 @@ bool VersionController::updateVersion(EthClient &client)
     if (ret != pdPASS)
         return false;
 
-    client.println("HTTP/1.1 200 OK");
-    client.println("Content-Type: text/event-stream");
-    client.println("Connection: keep-alive"); 
-    client.println("Access-Control-Allow-Origin: *"); 
-    client.println("Cache-Control: no-cache");
-    client.println();
+    HttpHeaders headers(client);
+    headers.sendStreamHeaderSection();
 
-    return false;
+    return true;
 }
 
 String VersionController::notificationJsonHead(NotificationType notificationType)

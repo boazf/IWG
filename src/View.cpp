@@ -3,6 +3,7 @@
 #include <time.h>
 #include <Common.h>
 #include <Config.h>
+#include <HttpHeaders.h>
 
 bool View::open(byte *_buff, int _buffSize, SdFile _file)
 {

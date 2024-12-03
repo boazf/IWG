@@ -2,6 +2,7 @@
 #define DefaultView_h
 
 #include <DummyView.h>
+#include <HttpHeaders.h>
 
 class DefaultView : public DummyView
 {
@@ -13,14 +14,9 @@ public:
 
     bool redirect(EthClient &client, const String &id)
     {
-        client.println("HTTP/1.1 302 Found");
-        client.println("Location: /index");
-        client.println("Content-Length: 0");
-        client.println("Connection: close");
-        client.println();
-    #ifdef USE_WIFI
-        client.flush();
-    #endif
+        HttpHeaders::Header additionalHeaders[] = { {"Location", "/index"} };
+        HttpHeaders headers(client);
+        headers.sendHeaderSection(302, true, additionalHeaders, NELEMS(additionalHeaders));
         return true;
     }
 };

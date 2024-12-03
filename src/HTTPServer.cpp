@@ -1,13 +1,11 @@
 #include <Arduino.h>
+#include <Common.h>
 #include <HTTPServer.h>
-#include <SDUtil.h>
-#include <Config.h>
 #include <LinkedList.h>
 #include <AutoPtr.h>
-#include <Common.h>
-#include <time.h>
 #include <FileView.h>
 #include <SSEController.h>
+#include <HttpHeaders.h>
 
 String HTTPServer::RequestResource(String &request)
 {
@@ -234,66 +232,29 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
     }
 
     CONTENT_TYPE type = view->getContentType();
-    String contentTypeHeader("Content-Type: ");
-    switch (type)
+    if (type == CONTENT_TYPE::UNKNOWN)
     {
-    case CONTENT_TYPE::HTML:
-        contentTypeHeader += "text/html";
-        break;
-    case CONTENT_TYPE::ICON:
-        contentTypeHeader += "image/x-icon";
-        break;
-    case CONTENT_TYPE::JPEG:
-        contentTypeHeader += "image/x-jpeg";
-        break;
-    case CONTENT_TYPE::JAVASCRIPT:
-        contentTypeHeader += "application/javascript";
-        break;
-    case CONTENT_TYPE::CSS:
-        contentTypeHeader += "text/css";
-        break;
-    case CONTENT_TYPE::EOT:
-        contentTypeHeader += "application/vnd.ms-fontobject";
-        break;
-    case CONTENT_TYPE::SVG:
-        contentTypeHeader += "image/svg+xml";
-        break;
-    case CONTENT_TYPE::TTF:
-        contentTypeHeader += "font/ttf";
-        break;
-    case CONTENT_TYPE::WOFF:
-        contentTypeHeader += "font/woff";
-        break;
-    case CONTENT_TYPE::WOFF2:
-        contentTypeHeader += "font/woff2";
-        break;
-    case CONTENT_TYPE::UNKNOWN:
 #ifdef DEBUG_HTTP_SERVER
         Traceln("Unknown extention");
 #endif
         view->close();
         return false;
-        break;
     }
 
     long size = view->getViewSize();
 
-    client->println("HTTP/1.1 200 OK");
-    client->print("Content-Length: ");
-    client->println(size);
-    client->println(contentTypeHeader);
-    client->println("Connection: close"); 
-    client->println("Server: Arduino");
+    HttpHeaders::Header additionalHeaders[] = { {type}, {} };
     if (type != CONTENT_TYPE::HTML)
     {
         String lastModifiedTime;
         if (view->getLastModifiedTime(lastModifiedTime))
         {
-            client->print("Last-Modified: ");
-            client->println(lastModifiedTime);
+            additionalHeaders[1] = {"Last-Modified", lastModifiedTime};
         }
     }
-    client->println();
+
+    HttpHeaders headers(*client);
+    headers.sendHeaderSection(200, true, additionalHeaders, NELEMS(additionalHeaders), size);
 
     long bytesSent = 0;
     while (bytesSent < size)
@@ -322,20 +283,14 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
 
 void HTTPServer::NotModified(EthClient &client)
 {
-    client.println("HTTP/1.1 304 Not Modified");
-    client.println("Content-Length: 0");
-    client.println("Server: Arduino");
-    client.println("Connection: close"); 
-    client.println();
+    HttpHeaders headers(client);
+    headers.sendHeaderSection(304);
 }
 
 void HTTPServer::PageNotFound(EthClient &client)
 {
-    client.println("HTTP/1.1 404 Not Found");
-    client.println("Content-Length: 0");
-    client.println("Server: Arduino");
-    client.println("Connection: close"); 
-    client.println();
+    HttpHeaders headers(client);
+    headers.sendHeaderSection(404);
 }
 
 HTTP_REQ_TYPE HTTPServer::RequestType(String &request)
@@ -473,11 +428,8 @@ void HTTPServer::ServeClient()
                 client.read(buff, NELEMS(buff));
             }
             // Send reply
-            // TODO: make reply code use common methods to eliminate code duplications.
-            client.println("HTTP/1.1 500 Internal Server Error");
-            client.println("Connection: close"); 
-            client.println("Server: Arduino");
-            client.println();
+            HttpHeaders headers(client);
+            headers.sendHeaderSection(500);
             client.stop();
             delete context;
         }
