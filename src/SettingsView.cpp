@@ -101,7 +101,7 @@ void SettingsView::SetConfigValue(const String &pair, SettingsValuesSetMap &sett
     String var = pair.substring(0, eqIndex);
     String val = pair.substring(eqIndex + 1);
 
-    SettingsMap::iterator i = settingsMap.find(var.c_str());
+    SettingsMap::const_iterator i = settingsMap.find(var.c_str());
     if (i == settingsMap.end())
     {
 #ifdef DEBUG_HTTP_SERVER

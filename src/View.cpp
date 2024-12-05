@@ -93,7 +93,7 @@ CONTENT_TYPE View::getContentType()
 
     String ext = viewFilePath.substring(dot + 1);
     ext.toUpperCase();
-    FileTypesMap::iterator fileType = fileTypesMap.find(ext);
+    FileTypesMap::const_iterator fileType = fileTypesMap.find(ext);
     if (fileType == fileTypesMap.end())
         return CONTENT_TYPE::UNKNOWN;
 
