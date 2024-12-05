@@ -4,6 +4,10 @@
 #include <Common.h>
 #include <Config.h>
 #include <HttpHeaders.h>
+#include <map>
+#ifdef DEBUG_HTTP_SERVER
+#include <Trace.h>
+#endif
 
 bool View::open(byte *_buff, int _buffSize, SdFile _file)
 {
@@ -64,6 +68,22 @@ bool View::getLastModifiedTime(String &lastModifiedTimeStr)
     return true;
 }
 
+typedef std::map<String, CONTENT_TYPE> FileTypesMap;
+static FileTypesMap fileTypesMap = 
+{
+    {"JS", CONTENT_TYPE::JAVASCRIPT},
+    {"ICO", CONTENT_TYPE::ICON},
+    {"HTM", CONTENT_TYPE::HTML},
+    {"CSS", CONTENT_TYPE::CSS},
+    {"JPG", CONTENT_TYPE::JPEG},
+    {"MAP", CONTENT_TYPE::CSS},
+    {"EOT", CONTENT_TYPE::EOT},
+    {"SVG", CONTENT_TYPE::SVG},
+    {"TTF", CONTENT_TYPE::TTF},
+    {"WOF", CONTENT_TYPE::WOFF},
+    {"WF2", CONTENT_TYPE::WOFF2}
+};
+
 CONTENT_TYPE View::getContentType()
 {
     int dot = viewFilePath.lastIndexOf('.');
@@ -73,30 +93,11 @@ CONTENT_TYPE View::getContentType()
 
     String ext = viewFilePath.substring(dot + 1);
     ext.toUpperCase();
-    if (ext.equals("JS"))
-        return CONTENT_TYPE::JAVASCRIPT;
-    else if (ext.equals("ICO"))
-        return CONTENT_TYPE::ICON;
-    else if (ext.equals("HTM"))
-        return CONTENT_TYPE::HTML;
-    else if (ext.equals("CSS"))
-        return CONTENT_TYPE::CSS;
-    else if (ext.equals("JPG"))
-        return CONTENT_TYPE::JPEG;
-    else if (ext.equals("MAP"))
-        return CONTENT_TYPE::CSS;
-    else if (ext.equals("EOT"))
-        return CONTENT_TYPE::EOT;
-    else if (ext.equals("SVG"))
-        return CONTENT_TYPE::SVG;
-    else if (ext.equals("TTF"))
-        return CONTENT_TYPE::TTF;
-    else if (ext.equals("WOF"))
-        return CONTENT_TYPE::WOFF;
-    else if (ext.equals("WF2"))
-        return CONTENT_TYPE::WOFF2;
+    FileTypesMap::iterator fileType = fileTypesMap.find(ext);
+    if (fileType == fileTypesMap.end())
+        return CONTENT_TYPE::UNKNOWN;
 
-    return CONTENT_TYPE::UNKNOWN;
+    return fileType->second;
 }
 
 bool View::post(EthClient &client, const String &resource, const String &id)

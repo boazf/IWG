@@ -8,7 +8,6 @@
  */
 
 #ifndef USE_WIFI
-#include <SPI.h>
 #include <EthernetUtil.h>
 #include <w5100ex.h>
 #include <Common.h>

@@ -12,6 +12,9 @@
 #else
 #include <Dns.h>
 #endif
+#ifdef DEBUG_ETHERNET
+#include <Trace.h>
+#endif
 
 #ifndef USE_WIFI
 

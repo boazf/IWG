@@ -2,6 +2,9 @@
 #include <Relays.h>
 #include <TimeUtil.h>
 #include <HttpHeaders.h>
+#ifdef DEBUG_HTTP_SERVER
+#include <Trace.h>
+#endif
 
 bool SSEController::Get(EthClient &client, String &id)
 {

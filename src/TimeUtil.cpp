@@ -7,7 +7,9 @@
 #include <sys/time.h>
 #endif
 #include <AppConfig.h>
-
+#ifdef DEBUG_TIME
+#include <Trace.h>
+#endif
 static bool DST;
 Observers<TimeChangedParam> timeChanged;
 

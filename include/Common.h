@@ -1,10 +1,9 @@
 #ifndef Common_h
 #define Common_h
 
-#include <Trace.h>
 #include <Lock.h>
 
-//#define DEBUG_SD
+// #define DEBUG_SD
 // #define DEBUG_ETHERNET
 // #define DEBUG_TIME
 // #define DEBUG_SFT

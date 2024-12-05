@@ -1,8 +1,6 @@
 #ifndef Trace_h
 #define Trace_h
 
-#include <WString.h>
-#include <stddef.h>
 #include <IPAddress.h>
 #include <Lock.h>
 

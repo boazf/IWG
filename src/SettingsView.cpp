@@ -5,6 +5,9 @@
 #include <EthernetUtil.h>
 #include <Version.h>
 #include <HttpHeaders.h>
+#ifdef DEBUG_HTTP_SERVER
+#include <Trace.h>
+#endif
 
 SettingsView::SettingsView(const char *_viewName, const char *_viewFile) : 
     HtmlFillerView(_viewName, _viewFile)
@@ -101,7 +104,9 @@ void SettingsView::SetConfigValue(const String &pair, SettingsValuesSetMap &sett
     SettingsMap::iterator i = settingsMap.find(var.c_str());
     if (i == settingsMap.end())
     {
+#ifdef DEBUG_HTTP_SERVER
         Tracef("Unknown settings key variable: %s\n", var.c_str());
+#endif
         return;
     }
 

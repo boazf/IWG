@@ -1,4 +1,3 @@
-#include <SPI.h>
 #include <RecoveryControl.h>
 #include <Observers.h>
 #include <Common.h>
@@ -14,6 +13,7 @@
 #include <HistoryControl.h>
 #ifdef DEBUG_STATE_MACHINE
 #include <StringableEnum.h>
+#include <Trace.h>
 #endif
 #include <GWConnTest.h>
 

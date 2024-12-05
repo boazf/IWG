@@ -2,6 +2,9 @@
 #include <RecoveryControl.h>
 #include <EthernetUtil.h>
 #include <HttpHeaders.h>
+#ifdef DEBUG_HTTP_SERVER
+#include <Trace.h>
+#endif
 
 bool RecoveryController::Get(EthClient &client, String &resource)
 {

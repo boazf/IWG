@@ -2,6 +2,9 @@
 #include <EEPROM.h>
 #include <HistoryStorage.h>
 #include <common.h>
+#ifdef DEBUG_HISTORY
+#include <Trace.h>
+#endif
 
 HistoryStorage::HistoryStorage()
 {

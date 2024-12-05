@@ -1,4 +1,7 @@
 #include <HtmlFillerView.h>
+#ifdef DEBUG_HTTP_SERVER
+#include <Trace.h>
+#endif
 
 size_t HtmlFillerView::viewHandler(byte *buff, size_t buffSize)
 {

@@ -2,6 +2,9 @@
 #include <Config.h>
 #include <SDUtil.h>
 #include <PwrCntl.h>
+#ifdef DEBUG_CONFIG
+#include <Trace.h>
+#endif
 
 // Default MAC address
 // Newer Ethernet shields have a MAC address printed on a sticker on the shield

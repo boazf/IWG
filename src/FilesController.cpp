@@ -4,6 +4,9 @@
 #include <SDUtil.h>
 #include <TimeUtil.h>
 #include <HttpHeaders.h>
+#ifdef DEBUG_HTTP_SERVER
+#include <Trace.h>
+#endif
 
 static HttpHeaders::Header commonHeaders[] = { {"Access-Control-Allow-Origin", "*" }, {"Cache-Control", "no-cache"} };
 

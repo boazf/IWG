@@ -1,6 +1,9 @@
 #include <Common.h>
 #include <FilesView.h>
 #include <HttpHeaders.h>
+#ifdef DEBUG_HTTP_SERVER
+#include <Trace.h>
+#endif
 
 FilesView::FilesView(const char *_viewName, const char *_viewFile) : 
    View(_viewName, _viewFile)
