@@ -22,18 +22,32 @@ enum class CONTENT_TYPE
     STREAM
 };
 
+enum class HTTP_REQ_TYPE
+{
+    HTTP_UNKNOWN,
+    HTTP_GET,
+    HTTP_POST,
+    HTTP_PUT,
+    HTTP_DELETE
+};
+
+#define DEFAULT_RECEIVE_TIMEOUT 3000
+
 class HttpHeaders
 {
 public:
-    HttpHeaders(EthClient &client) : client(client)
+    HttpHeaders(EthClient &client) : 
+        client(client),
+        receiveTimeout(DEFAULT_RECEIVE_TIMEOUT)
     {        
     }
 
     typedef struct _header
     {
-        _header() : name(""), value("") {}
+        _header() : _header("", "") {}
+        _header(String name) : _header(name, "") {}
+        _header(CONTENT_TYPE contentType) : _header("Content-Type", contentTypeValues.at(contentType)) {}
         _header(String name, String value) : name(name), value(value) {}
-        _header(CONTENT_TYPE contentType) : name("Content-Type"), value(contentTypeValues.at(contentType)) {}
         String name;
         String value;
     } Header;
@@ -42,11 +56,20 @@ public:
     void sendStreamHeaderSection();
     void sendHeader(const String &name, const String &value);
     void sendHeader(const Header &header);
+    bool parseRequestHeaderSection(HTTP_REQ_TYPE &requestType, String &resource, Header collectedHeaders[] = NULL, size_t nCollectedHeaders = 0);
+    void setReceiveTimeout(unsigned long timeout) { receiveTimeout = timeout; }
+    const String &getLastParsedLine() { return parsedLine; }
+    const String &getRequestLine() { return requestLine; }
 
 private:
+    String parsedLine;
+    String requestLine;
     EthClient client;
+    unsigned long receiveTimeout;
     static const std::map<int, String> codeDescriptions;
     static const std::map<CONTENT_TYPE, String> contentTypeValues;
+    typedef std::map<String, HTTP_REQ_TYPE> HttpReqTypesMap;
+    static const HttpReqTypesMap httpReqTypesMap;
 };
 
 #endif // HTTP_CLIENT_H
