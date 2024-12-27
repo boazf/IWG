@@ -20,7 +20,8 @@ public:
     ledState get() { return currState; }
 
 private:
-    static LinkedList<Indicator *> blinkingIndicators;
+    typedef LinkedList<Indicator *> IndicatorsList; 
+    static IndicatorsList blinkingIndicators;
     static TaskHandle_t blinkerTaskHandle;
 
 private:
