@@ -3,6 +3,12 @@
 #include <EthernetUtil.h>
 #include <SDUtil.h>
 #include <TimeUtil.h>
+#include <HttpHeaders.h>
+#ifdef DEBUG_HTTP_SERVER
+#include <Trace.h>
+#endif
+
+static HttpHeaders::Header commonHeaders[] = { {"Access-Control-Allow-Origin", "*" }, {"Cache-Control", "no-cache"} };
 
 void FilesController::normalizePath(String &path)
 {
@@ -20,12 +26,8 @@ bool FilesController::Get(EthClient &client, String &resource)
     if (!file)
         return false;
 
-    client.println("HTTP/1.1 200 OK");
-    client.println("Connection: close");  // the connection will be closed after completion of the response
-    client.println("Access-Control-Allow-Origin: *");  // allow any connection.
-    client.println("Cache-Control: no-cache");
-    client.println(String("Content-Length: ") + file.size());
-    client.println();
+    HttpHeaders headers(client);
+    headers.sendHeaderSection(200, true, commonHeaders, NELEMS(commonHeaders), file.size());
 
     byte buff[1024];
     size_t fileSize = file.size();
@@ -159,15 +161,8 @@ bool FilesController::Post(EthClient &client, String &resource, size_t contentLe
         return false;
     }
 
-    client.println("HTTP/1.1 200 OK");
-    client.println("Connection: close");  // the connection will be closed after completion of the response
-    client.println("Access-Control-Allow-Origin: *");  // allow any connection.
-    client.println("Cache-Control: no-cache"); 
-    client.println("Content-Length: 0");
-    client.println();
-#ifdef USE_WIFI
-    client.flush();
-#endif
+    HttpHeaders headers(client);
+    headers.sendHeaderSection(200, true, commonHeaders, NELEMS(commonHeaders));
 
     return true;
 }
@@ -184,15 +179,8 @@ bool FilesController::Put(EthClient &client, String &resource)
     if (SD.exists(dirPath) || !SD.mkdir(dirPath))
         return false;
 
-    client.println("HTTP/1.1 200 OK");
-    client.println("Connection: close");  // the connection will be closed after completion of the response
-    client.println("Access-Control-Allow-Origin: *");  // allow any connection.
-    client.println("Cache-Control: no-cache");
-    client.println("Content-Length: 0");
-    client.println();
-#ifdef USE_WIFI
-    client.flush();
-#endif
+    HttpHeaders headers(client);
+    headers.sendHeaderSection(200, true, commonHeaders, NELEMS(commonHeaders));
 
     return true;
 }
@@ -240,15 +228,8 @@ bool FilesController::Delete(EthClient &client, String &resource)
         return false;
     }
 
-    client.println("HTTP/1.1 200 OK");
-    client.println("Connection: close");  // the connection will be closed after completion of the response
-    client.println("Access-Control-Allow-Origin: *");  // allow any connection.
-    client.println("Cache-Control: no-cache");
-    client.println("Content-Length: 0");
-    client.println();
-#ifdef USE_WIFI
-    client.flush();
-#endif
+    HttpHeaders headers(client);
+    headers.sendHeaderSection(200, true, commonHeaders, NELEMS(commonHeaders));
 
     return true;
 }

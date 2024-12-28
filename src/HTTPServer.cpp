@@ -1,36 +1,53 @@
 #include <Arduino.h>
+#include <Common.h>
 #include <HTTPServer.h>
-#include <SDUtil.h>
-#include <Config.h>
 #include <LinkedList.h>
 #include <AutoPtr.h>
-#include <Common.h>
-#include <time.h>
 #include <FileView.h>
 #include <SSEController.h>
 
-String HTTPServer::RequestResource(String &request)
+String ClientContext::collectedHeadersNames[] = {"If-Modified-Since", "Content-Length", "Content-Type"};
+
+ClientContext::ClientContext(EthClient &client) :
+    client(client), 
+    requestType(HTTP_REQ_TYPE::HTTP_UNKNOWN)
 {
-    int firstSpace = request.indexOf(' ');
-    int secondSpace = request.indexOf(' ', firstSpace + 1);
-    return request.substring(firstSpace + 1, secondSpace);
+    remotePort = client.remotePort();
+    collectedHeaders = new HttpHeaders::Header[NELEMS(collectedHeadersNames)];
+    for (size_t i = 0; i < NELEMS(collectedHeadersNames); i++)
+        collectedHeaders[i].name = collectedHeadersNames[i];
+}
+
+bool ClientContext::parseRequestHeaderSection()
+{
+    HttpHeaders headers(client);
+
+    bool res = headers.parseRequestHeaderSection(requestType, resource, collectedHeaders, NELEMS(collectedHeadersNames));
+#ifdef DEBUG_HTTP_SERVER
+    Tracef("%d %s\n", remotePort, headers.getRequestLine().c_str());
+#endif        
+#ifdef DEBUG_HTTP_SERVER
+    if (!res)
+        Tracef("%d Bad HTTP request: \"%s\"\n", remotePort, headers.getLastParsedLine().c_str());
+#endif        
+
+    return res;
 }
 
 LinkedList<ViewCreator *> HTTPServer::viewCreators;
+LinkedList<Controller *> HTTPServer::controllers;
 
 void HTTPServer::AddView(ViewCreator *viewCreator)
 {
     viewCreators.Insert(viewCreator);
 }
 
-static LinkedList<Controller *> controllers;
-
 void HTTPServer::AddController(Controller *controller)
 {
     controllers.Insert(controller);
 }
 
-bool HTTPServer::DoController(PClientContext context, String &resource, HTTP_REQ_TYPE requestType)
+bool HTTPServer::DoController(ClientContext *context, String &resource, HTTP_REQ_TYPE requestType)
 {
     int slashIndex = resource.indexOf('/');
     String id;
@@ -52,7 +69,7 @@ bool HTTPServer::DoController(PClientContext context, String &resource, HTTP_REQ
 #ifdef DEBUG_HTTP_SERVER
     {
         LOCK_TRACE();
-        Tracef("%d ", context->client.remotePort());
+        Tracef("%d ", context->getClient().remotePort());
         Trace("controller: ");
         Trace(controllerName.c_str());
         Trace(" id=");
@@ -83,7 +100,7 @@ bool HTTPServer::DoController(PClientContext context, String &resource, HTTP_REQ
     if (controller == NULL)
     {
 #ifdef DEBUG_HTTP_SERVER
-        Tracef("%d Controller was not found!\n", context->client.remotePort());
+        Tracef("%d Controller was not found!\n", context->getClient().remotePort());
 #endif
         return false;
     }
@@ -91,16 +108,16 @@ bool HTTPServer::DoController(PClientContext context, String &resource, HTTP_REQ
     switch(requestType)
     {
     case HTTP_REQ_TYPE::HTTP_GET:
-        return controller->Get(context->client, id);
+        return controller->Get(context->getClient(), id);
 
     case HTTP_REQ_TYPE::HTTP_POST:
-        return controller->Post(context->client, id, context->contentLength, context->contentType);
+        return controller->Post(context->getClient(), id, context->getContentLength(), context->getContentType());
 
     case HTTP_REQ_TYPE::HTTP_PUT:
-        return controller->Put(context->client, id);
+        return controller->Put(context->getClient(), id);
 
     case HTTP_REQ_TYPE::HTTP_DELETE:
-        return controller->Delete(context->client, id);
+        return controller->Delete(context->getClient(), id);
 
     default:;
     }
@@ -155,7 +172,7 @@ bool HTTPServer::GetView(const String resource, View *&view, String &id)
     return params.ret;
 }
 
-bool HTTPServer::HandlePostRequest(PClientContext context, const String &resource)
+bool HTTPServer::HandlePostRequest(ClientContext *context, const String &resource)
 {
     View *view;
     String id;
@@ -165,15 +182,15 @@ bool HTTPServer::HandlePostRequest(PClientContext context, const String &resourc
     if (view == NULL)
         return false;
 
-    bool ret = view->post(context->client, resource, id);
+    bool ret = view->post(context->getClient(), resource, id);
     delete view;
 
     return ret;
 }
 
-bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
+bool HTTPServer::HandleGetRequest(ClientContext *context, String &resource)
 {
-    EthClient *client = &context->client;
+    EthClient *client = &context->getClient();
     AutoPtr<View> tempView;
     View *view = NULL;
     String id;
@@ -191,7 +208,7 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
 #ifdef DEBUG_HTTP_SERVER
     {
         LOCK_TRACE();
-        Tracef("%d ", context->client.remotePort());
+        Tracef("%d ", context->getClient().remotePort());
         Trace("View=");
         Trace(view->viewPath);
         Trace(", id=");
@@ -210,21 +227,21 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
         return false;
     }
 
-    if (!context->lastModified.equals(""))
+    if (!context->getLastModified().isEmpty())
     {
         String lastModifiedTime;
 
         view->getLastModifiedTime(lastModifiedTime);
-        if (context->lastModified.equals(lastModifiedTime))
+        if (context->getLastModified().equals(lastModifiedTime))
         {
 #ifdef DEBUG_HTTP_SERVER
             {
                 LOCK_TRACE();
-                Tracef("%d ", context->client.remotePort());
+                Tracef("%d ", context->getClient().remotePort());
                 Trace("Resource: ");
                 Trace(resource);
                 Trace(" File was not modified. ");
-                Traceln(context->lastModified);
+                Traceln(context->getLastModified());
             }
 #endif
             NotModified(*client);
@@ -234,66 +251,29 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
     }
 
     CONTENT_TYPE type = view->getContentType();
-    String contentTypeHeader("Content-Type: ");
-    switch (type)
+    if (type == CONTENT_TYPE::UNKNOWN)
     {
-    case CONTENT_TYPE::HTML:
-        contentTypeHeader += "text/html";
-        break;
-    case CONTENT_TYPE::ICON:
-        contentTypeHeader += "image/x-icon";
-        break;
-    case CONTENT_TYPE::JPEG:
-        contentTypeHeader += "image/x-jpeg";
-        break;
-    case CONTENT_TYPE::JAVASCRIPT:
-        contentTypeHeader += "application/javascript";
-        break;
-    case CONTENT_TYPE::CSS:
-        contentTypeHeader += "text/css";
-        break;
-    case CONTENT_TYPE::EOT:
-        contentTypeHeader += "application/vnd.ms-fontobject";
-        break;
-    case CONTENT_TYPE::SVG:
-        contentTypeHeader += "image/svg+xml";
-        break;
-    case CONTENT_TYPE::TTF:
-        contentTypeHeader += "font/ttf";
-        break;
-    case CONTENT_TYPE::WOFF:
-        contentTypeHeader += "font/woff";
-        break;
-    case CONTENT_TYPE::WOFF2:
-        contentTypeHeader += "font/woff2";
-        break;
-    case CONTENT_TYPE::UNKNOWN:
 #ifdef DEBUG_HTTP_SERVER
         Traceln("Unknown extention");
 #endif
         view->close();
         return false;
-        break;
     }
 
     long size = view->getViewSize();
 
-    client->println("HTTP/1.1 200 OK");
-    client->print("Content-Length: ");
-    client->println(size);
-    client->println(contentTypeHeader);
-    client->println("Connection: close"); 
-    client->println("Server: Arduino");
+    HttpHeaders::Header additionalHeaders[] = { {type}, {} };
     if (type != CONTENT_TYPE::HTML)
     {
         String lastModifiedTime;
         if (view->getLastModifiedTime(lastModifiedTime))
         {
-            client->print("Last-Modified: ");
-            client->println(lastModifiedTime);
+            additionalHeaders[1] = {"Last-Modified", lastModifiedTime};
         }
     }
-    client->println();
+
+    HttpHeaders headers(*client);
+    headers.sendHeaderSection(200, true, additionalHeaders, NELEMS(additionalHeaders), size);
 
     long bytesSent = 0;
     while (bytesSent < size)
@@ -306,7 +286,7 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
 #ifdef DEBUG_HTTP_SERVER
     {
         LOCK_TRACE();
-        Tracef("%d ", context->client.remotePort());
+        Tracef("%d ", context->getClient().remotePort());
         Trace("Done sending ");
         Trace(view->viewFilePath.c_str());
         Trace(" Sent ");
@@ -322,91 +302,48 @@ bool HTTPServer::HandleGetRequest(PClientContext context, String &resource)
 
 void HTTPServer::NotModified(EthClient &client)
 {
-    client.println("HTTP/1.1 304 Not Modified");
-    client.println("Content-Length: 0");
-    client.println("Server: Arduino");
-    client.println("Connection: close"); 
-    client.println();
+    HttpHeaders headers(client);
+    headers.sendHeaderSection(304);
 }
 
 void HTTPServer::PageNotFound(EthClient &client)
 {
-    client.println("HTTP/1.1 404 Not Found");
-    client.println("Content-Length: 0");
-    client.println("Server: Arduino");
-    client.println("Connection: close"); 
-    client.println();
+    HttpHeaders headers(client);
+    headers.sendHeaderSection(404);
 }
 
-HTTP_REQ_TYPE HTTPServer::RequestType(String &request)
-{
-    if (strncmp(request.c_str(), "GET ", 4) == 0)
-        return HTTP_REQ_TYPE::HTTP_GET;
-    else if (strncmp(request.c_str(), "POST ", 5) == 0)
-        return HTTP_REQ_TYPE::HTTP_POST;
-    else if (strncmp(request.c_str(), "PUT ", 4) == 0)
-        return HTTP_REQ_TYPE::HTTP_PUT;
-    else if (strncmp(request.c_str(), "DELETE ", 7) == 0)
-        return HTTP_REQ_TYPE::HTTP_DELETE;
-
-    return HTTP_REQ_TYPE::HTTP_UNKNOWN;
-}
-
-bool HTTPServer::ProcessLine(PClientContext context)
-{
-    if (!context->reqLine.equals(""))
-    {
-        if (context->request.equals(""))
-            context->request = context->reqLine;
-        else if (context->reqLine.startsWith("If-Modified-Since: "))
-            context->lastModified = context->reqLine.substring(context->reqLine.indexOf(' ') + 1);
-        else if (context->reqLine.startsWith("Content-Length: "))
-            sscanf(context->reqLine.substring(context->reqLine.indexOf(' ') + 1).c_str(), "%u", &(context->contentLength));
-        else if (context->reqLine.startsWith("Content-Type: "))
-            context->contentType = context->reqLine.substring(context->reqLine.indexOf(' ') + 1);
-        context->reqLine = "";
-        return true;
-    }
-
-    return false;
-}
-
-
-void HTTPServer::ServiceRequest(PClientContext context)
+void HTTPServer::ServiceRequest(ClientContext *context)
 {
     AutoSD autoSD;
-#ifdef DEBUG_HTTP_SERVER
-    Tracef("%d %s\n", context->client.remotePort(), context->request.c_str());
-#endif
-    String resource = RequestResource(context->request);
+    String resource = context->getResource();
     String resourceOrg = resource;
     resource.toUpperCase();
-    HTTP_REQ_TYPE requestType = RequestType(context->request);
+    HTTP_REQ_TYPE requestType = context->getRequestType();
 
     if (resource.startsWith("/API"))
     {
         String controller = resourceOrg.substring(5);
         if (!DoController(context, controller, requestType))
-            PageNotFound(context->client);
+            PageNotFound(context->getClient());
         return;
     }
 
-    switch(RequestType(context->request))
+    switch(requestType)
     {
     case HTTP_REQ_TYPE::HTTP_GET:
         if (!HandleGetRequest(context, resource))
-            PageNotFound(context->client);
+            PageNotFound(context->getClient());
         break;
 
     case HTTP_REQ_TYPE::HTTP_POST:
         if (!HandlePostRequest(context, resource))
-            PageNotFound(context->client);
+            PageNotFound(context->getClient());
         break;
 
     case HTTP_REQ_TYPE::HTTP_PUT:
     case HTTP_REQ_TYPE::HTTP_DELETE:
     case HTTP_REQ_TYPE::HTTP_UNKNOWN:
-        PageNotFound(context->client);
+        PageNotFound(context->getClient());
         break;
     }
 }
@@ -441,7 +378,7 @@ void HTTPServer::ServeClient()
         Tracef("New client: IP=%s, port=%d\n", client.remoteIP().toString().c_str(), client.remotePort());
 #endif
 #endif
-        PClientContext context = new ClientContext(client);
+        ClientContext *context = new ClientContext(client);
         TaskHandle_t requestTaskHandle;
         BaseType_t ret;
         for (int i = 0; i <= TASK_CREATE_MAX_RETRIES; i++)
@@ -473,11 +410,8 @@ void HTTPServer::ServeClient()
                 client.read(buff, NELEMS(buff));
             }
             // Send reply
-            // TODO: make reply code use common methods to eliminate code duplications.
-            client.println("HTTP/1.1 500 Internal Server Error");
-            client.println("Connection: close"); 
-            client.println("Server: Arduino");
-            client.println();
+            HttpHeaders headers(client);
+            headers.sendHeaderSection(500);
             client.stop();
             delete context;
         }
@@ -485,15 +419,19 @@ void HTTPServer::ServeClient()
     }
 }
 
-void HTTPServer::RequestTask(void *params)
+void HTTPServer::RequestTask(ClientContext *context)
 {
-    PClientContext context = (PClientContext)params;
-    EthClient *client = &context->client;
-    bool requestServed = false;
-
+    EthClient *client = &context->getClient();
+    if (!context->parseRequestHeaderSection())
+    {
+        HttpHeaders headers(*client);
+        headers.sendHeaderSection(400);
+        return;
+    }
+    ServiceRequest(context);
     do
     {
-        delay(requestServed ? 1000 : 1);
+        delay(1000);
         uint16_t remotePort;
         try
         {
@@ -504,13 +442,13 @@ void HTTPServer::RequestTask(void *params)
             remotePort = 0;
         }
 
-        bool brokenClient = client->connected() && context->remotePort != remotePort;
+        bool brokenClient = client->connected() && context->getRemotePort() != remotePort;
 #ifdef DEBUG_HTTP_SERVER
         if (brokenClient)
         {
             LOCK_TRACE();
             Trace("Broken client: port=");
-            Trace(context->remotePort);
+            Trace(context->getRemotePort());
             Trace(", ");
             Traceln(remotePort);
         }
@@ -522,7 +460,7 @@ void HTTPServer::RequestTask(void *params)
             {
                 LOCK_TRACE();
                 Trace("Client disconnected, port=");
-                Traceln(context->remotePort);
+                Traceln(context->getRemotePort());
             }
 #else
             if (!brokenClient)
@@ -534,30 +472,20 @@ void HTTPServer::RequestTask(void *params)
                 client->stop();
             }
 
+            return;
+        }
+    } while(true);
+}
+
+void HTTPServer::RequestTask(void *params)
+{
+    ClientContext *context = (ClientContext *)params;
+    RequestTask(context);
 #ifdef DEBUG_HTTP_SERVER
-            Tracef("%d Task stack high watermark: %d\n", context->remotePort, uxTaskGetStackHighWaterMark(NULL));
+    Tracef("%d Task stack high watermark: %d\n", context->getRemotePort(), uxTaskGetStackHighWaterMark(NULL));
 #endif
-            delete context;
-            vTaskDelete(NULL);
-        }
-        if (!client->available()) 
-        {
-            continue;
-        }
-        char c = client->read();
-        if (c == '\r');
-        else if (c == '\n')
-        {
-            if (!ProcessLine(context))
-            {
-                ServiceRequest(context);
-                requestServed = true;
-            }
-        }
-        else
-            context->reqLine += c;
-    }
-    while(true);
+    delete context;
+    vTaskDelete(NULL);
 }
 
 void InitHTTPServer()
@@ -569,3 +497,4 @@ void DoHTTPService()
 {
     HTTPServer::ServeClient();
 }
+;

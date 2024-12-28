@@ -12,6 +12,7 @@ How many times have you lost internet connectivity, then you had to go to your r
   <li>Supports HTML interface for controlling, configuring and monitoring the device.</li>
   <li>Supports either WiFi or Wired (w5500) Ethernet connection.</li>
   <li>Supports manual control using LED indicators and pushbuttons.</li>
+  <li>Supports OTA firmware upgrades (no SSL support, yet).</li>
   <li>Includes EasyEDA elecrical diagram, PCB design and packaging design.</li>
 </ul>
 This project is intended to run on ESP32 with SD card reader and optionally a wired ethernet adapter. The code is developed using platformio in visual studio code.

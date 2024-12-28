@@ -6,6 +6,7 @@
 #include <SSEController.h>
 #include <TimeUtil.h>
 #include <Config.h>
+#include <HttpHeaders.h>
 
 IndexView::IndexView(const char *_viewName, const char *_viewFile) : 
    HtmlFillerView(_viewName, _viewFile)
@@ -41,16 +42,12 @@ bool IndexView::redirect(EthClient &client, const String &_id)
 {
     if (_id.equals("") || !sseController.IsValidId(_id))
     {
-        client.println("HTTP/1.1 302 Found");
-        client.print("Location: /index/");
-        client.println(++id);
-        client.println("Content-Length: 0");
-        client.println("Connection: close");
-        client.println();
-#ifdef USE_WIFI
-        client.flush();
-#endif
+        HttpHeaders::Header additionalHeaders[] = {{"Location", String("/index/") + ++id}};
+        HttpHeaders headers(client);
+        headers.sendHeaderSection(302, true, additionalHeaders, NELEMS(additionalHeaders));
+
         sseController.AddClient(String(id));
+
         return true;
     }
 

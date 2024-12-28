@@ -2,6 +2,9 @@
 #include <Config.h>
 #include <SDUtil.h>
 #include <PwrCntl.h>
+#ifdef DEBUG_CONFIG
+#include <Trace.h>
+#endif
 
 // Default MAC address
 // Newer Ethernet shields have a MAC address printed on a sticker on the shield
@@ -28,7 +31,7 @@ const char *Config::deviceName = "Router";
 time_t Config::skipRouterTime = 60 * 60; // One hour
 long Config::hardResetPeriodDays = 3; // 3 days
 long Config::hardResetTime = 3 * 60 * 60; // 3AM
-const char *Config::otaServer = NULL;
+const char *Config::otaServer = "otadrive.com";
 #ifdef USE_WIFI
 const char *Config::ssid /* = "Your SSID" */;
 const char *Config::password /* = "Your password" */;

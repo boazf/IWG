@@ -4,7 +4,9 @@
 #include <TimeUtil.h>
 #ifdef DEBUG_STATE_MACHINE
 #include <StringableEnum.h>
+#include <Trace.h>
 #endif
+
 HistoryControl::HistoryControl() :
     currStorageItem(NULL),
     m_pSM(NULL)

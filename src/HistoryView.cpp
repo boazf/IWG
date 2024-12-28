@@ -4,6 +4,9 @@
 #include <Common.h>
 #include <Config.h>
 #include <TimeUtil.h>
+#ifdef DEBUG_HTTP_SERVER
+#include <Trace.h>
+#endif
 
 typedef bool(*fillFile)(SdFile &file);
 

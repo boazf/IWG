@@ -1,7 +1,6 @@
 #ifndef FilesView_h
 #define FilesView_h
 
-#include <EthernetUtil.h>
 #include <View.h>
 
 class FilesView : public View

@@ -1,6 +1,10 @@
 #include <RecoveryController.h>
 #include <RecoveryControl.h>
 #include <EthernetUtil.h>
+#include <HttpHeaders.h>
+#ifdef DEBUG_HTTP_SERVER
+#include <Trace.h>
+#endif
 
 bool RecoveryController::Get(EthClient &client, String &resource)
 {
@@ -59,15 +63,9 @@ bool RecoveryController::Post(EthClient &client, String &resource, size_t conten
 
     recoveryControl.StartRecoveryCycles(recoveryType);
 
-    client.println("HTTP/1.1 200 OK");
-    client.println("Connection: close");  // the connection will be closed after completion of the response
-    client.println("Access-Control-Allow-Origin: *");  // allow any connection.
-    client.println("Cache-Control: no-cache");
-    client.println("Content-Length: 0");
-    client.println();
-#ifdef USE_WIFI
-    client.flush();
-#endif
+    HttpHeaders::Header additionalHeaders[] = { {"Access-Control-Allow-Origin", "*" }, {"Cache-Control", "no-cache"} };
+    HttpHeaders headers(client);
+    headers.sendHeaderSection(200, true, additionalHeaders, NELEMS(additionalHeaders));
 
     return true;
 }

@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include <Common.h>
-#include <SD.h>
 
 class Config
 {

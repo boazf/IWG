@@ -1,5 +1,9 @@
 #include <Common.h>
 #include <FilesView.h>
+#include <HttpHeaders.h>
+#ifdef DEBUG_HTTP_SERVER
+#include <Trace.h>
+#endif
 
 FilesView::FilesView(const char *_viewName, const char *_viewFile) : 
    View(_viewName, _viewFile)
@@ -42,14 +46,9 @@ bool FilesView::post(EthClient &client, const String &resource, const String &id
     Traceln(resp);
 #endif
     unsigned int len = resp.length();
-
-    client.println("HTTP/1.1 200 OK");
-    client.print("Content-Length: ");
-    client.println(len);
-    client.println("Content-Type: application/json");
-    client.println("Connection: close"); 
-    client.println("Server: Arduino");
-    client.println();
+    HttpHeaders::Header additionalHeaders[] = {{CONTENT_TYPE::JSON}};
+    HttpHeaders headers(client);
+    headers.sendHeaderSection(200, true, additionalHeaders, NELEMS(additionalHeaders), len);
 
     // Send the response in slices because of a limitation of W5500. In case of WiFi this doesn't matter.
     unsigned int index = 0;

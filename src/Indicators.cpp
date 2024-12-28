@@ -10,7 +10,7 @@
 
 #define BLINK_FREQ 2 // Hz
 
-LinkedList<Indicator *> Indicator::blinkingIndicators;
+Indicator::IndicatorsList Indicator::blinkingIndicators;
 TaskHandle_t Indicator::blinkerTaskHandle = NULL;
 
 Indicator::Indicator(uint8_t _channel, uint8_t pin) : 

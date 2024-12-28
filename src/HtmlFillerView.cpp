@@ -1,4 +1,7 @@
 #include <HtmlFillerView.h>
+#ifdef DEBUG_HTTP_SERVER
+#include <Trace.h>
+#endif
 
 size_t HtmlFillerView::viewHandler(byte *buff, size_t buffSize)
 {
@@ -16,9 +19,6 @@ size_t HtmlFillerView::viewHandler(byte *buff, size_t buffSize)
             int nFill;
             if (sscanf((const char *)buff + i + 1, "%d", &nFill) != 1)
             {
-#ifdef DEBUG_HTTP_SERVER
-                Traceln("Bad filler index!");
-#endif
                 continue;
             }
 

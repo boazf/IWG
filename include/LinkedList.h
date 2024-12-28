@@ -124,7 +124,10 @@ public:
     bool Delete(T val)
     {
         Lock lock(cs);
-        return Delete(Find(val)) != NULL;
+        ListNode *n = Find(val);
+        Delete(n);
+
+        return n != NULL;
     }
 
     bool IsEmpty()

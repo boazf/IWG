@@ -5,6 +5,9 @@
 #include <time.h>
 #include <Common.h>
 #include <RecoveryControl.h>
+#ifdef DEBUG_HISTORY
+#include <Trace.h>
+#endif
 
 #define HISTORY_EEPROM_START_ADDRESS 512
 

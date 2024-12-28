@@ -1,6 +1,10 @@
 #include <SSEController.h>
 #include <Relays.h>
 #include <TimeUtil.h>
+#include <HttpHeaders.h>
+#ifdef DEBUG_HTTP_SERVER
+#include <Trace.h>
+#endif
 
 bool SSEController::Get(EthClient &client, String &id)
 {
@@ -40,15 +44,9 @@ bool SSEController::Get(EthClient &client, String &id)
     Tracef("Adding SSE client: id=%s, IP=%s, port=%d, object=%lx\n", id.c_str(), client.remoteIP().toString().c_str(), client.remotePort(), (ulong)&client);
 #endif
     clients.Insert(ClientInfo(id, client));
-    client.println("HTTP/1.1 200 OK");
-    client.println("Content-Type: text/event-stream");
-    client.println("Connection: keep-alive");  // the connection will be closed after completion of the response
-    client.println("Access-Control-Allow-Origin: *");  // allow any connection.
-    client.println("Cache-Control: no-cache");
-    client.println();
-#ifdef USE_WIFI
-    client.flush();
-#endif
+
+    HttpHeaders httpHeaders(client);
+    httpHeaders.sendStreamHeaderSection();
 
     NotifyState(id);
 
@@ -67,8 +65,6 @@ bool SSEController::Put(EthClient &client, String &resource)
 
 bool SSEController::Delete(EthClient &client, String &id)
 {
-    Tracef("%d sse delete id=%s\n", client.remotePort(), id.c_str());
-
     struct Params
     {
         SSEController *controller;
@@ -88,15 +84,9 @@ bool SSEController::Delete(EthClient &client, String &id)
         return true;
     }, &params);
 
-    client.println("HTTP/1.1 200 OK");
-    client.println("Connection: close");  // the connection will be closed after completion of the response
-    client.println("Access-Control-Allow-Origin: *");  // allow any connection.
-    client.println("Cache-Control: no-cache");
-    client.println("Content-Length: 0");
-    client.println();
-#ifdef USE_WIFI
-    client.flush();
-#endif
+    HttpHeaders::Header additionalHeaders[] = { {"Access-Control-Allow-Origin", "*" }, {"Cache-Control", "no-cache"} };
+    HttpHeaders headers(client);
+    headers.sendHeaderSection(200, true, additionalHeaders, NELEMS(additionalHeaders));
 
     return true;
 }

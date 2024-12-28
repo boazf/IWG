@@ -4,6 +4,10 @@
 #include <AppConfig.h>
 #include <EthernetUtil.h>
 #include <Version.h>
+#include <HttpHeaders.h>
+#ifdef DEBUG_HTTP_SERVER
+#include <Trace.h>
+#endif
 
 SettingsView::SettingsView(const char *_viewName, const char *_viewFile) : 
     HtmlFillerView(_viewName, _viewFile)
@@ -97,10 +101,12 @@ void SettingsView::SetConfigValue(const String &pair, SettingsValuesSetMap &sett
     String var = pair.substring(0, eqIndex);
     String val = pair.substring(eqIndex + 1);
 
-    SettingsMap::iterator i = settingsMap.find(var.c_str());
+    SettingsMap::const_iterator i = settingsMap.find(var.c_str());
     if (i == settingsMap.end())
     {
+#ifdef DEBUG_HTTP_SERVER
         Tracef("Unknown settings key variable: %s\n", var.c_str());
+#endif
         return;
     }
 
@@ -196,13 +202,9 @@ bool SettingsView::post(EthClient &client, const String &resource, const String 
     SetConfigValue(pair, settingsValuesSetMap);
     AppConfig::commit();
 
-    client.println("HTTP/1.1 302 Found");
-    client.println("Location: /index");
-    client.println("Server: Arduino");
-    client.println("Access-Control-Allow-Origin: *");
-    client.println("Connection: close"); 
-    client.println("Content-Length: 0");
-    client.println();
+    HttpHeaders::Header additionalHeaders[] = { {"Access-Control-Allow-Origin", "*" }, {"Location", "/index"} };
+    HttpHeaders headers(client);
+    headers.sendHeaderSection(302, true, additionalHeaders, NELEMS(additionalHeaders));
 
     return true;
 }
