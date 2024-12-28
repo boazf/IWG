@@ -76,12 +76,12 @@ void Version::onEnd(OnEnd onEndCallback)
 
 void Version::onError(OnError onErrorCallback)
 {
-    static OnError botasOnError;
-    botasOnError = onErrorCallback;
+    static OnError otaOnError;
+    otaOnError = onErrorCallback;
     httpUpdate.onError([](int errCode)
     {
         String errMessage = httpUpdate.getLastErrorString();
-        botasOnError(errCode, errMessage);
+        otaOnError(errCode, errMessage);
     });
 }
 
