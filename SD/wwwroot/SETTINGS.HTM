@@ -183,13 +183,13 @@
                         <table style="border-collapse: separate; border-spacing: 10px;width: 95%;">
                             <tr>
                                 <td style="width: 25%">Current Version:</td>
-                                <td style="width: 10%">%19      </td>
+                                <td class="col-xs-1" align="center" style="width: 10%">%19      </td>
                                 <td  style="width: 15%"></td>
                                 <td  style="width: 50%"
                             </tr>
                             <tr>
                                 <td>OTA Version:</td>
-                                <td id="OTAVersion">%20      </td>
+                                <td class="col-xs-1" align="center" id="OTAVersion"></td>
                                 <td>
                                     <button id="refreshBtn" type="button" class="btn-sm btn-block btn-primary" onclick="refreshVersion()">Refresh</button>
                                 </td>
@@ -227,10 +227,13 @@
                 <input name="periodicallyRestartModem" type="hidden" value="false" />
             </form>
             <script type="text/javascript">
-                var appBase = %21                                                                                                                    ;
-                $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                var appBase = %20                                                                                                                    ;
+                $('a[data-toggle="tab"]').on('shown.bs.tab', async function (e) {
                     var target = $(e.target).attr("href") // activated tab
                     $("#buttonsRow").css("display", target == "#Update" ? "none" : "inherit");
+                    if (target == "#Update" && $("#OTAVersion")[0].innerHTML == "") {
+                        await refreshVersion();
+                    }
                 });
                 function checkLoadError() {
                     if (loadError)
@@ -279,15 +282,20 @@
                 }
                 async function refreshVersion()
                 {
+                    $("#OTAVersion")[0].innerHTML = "<img src='images/clock.svg'>";
+                    $("#OTAVersion").addClass("spinning");
                     setDisableUpdateButtons(true);
                     var response = await fetch(appBase + "api/version/info", { method: "GET"} );
-                    var json = await response.json();
-                    $("#OTAVersion")[0].innerHTML = json.Version;
-                    $("#OTAVersion")[0].style.backgroundColor = "LightYellow";
-                    setTimeout(function() {
-                        $("#OTAVersion")[0].style.backgroundColor = "inherit";
-                        setDisableUpdateButtons(false);
-                    }, 500);
+                    var version;
+                    if (!response.ok) {
+                        version = "Unknown";
+                    } else {
+                        var json = await response.json();
+                        version = json.Version;
+                    }
+                    $("#OTAVersion").removeClass("spinning");
+                    $("#OTAVersion")[0].innerHTML = version;
+                    setDisableUpdateButtons(false);
                 }
 
                 var source;

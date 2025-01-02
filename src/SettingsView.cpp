@@ -41,7 +41,6 @@ ViewFiller SettingsView::fillers[] =
     /* 17 */ [](String &fill){ fill = AppConfig::getPeriodicallyRestartModem() ? "checked=\"checked\" />" : " />"; },
     /* 18 */ [](String &fill){ time_t t = AppConfig::getPeriodicRestartTime(); int h = t / 3600; int m =  (t % 3600) / 60; char buff[8]; sprintf(buff, "\"%02u:%02u\"%c", h, m, '\0'); fill = String(buff); },
     /* 19 */ [](String &fill){ fill = Version::getCurrentVersion(); },
-    /* 20 */ [](String &fill){ fill = Version::getOtaVersion(); },
     /* 21 */ [](String &fill){ fill = appBase(); },
 };
 
