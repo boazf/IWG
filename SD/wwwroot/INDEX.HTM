@@ -132,7 +132,7 @@
 
     window.addEventListener("beforeunload", async function(event) {
         source.close();
-        await fetch(appBase + "api/sse/" + id, { method: "DELETE" });
+        await fetch(appBase + "api/sse/" + id, { method: "DELETE", keepalive: true });
     });
 
     source.onmessage = function (event) {
