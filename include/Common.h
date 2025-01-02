@@ -17,6 +17,12 @@
 #define NELEMS(a) (sizeof(a)/sizeof(*a))
 #define MAX_PATH 128
 
+#ifdef USE_WIFI
+#define APP_NAME "IWG-WIFI"
+#else
+#define APP_NAME "IWG-Wired"
+#endif
+
 extern CriticalSection csSpi;
 
 #endif // Common_h
