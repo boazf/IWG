@@ -1,4 +1,7 @@
 #include <HttpHeaders.h>
+#ifdef DEBUG_HTTP_SERVER
+#include <Trace.h>
+#endif
 
 void HttpHeaders::sendHeaderSection(int code, bool includeDefaultHeaders, Header headers[], size_t nHeaders, int length)
 {
@@ -54,11 +57,22 @@ bool HttpHeaders::parseRequestHeaderSection(HTTP_REQ_TYPE &requestType, String &
 
     do
     {
+        if (!client)
+        {
+#ifdef DEBUG_HTTP_SERVER
+            Tracef("%d Received incomplete request!\n", client.remotePort());
+#endif
+            return false;
+        }
         if (!client.available()) 
         {
             if (millis() - t0 >= receiveTimeout)
+            {
+#ifdef DEBUG_HTTP_SERVER
+                Tracef("%d Receive timeout!\n", client.remotePort());
+#endif
                 return false;
-
+            }
             delay(10);
             continue;
         }
@@ -90,15 +104,15 @@ bool HttpHeaders::parseRequestHeaderSection(HTTP_REQ_TYPE &requestType, String &
             
             requestType = httpReqType->second;
             int secondSpace = parsedLine.indexOf(' ', space + 1);
+            if (secondSpace == -1)
+                return false;
             resource = parsedLine.substring(space + 1, secondSpace);
         }
         else
         {
             int delimiter = parsedLine.indexOf(": ");
             if (delimiter == -1)
-            {
                 return false;
-            }
 
             String headerName = parsedLine.substring(0, delimiter);
             HeaderNameIndexes::const_iterator headerIndex = headerNamesIndexes.find(headerName);

@@ -10,10 +10,10 @@ public:
     {
     }
 
-    bool Get(EthClient &client, String &resource);
-    bool Post(EthClient &client, String &resource, size_t contentLength, String contentType);
-    bool Put(EthClient &client, String &resource);
-    bool Delete(EthClient &client, String &resource);
+    bool Get(EthClient &client, String &resource, ControllerContext &context);
+    bool Post(EthClient &client, String &resource, ControllerContext &context);
+    bool Put(EthClient &client, String &resource, ControllerContext &context);
+    bool Delete(EthClient &client, String &resource, ControllerContext &context);
 
 private:
     void normalizePath(String &path);

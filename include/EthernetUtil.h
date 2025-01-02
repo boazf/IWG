@@ -56,6 +56,7 @@ public:
     EthernetClientEx(const EthernetClient &_client) { client = _client; }
     EthernetClientEx operator =(const EthernetClient &_client) { client = _client; return *this; }
     EthernetClientEx operator =(const EthernetClientEx &other) { client = other.client; return *this; }
+	bool operator==(const EthernetClientEx& other) { return client == other.client; };
     uint16_t remotePort();
 	size_t write(uint8_t);
 	size_t write(const uint8_t *buf, size_t size);

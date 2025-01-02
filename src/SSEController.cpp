@@ -6,7 +6,7 @@
 #include <Trace.h>
 #endif
 
-bool SSEController::Get(EthClient &client, String &id)
+bool SSEController::Get(EthClient &client, String &id, ControllerContext &context)
 {
 #ifdef DEBUG_HTTP_SERVER
     {
@@ -47,23 +47,24 @@ bool SSEController::Get(EthClient &client, String &id)
 
     HttpHeaders httpHeaders(client);
     httpHeaders.sendStreamHeaderSection();
+    context.keepAlive = true;
 
     NotifyState(id);
 
     return true;
 }
 
-bool SSEController::Post(EthClient &client, String &resource, size_t contentLength, String contentType)
+bool SSEController::Post(EthClient &client, String &resource, ControllerContext &context)
 {
     return false;
 }
 
-bool SSEController::Put(EthClient &client, String &resource)
+bool SSEController::Put(EthClient &client, String &resource, ControllerContext &context)
 {
     return false;
 }
 
-bool SSEController::Delete(EthClient &client, String &id)
+bool SSEController::Delete(EthClient &client, String &id, ControllerContext &context)
 {
     struct Params
     {
@@ -139,27 +140,30 @@ void SSEController::NotifyState(const String &id)
         String id = params->id;
         if (!id.equals("") && !id.equals(clientInfo.id))
             return true;
-        EthClient *client = clientInfo.client;
-        if (client == NULL)
-            return true;
-#ifdef DEBUG_HTTP_SERVER
+        EthClient client = clientInfo.client;
+        if (client.connected())
         {
-            LOCK_TRACE();
-            Trace("Notifying client id=");
-            Trace(clientInfo.id);
+#ifdef DEBUG_HTTP_SERVER
+            {
+                LOCK_TRACE();
+                Trace("Notifying client id=");
+                Trace(clientInfo.id);
+                Tracef(" IP=%s, port=%d", client.remoteIP().toString().c_str(), client.remotePort());
 #ifndef USE_WIFI
-            Trace(", socket=");
-            Traceln(client->getSocketNumber());
+                Trace(", socket=");
+                Traceln(client.getSocketNumber());
 #else
-            Traceln();
+                Traceln();
+#endif
+            }
+#endif
+            client.print(params->event);
+            client.println();
+#ifdef USE_WIFI
+            client.flush();
 #endif
         }
-#endif
-        client->print(params->event);
-        client->println();
-#ifdef USE_WIFI
-        client->flush();
-#endif
+
         if (!id.equals(""))
             return false;
             
@@ -168,6 +172,27 @@ void SSEController::NotifyState(const String &id)
 
     if (state.recoveryType == RecoveryTypes::RouterSingleDevice)
         state.recoveryType = RecoveryTypes::Router;
+}
+
+void SSEController::DeleteUnusedClients()
+{
+    ClientsList clientsToDelete;
+
+    clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
+    {
+        ClientsList *clientsToDelete = (ClientsList *)param;
+        EthClient client = clientInfo.client;
+        if (!client.connected())
+            clientsToDelete->Insert(clientInfo);
+        return true;
+    }, &clientsToDelete);
+
+    clientsToDelete.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
+    {
+        SSEController *controller = (SSEController *)param;
+        controller->DeleteClient(clientInfo, false);
+        return true;
+    }, this);
 }
 
 void SSEController::Init()
@@ -181,6 +206,19 @@ void SSEController::Init()
     recoveryControl.GetAutoRecoveryStateChanged().addObserver(AutoRecoveryStateChanged, this);
     recoveryControl.GetModemPowerStateChanged().addObserver(ModemPowerStateChanged, this);
     recoveryControl.GetRouterPowerStateChanged().addObserver(RouterPowerStateChanged, this);
+    xTaskCreate([](void *param)
+    {
+        while (true)
+        {
+            delay(5000);
+            ((SSEController *)param)->DeleteUnusedClients();
+        }
+    },
+    "SSE_DeleteUnusedClients",
+    2 * 1024,
+    this,
+    tskIDLE_PRIORITY,
+    NULL);
 }
 
 void SSEController::UpdateStateLastRecoveryTime()
@@ -238,7 +276,7 @@ bool SSEController::DeleteClient(EthClient &client, bool stopClient)
     struct Params
     {
         SSEController *controller;
-        EthClient &client;
+        const EthClient client;
         bool stopClient;
         bool ret;
     } params = { this, client, stopClient, false };
@@ -246,7 +284,8 @@ bool SSEController::DeleteClient(EthClient &client, bool stopClient)
     clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
     {
         Params *params = (Params *)param;
-        if (clientInfo.client == &params->client)
+        EthClient client = clientInfo.client;
+        if (client == params->client)
         {
             params->controller->DeleteClient(clientInfo, params->stopClient);
             params->ret = true;
@@ -261,23 +300,33 @@ bool SSEController::DeleteClient(EthClient &client, bool stopClient)
 
 void SSEController::DeleteClient(const ClientInfo &clientInfo, bool stopClient)
 {
+    EthClient client = clientInfo.client;
+    if (client.connected())
+    {
 #ifdef DEBUG_HTTP_SERVER
-    if (clientInfo.client != NULL)
-    {
-        LOCK_TRACE();
-        Tracef("%d Deleting previous session id=%s", clientInfo.client->remotePort(), clientInfo.id.c_str());
+        {
+            LOCK_TRACE();
+            Tracef("%d Deleting previous session id=%s", client.remotePort(), clientInfo.id.c_str());
 #ifndef USE_WIFI
-        Trace(", socket=");
-        Traceln(clientInfo.client->getSocketNumber());
+            Trace(", socket=");
+            Traceln(client.getSocketNumber());
 #else
-        Traceln();
+            Traceln();
 #endif
-    }
+        }
 #endif
-    if (clientInfo.client != NULL && clientInfo.client && stopClient)
-    {
-        clientInfo.client->stop();
+        if (stopClient)
+        {
+#ifdef DEBUG_HTTP_SERVER
+            Tracef("%d Stopping client\n", client.remotePort());
+#endif        
+            client.stop();
+        }
     }
+#ifdef DEBUG_HTTP_SERVER
+    else
+        Tracef("Deleting client info id=%s\n", clientInfo.id);
+#endif
     clients.Delete(clientInfo);
 }
 

@@ -4,6 +4,24 @@
 #include <Arduino.h>
 #include <EthernetUtil.h>
 
+class ControllerContext
+{
+public:
+    ControllerContext(size_t contentLength, const String &contentType) :
+        keepAlive(false),
+        contentLength(contentLength),
+        contentType(contentType)
+    {}
+    bool keepAlive;
+
+    size_t getContentLength() { return contentLength; }
+    const String &getContentType() { return contentType; }
+
+private:
+    size_t contentLength;
+    String contentType;
+};
+
 class Controller
 {
 public:
@@ -12,10 +30,10 @@ public:
     {
     }
 
-    virtual bool Get(EthClient &client, String &resource) = 0;
-    virtual bool Post(EthClient &client, String &resource, size_t contentLength, String contentType) = 0;
-    virtual bool Put(EthClient &client, String &resource) = 0;
-    virtual bool Delete(EthClient &client, String &resource) = 0;
+    virtual bool Get(EthClient &client, String &resource, ControllerContext &context) = 0;
+    virtual bool Post(EthClient &client, String &resource, ControllerContext &context) = 0;
+    virtual bool Put(EthClient &client, String &resource, ControllerContext &context) = 0;
+    virtual bool Delete(EthClient &client, String &resource, ControllerContext &context) = 0;
 
     const String name;
 };

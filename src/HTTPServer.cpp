@@ -9,6 +9,7 @@
 String ClientContext::collectedHeadersNames[] = {"If-Modified-Since", "Content-Length", "Content-Type"};
 
 ClientContext::ClientContext(EthClient &client) :
+    keepAlive(false),
     client(client), 
     requestType(HTTP_REQ_TYPE::HTTP_UNKNOWN)
 {
@@ -34,8 +35,8 @@ bool ClientContext::parseRequestHeaderSection()
     return res;
 }
 
-LinkedList<ViewCreator *> HTTPServer::viewCreators;
-LinkedList<Controller *> HTTPServer::controllers;
+HTTPServer::ViewCreatorsList HTTPServer::viewCreators;
+HTTPServer::ControllersList HTTPServer::controllers;
 
 void HTTPServer::AddView(ViewCreator *viewCreator)
 {
@@ -105,24 +106,34 @@ bool HTTPServer::DoController(ClientContext *context, String &resource, HTTP_REQ
         return false;
     }
 
+    ControllerContext controllerContext(context->getContentLength(), context->getContentType());
+    bool ret = false;
+
     switch(requestType)
     {
     case HTTP_REQ_TYPE::HTTP_GET:
-        return controller->Get(context->getClient(), id);
+        ret = controller->Get(context->getClient(), id, controllerContext);
+        break;
 
     case HTTP_REQ_TYPE::HTTP_POST:
-        return controller->Post(context->getClient(), id, context->getContentLength(), context->getContentType());
+        ret = controller->Post(context->getClient(), id, controllerContext);
+        break;
 
     case HTTP_REQ_TYPE::HTTP_PUT:
-        return controller->Put(context->getClient(), id);
+        ret = controller->Put(context->getClient(), id, controllerContext);
+        break;
 
     case HTTP_REQ_TYPE::HTTP_DELETE:
-        return controller->Delete(context->getClient(), id);
+        ret = controller->Delete(context->getClient(), id, controllerContext);
+        break;
 
     default:;
+        break;
     }
 
-    return false;
+    context->keepAlive = controllerContext.keepAlive;
+
+    return ret;
 }
 
 bool HTTPServer::GetView(const String resource, View *&view, String &id)
@@ -369,122 +380,90 @@ void HTTPServer::ServeClient()
 {
     // listen for incoming clients
     EthClient client = server.accept();
-    while (client)
-    {
+    if (!client)
+        return;
 #ifdef DEBUG_HTTP_SERVER
 #ifndef USE_WIFI
-        Tracef("New client: IP=%s, port=%d, socket: %d\n", client.remoteIP().toString().c_str(), client.remotePort(), client.getSocketNumber());
+    Tracef("New client: IP=%s, port=%d, socket: %d\n", client.remoteIP().toString().c_str(), client.remotePort(), client.getSocketNumber());
 #else
-        Tracef("New client: IP=%s, port=%d\n", client.remoteIP().toString().c_str(), client.remotePort());
+    Tracef("New client: IP=%s, port=%d\n", client.remoteIP().toString().c_str(), client.remotePort());
 #endif
 #endif
-        ClientContext *context = new ClientContext(client);
-        TaskHandle_t requestTaskHandle;
-        BaseType_t ret;
-        for (int i = 0; i <= TASK_CREATE_MAX_RETRIES; i++)
-        {
-            ret = xTaskCreate(RequestTask, "HTTPRequest", 4*1024, context, tskIDLE_PRIORITY + 1, &requestTaskHandle);
-            if (ret == pdPASS)
-            {
-#ifdef DEBUG_HTTP_SERVER
-                if (i > 0)
-                    Tracef("%d Succeeded to create request task after %d retries\n", client.remotePort(), i);
-#endif
-                break;
-            }
-#ifdef DEBUG_HTTP_SERVER
-            if (i == 0)
-                Tracef("%d Failed to create request task, error = %d will attempt again\n", client.remotePort(), ret);
-#endif
-            delay(1000); // Wait before reattempting creating the task
-        }
-        if (ret != pdPASS)
+    ClientContext *context = new ClientContext(client);
+    TaskHandle_t requestTaskHandle;
+    BaseType_t ret;
+    for (int i = 0; i <= TASK_CREATE_MAX_RETRIES; i++)
+    {
+        ret = xTaskCreate(RequestTask, "HTTPRequest", 4*1024, context, tskIDLE_PRIORITY + 1, &requestTaskHandle);
+        if (ret == pdPASS)
         {
 #ifdef DEBUG_HTTP_SERVER
-            Tracef("%d Failed to create request task after %d attempts, error = %d\n", client.remotePort(), TASK_CREATE_MAX_RETRIES, ret);
+            if (i > 0)
+                Tracef("%d Succeeded to create request task after %d retries\n", client.remotePort(), i);
 #endif
-            // Drain the client
-            while(client.available())
-            {
-                uint8_t buff[128];
-                client.read(buff, NELEMS(buff));
-            }
-            // Send reply
-            HttpHeaders headers(client);
-            headers.sendHeaderSection(500);
-            client.stop();
-            delete context;
+            break;
         }
-        client = server.accept();
+#ifdef DEBUG_HTTP_SERVER
+        if (i == 0)
+            Tracef("%d Failed to create request task, error = %d will attempt again\n", client.remotePort(), ret);
+#endif
+        delay(1000); // Wait before reattempting creating the task
+    }
+
+    if (ret != pdPASS)
+    {
+#ifdef DEBUG_HTTP_SERVER
+        Tracef("%d Failed to create request task after %d attempts, error = %d\n", client.remotePort(), TASK_CREATE_MAX_RETRIES, ret);
+#endif
+        // Drain the client
+        while(client.available())
+        {
+            uint8_t buff[128];
+            client.read(buff, NELEMS(buff));
+        }
+        // Send reply
+        HttpHeaders headers(client);
+        headers.sendHeaderSection(500);
+        client.stop();
+        delete context;
     }
 }
 
 void HTTPServer::RequestTask(ClientContext *context)
 {
-    EthClient *client = &context->getClient();
+    EthClient client = context->getClient();
+    unsigned long t0 = millis();
+    while (!client.available() && millis() - t0 < 3000);
+    if (!client.available())
+        return;
     if (!context->parseRequestHeaderSection())
     {
-        HttpHeaders headers(*client);
+        HttpHeaders headers(context->getClient());
         headers.sendHeaderSection(400);
         return;
     }
     ServiceRequest(context);
-    do
-    {
-        delay(1000);
-        uint16_t remotePort;
-        try
-        {
-            remotePort = client->remotePort();
-        }
-        catch(...)
-        {
-            remotePort = 0;
-        }
-
-        bool brokenClient = client->connected() && context->getRemotePort() != remotePort;
-#ifdef DEBUG_HTTP_SERVER
-        if (brokenClient)
-        {
-            LOCK_TRACE();
-            Trace("Broken client: port=");
-            Trace(context->getRemotePort());
-            Trace(", ");
-            Traceln(remotePort);
-        }
-#endif
-        if (brokenClient || !client->connected())
-        {
-#ifdef DEBUG_HTTP_SERVER
-#ifndef USE_WIFI
-            {
-                LOCK_TRACE();
-                Trace("Client disconnected, port=");
-                Traceln(context->getRemotePort());
-            }
-#else
-            if (!brokenClient)
-                Tracef("Client disconnected, IP=%s, port=%d\n", client->remoteIP().toString().c_str(), client->remotePort());
-#endif
-#endif
-            if (!sseController.DeleteClient(*client, !brokenClient) && !brokenClient && *client)
-            {
-                client->stop();
-            }
-
-            return;
-        }
-    } while(true);
 }
 
 void HTTPServer::RequestTask(void *params)
 {
     ClientContext *context = (ClientContext *)params;
     RequestTask(context);
+    if (!context->keepAlive)
+    {
+#ifdef DEBUG_HTTP_SERVER
+        Tracef("%d Stopping client\n", context->getRemotePort());
+#endif
+        context->getClient().stop();
+    }
+#ifdef DEBUG_HTTP_SERVER
+    else
+        Tracef("%d Keeping alive\n", context->getRemotePort());
+#endif
+    delete context;
 #ifdef DEBUG_HTTP_SERVER
     Tracef("%d Task stack high watermark: %d\n", context->getRemotePort(), uxTaskGetStackHighWaterMark(NULL));
 #endif
-    delete context;
     vTaskDelete(NULL);
 }
 
@@ -497,4 +476,3 @@ void DoHTTPService()
 {
     HTTPServer::ServeClient();
 }
-;

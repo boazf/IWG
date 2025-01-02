@@ -6,7 +6,7 @@
 #include <Trace.h>
 #endif
 
-bool RecoveryController::Get(EthClient &client, String &resource)
+bool RecoveryController::Get(EthClient &client, String &resource, ControllerContext &context)
 {
 #ifdef DEBUG_HTTP_SERVER
     Traceln("RecoveryController Get");
@@ -14,7 +14,7 @@ bool RecoveryController::Get(EthClient &client, String &resource)
     return false;
 }
 
-bool RecoveryController::Put(EthClient &client, String &resource)
+bool RecoveryController::Put(EthClient &client, String &resource, ControllerContext &context)
 {
 #ifdef DEBUG_HTTP_SERVER
     Traceln("RecoveryController Put");
@@ -22,7 +22,7 @@ bool RecoveryController::Put(EthClient &client, String &resource)
     return false;
 }
 
-bool RecoveryController::Delete(EthClient &client, String &resource)
+bool RecoveryController::Delete(EthClient &client, String &resource, ControllerContext &context)
 {
 #ifdef DEBUG_HTTP_SERVER
     Traceln("RecoveryController Delete");
@@ -30,7 +30,7 @@ bool RecoveryController::Delete(EthClient &client, String &resource)
     return false;
 }
 
-bool RecoveryController::Post(EthClient &client, String &resource, size_t contentLength, String contentType)
+bool RecoveryController::Post(EthClient &client, String &resource, ControllerContext &context)
 {
 #ifdef DEBUG_HTTP_SERVER
     Traceln("RecoveryController Post");

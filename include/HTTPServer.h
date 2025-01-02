@@ -23,13 +23,14 @@ public:
 
     bool parseRequestHeaderSection();
 
-    HTTP_REQ_TYPE getRequestType() { return requestType; }
+    HTTP_REQ_TYPE getRequestType() const { return requestType; }
     EthClient &getClient() { return client; }
-    uint16_t getRemotePort() { return remotePort; }
-    String getLastModified() { return collectedHeaders[0].value; }
-    size_t getContentLength() { return atoi(collectedHeaders[1].value.c_str()); }
-    String getContentType() { return collectedHeaders[2].value; }
-    String getResource() { return resource; }
+    uint16_t getRemotePort() const { return remotePort; }
+    String getLastModified() const { return collectedHeaders[0].value; }
+    size_t getContentLength() const { return atoi(collectedHeaders[1].value.c_str()); }
+    String getContentType() const { return collectedHeaders[2].value; }
+    String getResource() const { return resource; }
+    bool keepAlive;
 
 private:
     static String collectedHeadersNames[];
@@ -61,8 +62,10 @@ private:
 
 private:
     static EthServer server;
-    static LinkedList<ViewCreator *> viewCreators;
-    static LinkedList<Controller *> controllers;
+    typedef LinkedList<ViewCreator *> ViewCreatorsList; 
+    static ViewCreatorsList viewCreators;
+    typedef LinkedList<Controller *> ControllersList;
+    static ControllersList controllers;
 };
 
 void InitHTTPServer();

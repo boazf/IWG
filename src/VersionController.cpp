@@ -1,10 +1,12 @@
 #include <VersionController.h>
 #include <Version.h>
 #include <HttpUpdate.h>
+#ifdef DEBUG_HTTP_SERVER
 #include <Trace.h>
+#endif
 #include <HttpHeaders.h>
 
-bool VersionController::sendVersionInfo(EthClient &client)
+bool VersionController::sendVersionInfo(EthClient &client, ControllerContext &context)
 {
     
     String version = Version::getOtaVersion();
@@ -19,38 +21,41 @@ bool VersionController::sendVersionInfo(EthClient &client)
     return true;
 }
 
-bool VersionController::updateVersion(EthClient &client)
+bool VersionController::updateVersion(EthClient &client, ControllerContext &context)
 {
     BaseType_t ret = xTaskCreate(
         [](void *param)
         {
-            static EthClient *notificationClient;
-            notificationClient = (EthClient *)param;
+            static EthClient notificationClient;
+            notificationClient = *(EthClient *)param;
             Version::onStart([]()
             {
-                notify(*notificationClient, NotificationType::start);
+                notify(notificationClient, NotificationType::start);
             });
             Version::onProgress([](int sent, int total)
             {
-                notify(*notificationClient, NotificationType::progress, sent, total);
+                notify(notificationClient, NotificationType::progress, sent, total);
             });
             Version::onEnd([]()
             {
-                notify(*notificationClient, NotificationType::end);
+                notify(notificationClient, NotificationType::end);
                 delay(1000);
             });
             Version::onError([](int error, const String &message)
             {
-                notify(*notificationClient, NotificationType::error, error, message);
+                notify(notificationClient, NotificationType::error, error, message);
             });
 
-            EthClient client;
             Version::UpdateResult res = Version::updateFirmware();
-            client.stop();
             if (res == Version::UpdateResult::noAvailUpdate)
-                notify(*notificationClient, NotificationType::error, 0, "No available update");
-            notificationClient->stop();
+                notify(notificationClient, NotificationType::error, 0, "No available update");
+#ifdef DEBUG_HTTP_SERVER
+            Tracef("%d Stopping client\n", notificationClient.remotePort());
+#endif
+            notificationClient.stop();
+#ifdef DEBUG_HTTP_SERVER
             Tracef("Update task stack high watermark: %d\n", uxTaskGetStackHighWaterMark(NULL));
+#endif
             vTaskDelete(NULL);
         },
         "UpdateFirmware",
@@ -63,6 +68,7 @@ bool VersionController::updateVersion(EthClient &client)
 
     HttpHeaders headers(client);
     headers.sendStreamHeaderSection();
+    context.keepAlive = true;
 
     return true;
 }

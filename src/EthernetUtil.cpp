@@ -161,8 +161,7 @@ size_t EthernetClientEx::write(const uint8_t *buf, size_t size)
 
 EthernetClientEx::operator bool()
 {
-  Lock lock(csSpi);
-  return !!client;
+  return connected();
 }
 
 void EthernetClientEx::stop()

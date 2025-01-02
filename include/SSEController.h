@@ -10,13 +10,12 @@ struct ClientInfo
 public:
     ClientInfo(const String &_id, EthClient &_client) :
         id(_id),
-        client(&_client)
+        client(_client)
     {
     }
 
     ClientInfo(const String &_id) :
-        id(_id),
-        client(NULL)
+        id(_id)
     {
     }
 
@@ -38,7 +37,7 @@ public:
     }
 
     const String id;
-    EthClient *client;
+    EthClient client;
 };
 
 class SSEController : public Controller
@@ -48,10 +47,10 @@ public:
     {
     }
 
-    bool Get(EthClient &client, String &resource);
-    bool Post(EthClient &client, String &resource, size_t contentLength, String contentType);
-    bool Put(EthClient &client, String &resource);
-    bool Delete(EthClient &client, String &resource);
+    bool Get(EthClient &client, String &resource, ControllerContext &context);
+    bool Post(EthClient &client, String &resource, ControllerContext &context);
+    bool Put(EthClient &client, String &resource, ControllerContext &context);
+    bool Delete(EthClient &client, String &resource, ControllerContext &context);
     void Init();
     bool DeleteClient(EthClient &client, bool stopClient);
     bool IsValidId(const String &id);
@@ -65,10 +64,12 @@ private:
     void NotifyState(const String &id);
     void UpdateStateLastRecoveryTime();
     void DeleteClient(const ClientInfo &clientInfo, bool stopClient);
+    void DeleteUnusedClients();
 
 private:
     //static int id;
-    LinkedList<ClientInfo> clients;
+    typedef LinkedList<ClientInfo> ClientsList;
+    ClientsList clients;
 
     class SSEControllerState
     {

@@ -1,5 +1,6 @@
 #ifndef VERSION_CONTROLLER_H
 #define VERSION_CONTROLLER_H
+#include <Common.h>
 #include <Controller.h>
 #include <map>
 
@@ -10,27 +11,27 @@ public:
     {
     }
 
-    bool Get(EthClient &client, String &resource)
+    bool Get(EthClient &client, String &resource, ControllerContext &context)
     {
         if (resource.equals("info"))
-            return sendVersionInfo(client);
+            return sendVersionInfo(client, context);
         else if (resource.equals("update"))
-            return updateVersion(client);
+            return updateVersion(client, context);
         else
             return false;
     }
 
-    bool Post(EthClient &client, String &resource, size_t contentLength, String contentType)
+    bool Post(EthClient &client, String &resource, ControllerContext &context)
     {
         return false;
     }
 
-    bool Put(EthClient &client, String &resource)
+    bool Put(EthClient &client, String &resource, ControllerContext &context)
     {
         return false;
     }
 
-    bool Delete(EthClient &client, String &resource)
+    bool Delete(EthClient &client, String &resource, ControllerContext &context)
     {
         return false;
     }
@@ -51,8 +52,8 @@ private:
     #undef X
 
 private:
-    bool sendVersionInfo(EthClient &client);
-    bool updateVersion(EthClient &client);
+    bool sendVersionInfo(EthClient &client, ControllerContext &context);
+    bool updateVersion(EthClient &client, ControllerContext &context);
     static String notificationJsonHead(NotificationType notificationType);
     static void notify(EthClient &client, NotificationType notificationType);
     static void notify(EthClient &client, NotificationType notificationType, int sent, int total);
