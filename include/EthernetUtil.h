@@ -69,11 +69,6 @@ public:
     IPAddress remoteIP();
     void stop();
     uint8_t getSocketNumber() { return client.getSocketNumber(); }
-    size_t print(const String &str);
-    size_t println(const String &str);
-    size_t print(int n);
-    size_t println(int n);
-    size_t println();
 	void flush();
     int connect(IPAddress ip, uint16_t port);
     int connect(const char *host, uint16_t port);

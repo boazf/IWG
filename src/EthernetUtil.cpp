@@ -161,7 +161,8 @@ size_t EthernetClientEx::write(const uint8_t *buf, size_t size)
 
 EthernetClientEx::operator bool()
 {
-  return connected();
+  Lock lock(csSpi);
+  return !!client;
 }
 
 void EthernetClientEx::stop()
@@ -197,34 +198,6 @@ int EthernetClientEx::read(uint8_t *buf, size_t size)
 {
   Lock lock(csSpi);
   return client.read(buf, size);
-}
-
-size_t EthernetClientEx::print(const String &str)
-{
-  Lock lock(csSpi);
-  return client.print(str);
-}
-
-size_t EthernetClientEx::println(const String &str)
-{
-  Lock lock(csSpi);
-  return client.println(str);
-}
-
-size_t EthernetClientEx::print(int n)
-{
-  return print(String(n));
-}
-
-size_t EthernetClientEx::println(int n)
-{
-  return println(String(n));
-}
-
-size_t EthernetClientEx::println()
-{
-  Lock lock(csSpi);
-  return client.println();
 }
 
 void EthernetClientEx::flush()

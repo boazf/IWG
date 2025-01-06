@@ -190,7 +190,8 @@ void SSEController::DeleteUnusedClients()
     clientsToDelete.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
     {
         SSEController *controller = (SSEController *)param;
-        controller->DeleteClient(clientInfo, false);
+        EthClient client = clientInfo.client;
+        controller->DeleteClient(clientInfo, client);
         return true;
     }, this);
 }
@@ -301,7 +302,7 @@ bool SSEController::DeleteClient(EthClient &client, bool stopClient)
 void SSEController::DeleteClient(const ClientInfo &clientInfo, bool stopClient)
 {
     EthClient client = clientInfo.client;
-    if (client.connected())
+    if (client)
     {
 #ifdef DEBUG_HTTP_SERVER
         {

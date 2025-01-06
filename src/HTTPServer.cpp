@@ -380,7 +380,7 @@ void HTTPServer::ServeClient()
 {
     // listen for incoming clients
     EthClient client = server.accept();
-    if (!client)
+    if (!client.connected())
         return;
 #ifdef DEBUG_HTTP_SERVER
 #ifndef USE_WIFI
