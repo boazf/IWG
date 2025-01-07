@@ -43,7 +43,7 @@
                     <li class="active"><a data-toggle="tab" href="#Basic" aria-expanded="true">Basic</a></li>
                     <li><a data-toggle="tab" href="#Advanced" aria-expanded="false">Advanced</a></li>
                     <li><a data-toggle="tab" href="#History" aria-expanded="false">History</a></li>
-                    <li><a data-toggle="tab" href="#Update" aria-expanded="false">Update</a></li>
+                    <li><a data-toggle="tab" href="#System" aria-expanded="false">System</a></li>
                 </ul>
                 <div class="text-danger col-xs-12 validation-summary-valid" data-valmsg-summary="true"><ul><li style="display:none"></li>
                 </div>
@@ -179,7 +179,7 @@
                             <span class="text-danger col-xs-12 field-validation-valid" data-valmsg-for="maxHistoryRecords" data-valmsg-replace="true"></span>
                         </div>
                     </div>
-                    <div id="Update" class="tab-pane fade">
+                    <div id="System" class="tab-pane fade">
                         <table style="border-collapse: separate; border-spacing: 10px;width: 95%;">
                             <tr>
                                 <td style="width: 25%">Current Version:</td>
@@ -208,6 +208,19 @@
                                     <span id="waitForRestart" style="visibility: hidden">Waiting for the device to restart...</span>
                                 </td>
                             </tr>
+                            <tr>
+                                <td colspan="4">
+                                    <hr>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <button id="rebootBtn", type="button" class="btn-sm btn-block btn-danger" onclick="reboot();">Reboot</button>
+                                </td>
+                                <td colspan="3">
+                                    <span id="waitForReboot" style="visibility: hidden">Waiting for the device to restart...</span>
+                                </td>
+                            </tr>
                         </table>
                     </div>
                 </div>
@@ -227,13 +240,11 @@
                 <input name="periodicallyRestartModem" type="hidden" value="false" />
             </form>
             <script type="text/javascript">
-                var appBase = %20                                                                                                                    ;
+                var appBase = %20                                                                                                                ;
+                refreshVersion();
                 $('a[data-toggle="tab"]').on('shown.bs.tab', async function (e) {
                     var target = $(e.target).attr("href") // activated tab
-                    $("#buttonsRow").css("display", target == "#Update" ? "none" : "inherit");
-                    if (target == "#Update" && $("#OTAVersion")[0].innerHTML == "") {
-                        await refreshVersion();
-                    }
+                    $("#buttonsRow").css("display", target == "#System" ? "none" : "inherit");
                 });
                 function checkLoadError() {
                     if (loadError)
@@ -279,13 +290,14 @@
                 {
                     $("#updateBtn")[0].disabled = state;
                     $("#refreshBtn")[0].disabled = state;
+                    $("#rebootBtn")[0].disabled = state;
                 }
                 async function refreshVersion()
                 {
                     $("#OTAVersion")[0].innerHTML = "<img src='images/clock.svg'>";
                     $("#OTAVersion").addClass("spinning");
                     setDisableUpdateButtons(true);
-                    var response = await fetch(appBase + "api/version/info", { method: "GET"} );
+                    var response = await fetch(appBase + "api/system/info", { method: "GET"} );
                     var version;
                     if (!response.ok) {
                         version = "Unknown";
@@ -334,9 +346,17 @@
                 }
                 async function updateVersion() {
                     setDisableUpdateButtons(true);
-                    source = new EventSource(appBase + 'api/version/update');
+                    source = new EventSource(appBase + 'api/system/update');
                     source.onmessage = onMessage;
                     source.onerror = onError;
+                }
+
+                async function reboot() {
+                    setDisableUpdateButtons(true);
+                    fetch(appBase + "api/system/reboot", { method: "GET"} );
+                    $("#waitForReboot")[0].style.visibility = "visible";
+                    await WaitForServerToBeAccessible(180000);
+                    location.href = appBase + "index";
                 }
             </script>
         </div>

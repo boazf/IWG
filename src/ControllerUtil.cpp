@@ -4,7 +4,7 @@
 #include <HistoryControl.h>
 #include <FilesController.h>
 #include <ManualControl.h>
-#include <VersionController.h>
+#include <SystemController.h>
 
 void InitControllers()
 {
@@ -15,7 +15,7 @@ void InitControllers()
     HTTPServer::AddController(&sseController);
     HTTPServer::AddController(&recoveryController);
     HTTPServer::AddController(&filesController);
-    HTTPServer::AddController(&versionController);
+    HTTPServer::AddController(&systemController);
 }
 
 void PerformControllersCycles()

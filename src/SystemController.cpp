@@ -1,4 +1,4 @@
-#include <VersionController.h>
+#include <SystemController.h>
 #include <Version.h>
 #include <HttpUpdate.h>
 #ifdef DEBUG_HTTP_SERVER
@@ -6,7 +6,7 @@
 #endif
 #include <HttpHeaders.h>
 
-bool VersionController::sendVersionInfo(EthClient &client, ControllerContext &context)
+bool SystemController::sendVersionInfo(EthClient &client, ControllerContext &context)
 {
     
     String version = Version::getOtaVersion();
@@ -21,7 +21,7 @@ bool VersionController::sendVersionInfo(EthClient &client, ControllerContext &co
     return true;
 }
 
-bool VersionController::updateVersion(EthClient &client, ControllerContext &context)
+bool SystemController::updateVersion(EthClient &client, ControllerContext &context)
 {
     BaseType_t ret = xTaskCreate(
         [](void *param)
@@ -73,36 +73,36 @@ bool VersionController::updateVersion(EthClient &client, ControllerContext &cont
     return true;
 }
 
-String VersionController::notificationJsonHead(NotificationType notificationType)
+String SystemController::notificationJsonHead(NotificationType notificationType)
 {
     return String("{ \"type\": \"") + notificationTypesStrings.at(notificationType) + "\"";
 }
 
-void VersionController::notify(EthClient &client, NotificationType notificationType)
+void SystemController::notify(EthClient &client, NotificationType notificationType)
 {
     notify(client, notificationJsonHead(notificationType) + " }");
 }
 
-void VersionController::notify(EthClient &client, NotificationType notificationType, int sent, int total)
+void SystemController::notify(EthClient &client, NotificationType notificationType, int sent, int total)
 {
     notify(client, notificationJsonHead(notificationType) + ", \"sent\": " + sent + ", \"total\": " + total + " }");
 }
 
-void VersionController::notify(EthClient &client, NotificationType notificationType, int error, const String &message)
+void SystemController::notify(EthClient &client, NotificationType notificationType, int error, const String &message)
 {
     notify(client, notificationJsonHead(notificationType) + ", \"code\": " + error + ", \"message\": \"" + message + "\" }");
 }
 
-void VersionController::notify(EthClient &client, const String &json)
+void SystemController::notify(EthClient &client, const String &json)
 {
     client.println(String("data:") + json + "\n");
 }
 
 
-VersionController versionController;
+SystemController systemController;
 
-#define X(a) {VersionController::NotificationType::a, #a},
-const std::map<VersionController::NotificationType, String> VersionController::notificationTypesStrings =
+#define X(a) {SystemController::NotificationType::a, #a},
+const std::map<SystemController::NotificationType, String> SystemController::notificationTypesStrings =
 {
     NOTIFICATION_TYPES
 };

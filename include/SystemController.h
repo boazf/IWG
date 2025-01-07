@@ -1,13 +1,13 @@
-#ifndef VERSION_CONTROLLER_H
-#define VERSION_CONTROLLER_H
+#ifndef SYSTEM_CONTROLLER_H
+#define SYSTEM_CONTROLLER_H
 #include <Common.h>
 #include <Controller.h>
 #include <map>
 
-class VersionController : public Controller
+class SystemController : public Controller
 {
 public:
-    VersionController() : Controller("VERSION")
+    SystemController() : Controller("SYSTEM")
     {
     }
 
@@ -18,7 +18,10 @@ public:
         else if (resource.equals("update"))
             return updateVersion(client, context);
         else
-            return false;
+            if (resource.equals("reboot"))
+                ESP.restart();
+                
+        return false;
     }
 
     bool Post(EthClient &client, String &resource, ControllerContext &context)
@@ -59,10 +62,10 @@ private:
     static void notify(EthClient &client, NotificationType notificationType, int sent, int total);
     static void notify(EthClient &client, NotificationType notificationType, int error, const String &message);
     static void notify(EthClient &client, const String &json);
-    static const std::map<VersionController::NotificationType, String> notificationTypesStrings;
+    static const std::map<SystemController::NotificationType, String> notificationTypesStrings;
 };
 
-extern VersionController versionController;
+extern SystemController systemController;
 
-#endif // VERSION_CONTROLLER_H
+#endif // SYSTEM_CONTROLLER_H
 
