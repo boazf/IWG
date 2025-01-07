@@ -31,7 +31,7 @@ void initProgress(bool last = false)
 
 void setup() {
   initProgress();
-  esp_task_wdt_init(30, false);
+  esp_task_wdt_init(30, true);
   InitSerialTrace();
   InitPowerControl();
   InitSD();
