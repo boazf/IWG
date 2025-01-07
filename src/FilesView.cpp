@@ -19,7 +19,7 @@ bool FilesView::post(EthClient &client, const String &resource, const String &id
 #endif
     SdFile dir = SD.open(normalizedPath, FILE_READ);
     String resp;
-    if (!dir)
+    if (!dir || !dir.isDirectory())
     {
         resp = "[{ \"result\": 1 }]";
     }
