@@ -29,6 +29,8 @@ String Version::getOtaVersion()
     http.begin(url);
     http.get();
     int code = http.responseStatusCode();
+    if (code < 0)
+        return unknownVersion;
     if (code == 304)
         return getCurrentVersion();
 
