@@ -74,8 +74,6 @@ static void appConfigChanged(const AppConfigChangedParam &param, const void *con
 }
 
 #ifndef USE_WIFI
-static TaskHandle_t timeUpdateTaskHandle;
-
 #define TIME_INIT_UPDATE_PERIOD_SEC 30
 
 void timeUpdateTask(void *param)
@@ -105,7 +103,7 @@ void InitTime()
   setTime(true);
   AppConfig::getAppConfigChanged().addObserver(appConfigChanged, NULL);
 #ifndef USE_WIFI
-  xTaskCreate(timeUpdateTask, "TimeUpdate", 8*1024, NULL, tskIDLE_PRIORITY, &timeUpdateTaskHandle);
+  xTaskCreate(timeUpdateTask, "TimeUpdate", 8*1024, NULL, tskIDLE_PRIORITY, NULL);
 #endif
 }
 

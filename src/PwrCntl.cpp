@@ -95,7 +95,6 @@ void InitPowerControl()
 
   // Initialize watchdog task.
   wdSem = xSemaphoreCreateBinary();  
-  TaskHandle_t hWdTask = NULL;
   xTaskCreate([](void *param){
     pinMode(WATCHDOG_TRIGGER_PIN, OUTPUT);
     do
@@ -106,7 +105,7 @@ void InitPowerControl()
       digitalWrite(WATCHDOG_TRIGGER_PIN, LOW);
     } while (xSemaphoreTake(wdSem, WATCHDOG_TRIGGER_HALF_CYCLE_TIME_MS) == pdFALSE);
         vTaskDelete(NULL);  
-  }, "WatchdogTask", 4 * 1024, NULL, tskIDLE_PRIORITY, &hWdTask);
+  }, "WatchdogTask", 4 * 1024, NULL, tskIDLE_PRIORITY, NULL);
 
   // Wait for watchdog timer to load
   unsigned long t0 = millis();

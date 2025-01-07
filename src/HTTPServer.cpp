@@ -390,11 +390,10 @@ void HTTPServer::ServeClient()
 #endif
 #endif
     ClientContext *context = new ClientContext(client);
-    TaskHandle_t requestTaskHandle;
     BaseType_t ret;
     for (int i = 0; i <= TASK_CREATE_MAX_RETRIES; i++)
     {
-        ret = xTaskCreate(RequestTask, "HTTPRequest", 4*1024, context, tskIDLE_PRIORITY + 1, &requestTaskHandle);
+        ret = xTaskCreate(RequestTask, "HTTPRequest", 4*1024, context, tskIDLE_PRIORITY + 1, NULL);
         if (ret == pdPASS)
         {
 #ifdef DEBUG_HTTP_SERVER
