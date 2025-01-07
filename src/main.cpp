@@ -4,7 +4,6 @@
 #include <TimeUtil.h>
 #include <SDUtil.h>
 #include <EthernetUtil.h>
-#include <SFT.h>
 #include <HTTPServer.h>
 #include <NTPClient.h>
 #include <ViewUtil.h>
@@ -42,8 +41,7 @@ void setup() {
 #ifndef USE_WIFI
   // Wait for router initialization time.
   // Some routers dors not function properly soon after startup.
-  unsigned long t0 = millis();
-  while(millis() - t0 < Config::routerInitTimeSec * 1000);
+  delay(Config::routerInitTimeSec * 1000);
 #endif
   initProgress();
   InitEthernet();
@@ -53,7 +51,6 @@ void setup() {
   InitTime();
   initProgress();
   InitFileTrace();
-  InitSFT();
   InitControllers();
   InitViews();
   InitHTTPServer();
@@ -64,10 +61,7 @@ void loop()
 {
   MaintainEthernet();
   if (gwConnTest.IsConnected())
-  {
-    DoSFTService();
     DoHTTPService();
-  }
   PerformControllersCycles();
   delay(1);
 }
