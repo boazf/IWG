@@ -352,6 +352,8 @@
                 }
 
                 async function reboot() {
+                    if (!confirm("Are you sure that you want to reboot?"))
+                        return;
                     setDisableUpdateButtons(true);
                     fetch(appBase + "api/system/reboot", { method: "GET"} );
                     $("#waitForReboot")[0].style.visibility = "visible";
