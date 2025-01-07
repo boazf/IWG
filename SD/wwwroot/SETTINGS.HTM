@@ -311,44 +311,42 @@
                 }
 
                 var source;
-                async function onMessage(event) {
-                    var notification = JSON.parse(event.data);
-                    switch(notification.type)
-                    {
-                        case "start":
-                            $("#progressRow")[0].style.visibility = "visible";
-                        break;
-                        case "progress":
-                            $("#progress")[0].innerHTML = notification.sent;
-                            $("#progress")[0].style.width = (notification.sent * 100 / notification.total) + "%";
-                            $("#total")[0].textContent = notification.total;
-                            break;
-                        case "end":
-                            source.close();
-                            $("#waitForRestart")[0].style.visibility = "visible";
-                            await WaitForServerToBeAccessible(180000);
-                            location.href = appBase + "index";
-                            break;
-                        case "error":
-                            source.close();
-                            if (notification.code != 0)
-                                alert("Error while updating firmware!\nError code: " + notification.code + "\n" + notification.message);
-                            else
-                                alert(notification.message);
-                            setDisableUpdateButtons(false);
-                            break;
-                    }
-                }
-                function onError(event) {
-                    alert("Unexpected error occurred while trying to upgrade firmware!");
-                    setDisableUpdateButtons(false);
-                    source.close();
-                }
-                async function updateVersion() {
+                function updateVersion() {
                     setDisableUpdateButtons(true);
                     source = new EventSource(appBase + 'api/system/update');
-                    source.onmessage = onMessage;
-                    source.onerror = onError;
+                    source.onmessage = async function(event) {
+                        var notification = JSON.parse(event.data);
+                        switch(notification.type)
+                        {
+                            case "start":
+                                $("#progressRow")[0].style.visibility = "visible";
+                                break;
+                            case "progress":
+                                $("#progress")[0].innerHTML = notification.sent;
+                                $("#progress")[0].style.width = (notification.sent * 100 / notification.total) + "%";
+                                $("#total")[0].textContent = notification.total;
+                                break;
+                            case "end":
+                                source.close();
+                                $("#waitForRestart")[0].style.visibility = "visible";
+                                await WaitForServerToBeAccessible(180000);
+                                location.href = appBase + "index";
+                                break;
+                            case "error":
+                                source.close();
+                                if (notification.code != 0)
+                                    alert("Error while updating firmware!\nError code: " + notification.code + "\n" + notification.message);
+                                else
+                                    alert(notification.message);
+                                setDisableUpdateButtons(false);
+                                break;
+                        };
+                    };
+                    source.onerror = function (event) {
+                        alert("Unexpected error occurred while trying to upgrade firmware!");
+                        setDisableUpdateButtons(false);
+                        source.close();
+                    };
                 }
 
                 async function reboot() {
