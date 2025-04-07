@@ -1,5 +1,5 @@
-#ifndef HTTP_CLIENT_H
-#define HTTP_CLIENT_H
+#ifndef HTTP_HEADERS_H
+#define HTTP_HEADERS_H
 #include <Arduino.h>
 #include <Common.h>
 #include <EthernetUtil.h>
@@ -72,4 +72,4 @@ private:
     static const HttpReqTypesMap httpReqTypesMap;
 };
 
-#endif // HTTP_CLIENT_H
+#endif // HTTP_HEADERS_H
