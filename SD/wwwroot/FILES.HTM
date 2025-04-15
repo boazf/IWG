@@ -239,13 +239,20 @@
         let formData = new FormData();           
         formData.append("file", inp.files[0]);
         $("#glass").css("visibility","visible");
-        var response = await fetch('/api' + $(document)[0].location.pathname, {method: "POST", body: formData});
-        if (response.status != 200) {
+        var response;
+        var failed = false;
+        try
+        {
+            response = await fetch('/api' + $(document)[0].location.pathname, {method: "POST", body: formData});
+        } catch
+        {
+            failed = true;
+        }
+        if (failed || response.status != 200) {
             alert("File upload failed!");
             $("#glass").css("visibility","hidden");
-        } else {
-            refresh()
         }
+        refresh()
     }
 
     function checkLoadError() {
