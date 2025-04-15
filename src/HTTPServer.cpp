@@ -6,24 +6,20 @@
 #include <FileView.h>
 #include <SSEController.h>
 
-String ClientContext::collectedHeadersNames[] = {"If-Modified-Since", "Content-Length", "Content-Type"};
-
 ClientContext::ClientContext(EthClient &client) :
     keepAlive(false),
     client(client), 
-    requestType(HTTP_REQ_TYPE::HTTP_UNKNOWN)
+    requestType(HTTP_REQ_TYPE::HTTP_UNKNOWN),
+    collectedHeaders{IF_MODIFIED_SINCE_HEADER_NAME, CONTENT_LENGTH_HEADER_NAME, CONTENT_TYPE_HEADER_NAME}
 {
     remotePort = client.remotePort();
-    collectedHeaders = new HttpHeaders::Header[NELEMS(collectedHeadersNames)];
-    for (size_t i = 0; i < NELEMS(collectedHeadersNames); i++)
-        collectedHeaders[i].name = collectedHeadersNames[i];
 }
 
 bool ClientContext::parseRequestHeaderSection()
 {
     HttpHeaders headers(client);
 
-    bool res = headers.parseRequestHeaderSection(requestType, resource, collectedHeaders, NELEMS(collectedHeadersNames));
+    bool res = headers.parseRequestHeaderSection(requestType, resource, collectedHeaders.data(), collectedHeaders.size());
 #ifdef DEBUG_HTTP_SERVER
     Tracef("%d %s\n", remotePort, headers.getRequestLine().c_str());
 #endif        

@@ -46,6 +46,7 @@ public:
     {
         _header() : _header("", "") {}
         _header(String name) : _header(name, "") {}
+        _header(const char *name) : _header(String(name), "") {}
         _header(CONTENT_TYPE contentType) : _header("Content-Type", contentTypeValues.at(contentType)) {}
         _header(String name, String value) : name(name), value(value) {}
         String name;
