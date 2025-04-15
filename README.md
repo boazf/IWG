@@ -38,7 +38,10 @@ For much more information read the <a href="https://github.com/boazf/IWG/wiki">W
 
 <h2>Important Note for Building the Project for the Wired Version</h2>
 
-The Ethernet library for the w5500 has a compile break in file Ethernet.h. The reasone for this is that EthernetServer class is derived from the Server class. The server class defines pure virtual method begin with an optional port parameter. EthernetServer does not implement this method. Hence, compilation breaks. It is most probable that in Arduino IDE this somehow magically compiles. In order to fix this, add the following line to the public methods definition section of EthernetServer class in Ethernet.h file located in directory \<Your repository\>\\.pio\\libdeps\\wired\Ethernet\\src:
+The Ethernet library for the W5500 contains a compilation error in the `Ethernet.h` file. The issue arises because the `EthernetServer` class inherits from the `Server` class, which defines a pure virtual `begin` method that accepts an optional `port` parameter. However, `EthernetServer` does not implement this method, resulting in a compilation failure.
+
+This likely compiles without issue in the Arduino IDE due to differences in how the IDE handles pure virtual methods or builds libraries. To resolve the error, add the following line to the public section of the `EthernetServer` class declaration in `Ethernet.h`, located in the directory `<Your repository>\.pio\libdeps\wired\Ethernet\src`:
 ```C++
-virtual void begin(uint16_t port) { if (port != 0) _port = port; begin();}
+virtual void begin(uint16_t port) { if (port) _port = port; begin(); }
 ```
+This method is not used by the project's code, so its implementation is not particularly important. For the sake of completeness, use the suggested implementation.
