@@ -14,12 +14,12 @@ public:
     {}
     bool keepAlive;
 
-    size_t getContentLength() { return contentLength; }
-    const String &getContentType() { return contentType; }
+    size_t getContentLength() const { return contentLength; }
+    const String &getContentType() const { return contentType; }
 
 private:
-    size_t contentLength;
-    String contentType;
+    const size_t contentLength;
+    const String contentType;
 };
 
 class Controller
