@@ -2,6 +2,7 @@
 #define SYSTEM_CONTROLLER_H
 #include <Common.h>
 #include <Controller.h>
+#include <PwrCntl.h>
 #include <map>
 
 class SystemController : public Controller
@@ -19,7 +20,7 @@ public:
             return updateVersion(client, context);
         else
             if (resource.equals("reboot"))
-                ESP.restart();
+                HardReset();
                 
         return false;
     }
