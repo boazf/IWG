@@ -12,6 +12,7 @@ FilesView::FilesView(const char *_viewName, const char *_viewFile) :
 
 bool FilesView::post(EthClient &client, const String &resource, const String &id)
 {
+    AutoSD autoSD;
     String normalizedPath = "/" + id;
     normalizedPath.replace("%20", " ");
 #ifdef DEBUG_HTTP_SERVER

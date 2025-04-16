@@ -110,6 +110,7 @@ CriticalSection HistoryView::cs;
 
 bool HistoryView::open(byte *buff, int buffSize)
 {
+    AutoSD autoSD;
     cs.Enter();
 
     SdFile historyFile;
@@ -195,6 +196,7 @@ bool HistoryView::open(byte *buff, int buffSize)
 
     View::close();
     historyFile.close();
+
     return View::open(buff, buffSize, SD.open(TEMP_HISTORY_FILE_PATH, FILE_READ));
 }
 

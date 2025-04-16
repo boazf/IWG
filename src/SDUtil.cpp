@@ -5,33 +5,28 @@
 #include <TimeUtil.h>
 #include <Common.h>
 
-int AutoSD::count = 0;;
-CriticalSection AutoSD::cs;
-
 AutoSD::AutoSD()
 {
-  Lock lock(cs);
-  if (count++ == 0)
-    SD.begin();
+  SD.begin();
 }
 
 AutoSD::~AutoSD()
 {
-  Lock lock(cs);
-  if (--count == 0)
-    SD.end();
+  SD.end();
 }
 
-void AutoSD::WaitForIdle(int timeout)
+int SDExClass::count = 0;
+
+void SDExClass::WaitForIdle(int timeout)
 {
   delay(1);
   unsigned long t0 = millis();
   do
   {
-    cs.Enter();
+    csSpi.Enter();
     if (count == 0)
       return;
-    cs.Leave();
+    csSpi.Leave();
     delay(1);
   } while(timeout == portMAX_DELAY || millis() - t0 < timeout);
 }
@@ -41,13 +36,17 @@ void AutoSD::WaitForIdle(int timeout)
 bool SDExClass::begin(uint8_t ssPin, SPIClass &spi, uint32_t frequency, const char * mountpoint, uint8_t max_files)
 {
   Lock lock(csSpi);
-  return SD.begin(ssPin, spi, frequency, mountpoint, max_files);
+  if (count++ == 0)
+    return SD.begin(ssPin, spi, frequency, mountpoint, max_files);
+
+  return true;
 }
 
 void SDExClass::end()
 {
   Lock lock(csSpi);
-  SD.end(); 
+  if (--count == 0)
+    SD.end();
 }
 
 sdcard_type_t SDExClass::cardType()

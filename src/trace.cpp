@@ -15,7 +15,7 @@ static bool traceStop = false;
 void TraceStop(int timeout)
 {
     traceStop = true;
-    AutoSD::WaitForIdle(timeout);
+    SDExClass::WaitForIdle(timeout);
 }
 
 static time_t GetFileTimeFromFileName(SdFile file)

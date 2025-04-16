@@ -14,12 +14,18 @@ bool View::open(byte *_buff, int _buffSize, SdFile _file)
     buff = _buff;
     buffSize = _buffSize;
     file = _file;
+    if (file)
+    {
+        SD.begin();
+        return true;
+    }
 
-    return file;
+    return false;
 }
 
 bool View::open(byte *buff, int buffSize)
 {
+    AutoSD autoSD;
     String fileName;
     fileName = "/wwwroot" + viewFilePath;
     SdFile file = SD.open(fileName, FILE_READ);
@@ -37,7 +43,11 @@ bool View::open(byte *buff, int buffSize)
 
 void View::close()
 {
-    file.close();
+    if (file)
+    {
+        file.close();
+        SD.end();
+    }
 }
 
 int View::read()

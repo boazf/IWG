@@ -17,6 +17,7 @@ void FilesController::normalizePath(String &path)
 
 bool FilesController::Get(EthClient &client, String &resource, ControllerContext &context)
 {
+    AutoSD autoSD;
 #ifdef DEBUG_HTTP_SERVER
     Tracef("FilesController Get %s\n", resource.c_str());
 #endif
@@ -65,6 +66,7 @@ void FilesController::parseUploadHeaders(const String &header, String &boundary,
 
 bool FilesController::Post(EthClient &client, String &resource, ControllerContext &context)
 {
+    AutoSD autoSD;
     normalizePath(resource);
 #ifdef DEBUG_HTTP_SERVER
     Tracef("FilesController Post resource=%s, contentLength=%lu, contentType=%s\n", resource.c_str(), context.getContentLength(), context.getContentType().c_str());
@@ -187,6 +189,7 @@ bool FilesController::Put(EthClient &client, String &resource, ControllerContext
 
 bool FilesController::Delete(EthClient &client, String &resource, ControllerContext &context)
 {
+    AutoSD autoSD;
 #ifdef DEBUG_HTTP_SERVER
     Tracef("FilesController Delete %s\n", resource.c_str());
 #endif

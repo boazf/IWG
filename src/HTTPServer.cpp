@@ -321,7 +321,6 @@ void HTTPServer::PageNotFound(EthClient &client)
 
 void HTTPServer::ServiceRequest(ClientContext *context)
 {
-    AutoSD autoSD;
     String resource = context->getResource();
     String resourceOrg = resource;
     resource.toUpperCase();
