@@ -13,11 +13,11 @@ How many times have you lost internet connectivity, then you had to go to your r
   - Supports either WiFi or Wired (w5500) Ethernet connection.
   - Supports manual control using LED indicators and pushbuttons.
   - Supports OTA firmware upgrades (no SSL support, yet).
-  - Includes EasyEDA elecrical diagram, PCB design and packaging design.
+  - Includes EasyEDA electrical diagram, PCB design and packaging design.
 
 This project is intended to run on ESP32 with SD card reader and optionally a wired ethernet adapter. The code is developed using platformio in visual studio code.
 
-What it does is basically periodcally ping a server on the internet and optionally a local address on the LAN. If ping fails, it switches the router power to off and then on after several seconds. Then it waits for internet connectivity to resume. If internet connectivity is not resumed after some time, it switches the modem power to off and then on after several seconds. Then it waits for internet connectivity to resume. If internet connectivity is not resume, it goes again through the recovery attempt cycles until internet connectivity resumes, or maximum recovery cycles exceeded.
+What it does is basically periodically ping a server on the internet and optionally a local address on the LAN. If ping fails, it switches the router power to off and then on after several seconds. Then it waits for internet connectivity to resume. If internet connectivity is not resumed after some time, it switches the modem power to off and then on after several seconds. Then it waits for internet connectivity to resume. If internet connectivity is not resume, it goes again through the recovery attempt cycles until internet connectivity resumes, or maximum recovery cycles exceeded.
 
 It is also possible to configure the device to periodically restart the router and/or the modem at a certain time, once in every 24 hours. This should usually be done during the night when there is low or no Internet usage. This usually prevent the need to recover the devices during the day which might interrupt connectivity for some time.
 
@@ -31,7 +31,7 @@ Edit the content of file config.txt on the SD card. The content is pretty much s
 
 The project is designed so that it is possible to connect to the LAN using the ESP32's WiFi, or using a wired Ethernet adapter. In case WiFi is used, then the configuration file should also contain the SSID and password to connect to the LAN.
 
-There are also four pushbuttons with a LED in each of them. the pushbuttons are used to initiate connectivity checks and recovery cycles manually. The LEDs are used to report the status of the device, such as normal status when imternet is available, or whether a recovery cycle is on-going. For more information see <a href="https://github.com/boazf/IWG/wiki/Manual-Control">Controlling the Device Manually</a> wiki page.
+There are also four pushbuttons with a LED in each of them. the pushbuttons are used to initiate connectivity checks and recovery cycles manually. The LEDs are used to report the status of the device, such as normal status when internet is available, or whether a recovery cycle is on-going. For more information see <a href="https://github.com/boazf/IWG/wiki/Manual-Control">Controlling the Device Manually</a> wiki page.
 
 The HTML pages are using bootsrap 3 libraries in order to produce nice looking responsive pages. The bootstrap libraries were renamed to names that conform to 8.3 file names (e.g., bstrap.js). This was done because the project started on a mega2560 board and the only SD library that I had there supported only 8.3 file names. After transferring to ESP32, I could use longer file names, but I left it as it was. Also jquery libraries are used by the JavaScript code. All required jquery libraries were merged to one single library (jqcombo.js) in order to reduce page load time and sockets consumption.</br></br>
 For much more information read the <a href="https://github.com/boazf/IWG/wiki">Wiki</a>.
