@@ -1,33 +1,37 @@
 #ifndef FileView_h
 #define FileView_h
 
+#include <Arduino.h>
+#include <SDUtil.h>
+#include <EthernetUtil.h>
+#include <HttpHeaders.h>
 #include <View.h>
 
-class FileView : public View
+struct FileView : public View
 {
 public:
-    FileView(const char *viewPath, const char *viewFilePath) :
-        View(viewPath, mapper(viewFilePath))
+    FileView(const String viewFilePath) :
+        viewFilePath(viewFilePath)
     {
     }
 
-private:
-    const String mapper(const String _filePath)
+    virtual ~FileView()
     {
-        String filePath(_filePath);
-        int fileIndex = filePath.indexOf("GLYPHICONS-HALFLINGS-REGULAR");
-        if (fileIndex != -1)
-        {
-            int dotIndex = filePath.lastIndexOf('.');
-            String ext = filePath.substring(dotIndex + 1);
-            if (ext.equals("WOFF"))
-                ext = "WOF";
-            else if (ext.equals("WOFF2"))
-                ext = "WF2";
-            filePath = filePath.substring(0, fileIndex) + "GHR." + ext;
-        }
-        return filePath;
+        if (file)
+            file.close();
     }
+
+protected:
+    virtual bool open(byte *buff, int buffSize);
+    virtual bool open(byte *buff, int buffSize, SdFile file);
+    virtual void close();
+    virtual int read();
+    virtual long getViewSize();
+    virtual bool getLastModifiedTime(String &lastModifiedTimeStr);
+    virtual CONTENT_TYPE getContentType();
+
+protected:
+    String viewFilePath;
+    SdFile file;
 };
-
 #endif // FileView_h

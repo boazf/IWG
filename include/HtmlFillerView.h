@@ -1,15 +1,15 @@
 #ifndef HtmlFillerView_h
 #define HtmlFillerView_h
 
-#include <View.h>
+#include <FileView.h>
 
 typedef void (*ViewFiller)(String &fill);
 
-class HtmlFillerView : public View
+class HtmlFillerView : public FileView
 {
 public:
-    HtmlFillerView(const char *viewPath, const char *viewFilePath) :
-        View(viewPath, viewFilePath)
+    HtmlFillerView(const char *viewFilePath) :
+        FileView(viewFilePath)
     {
     }
 

@@ -66,7 +66,7 @@ bool HtmlFillerView::DoFill(int nFill, String &fill)
 bool HtmlFillerView::open(byte *buff, int buffSize)
 {
     offset = buffSize;
-    return View::open(buff, buffSize);
+    return FileView::open(buff, buffSize);
 }
 
 int HtmlFillerView::read()

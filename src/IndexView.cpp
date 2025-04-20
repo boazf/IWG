@@ -8,8 +8,8 @@
 #include <Config.h>
 #include <HttpHeaders.h>
 
-IndexView::IndexView(const char *_viewName, const char *_viewFile) : 
-   HtmlFillerView(_viewName, _viewFile)
+IndexView::IndexView(const char *_viewFile) : 
+   HtmlFillerView(_viewFile)
 {
 }
 
@@ -53,5 +53,3 @@ bool IndexView::redirect(EthClient &client, const String &_id)
 
     return false;
 }
-
-IndexViewCreator indexViewCreator("/INDEX", "/INDEX.HTM");

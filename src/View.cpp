@@ -1,63 +1,26 @@
+#include <AutoPtr.h>
 #include <View.h>
 #include <SDUtil.h>
 #include <time.h>
 #include <Common.h>
 #include <Config.h>
 #include <HttpHeaders.h>
+#include <HttpServer.h>
 #include <map>
 #ifdef DEBUG_HTTP_SERVER
 #include <Trace.h>
 #endif
 
-bool View::open(byte *_buff, int _buffSize, SdFile _file)
-{
-    buff = _buff;
-    buffSize = _buffSize;
-    file = _file;
-    if (file)
-    {
-        SD.begin();
-        return true;
-    }
-
-    return false;
-}
-
 bool View::open(byte *buff, int buffSize)
 {
-    AutoSD autoSD;
-    String fileName;
-    fileName = "/wwwroot" + viewFilePath;
-    SdFile file = SD.open(fileName, FILE_READ);
-    if (!file)
-    {
-#ifdef DEBUG_HTTP_SERVER
-        LOCK_TRACE();
-        Trace("Failed to open file ");
-        Traceln(fileName.c_str());
-#endif
-    }
+    this->buff = buff;
+    this->buffSize = buffSize;
 
-    return open(buff, buffSize, file);
+    return true;
 }
 
 void View::close()
 {
-    if (file)
-    {
-        file.close();
-        SD.end();
-    }
-}
-
-int View::read()
-{
-    return file.read(buff, buffSize);
-}
-
-long View::getViewSize()
-{
-    return file.size();
 }
 
 bool View::redirect(EthClient &client, const String &id)
@@ -65,52 +28,99 @@ bool View::redirect(EthClient &client, const String &id)
     return false;
 }
 
-bool View::getLastModifiedTime(String &lastModifiedTimeStr)
+bool View::Get(HttpClientContext &context, const String id)
 {
-    tm tr;
-    time_t fileTime = file.getLastWrite();
-    gmtime_r(&fileTime, &tr);
-    char lastModifiedTime[64];
-    // Last-Modified: Sun, 21 Jun 2020 14:33:06 GMT
-    strftime(lastModifiedTime, sizeof(lastModifiedTime), "%a, %d %h %Y %H:%M:%S GMT", &tr);
-    lastModifiedTimeStr = lastModifiedTime;
+    EthClient client = context.getClient();
+
+    if (redirect(client, id))
+        return true;
+
+    byte buff[256];
+    if (!open(buff, sizeof(buff)))
+    {
+        return false;
+    }
+
+    if (!context.getLastModified().isEmpty())
+    {
+        String lastModifiedTime;
+
+        getLastModifiedTime(lastModifiedTime);
+        if (context.getLastModified().equals(lastModifiedTime))
+        {
+#ifdef DEBUG_HTTP_SERVER
+            {
+                LOCK_TRACE();
+                Tracef("%d ", context.getClient().remotePort());
+                Trace("Resource: ");
+                Trace(context.getResource());
+                Trace(" File was not modified. ");
+                Traceln(context.getLastModified());
+            }
+#endif
+            HTTPServer::NotModified(client);
+            close();
+            return true;
+        }
+    }
+
+    CONTENT_TYPE type = getContentType();
+    if (type == CONTENT_TYPE::UNKNOWN)
+    {
+#ifdef DEBUG_HTTP_SERVER
+        Traceln("Unknown extention");
+#endif
+        close();
+        return false;
+    }
+
+    long size = getViewSize();
+
+    HttpHeaders::Header additionalHeaders[] = { {type}, {} };
+    if (type != CONTENT_TYPE::HTML)
+    {
+        String lastModifiedTime;
+        if (getLastModifiedTime(lastModifiedTime))
+        {
+            additionalHeaders[1] = {"Last-Modified", lastModifiedTime};
+        }
+    }
+
+    HttpHeaders headers(client);
+    headers.sendHeaderSection(200, true, additionalHeaders, NELEMS(additionalHeaders), size);
+
+    long bytesSent = 0;
+    while (bytesSent < size)
+    {
+        int nBytes = read();
+        client.write(buff, nBytes);
+        bytesSent += nBytes;
+    }
+
+#ifdef DEBUG_HTTP_SERVER
+    {
+        LOCK_TRACE();
+        Tracef("%d ", context.getClient().remotePort());
+        Trace("Done sending, Sent ");
+        Trace(bytesSent);
+        Traceln(" bytes");
+    }
+#endif
+
+    close();
 
     return true;
 }
 
-typedef std::map<String, CONTENT_TYPE> FileTypesMap;
-static FileTypesMap fileTypesMap = 
+bool View::Post(HttpClientContext &context, const String id)
 {
-    {"JS", CONTENT_TYPE::JAVASCRIPT},
-    {"ICO", CONTENT_TYPE::ICON},
-    {"HTM", CONTENT_TYPE::HTML},
-    {"CSS", CONTENT_TYPE::CSS},
-    {"JPG", CONTENT_TYPE::JPEG},
-    {"MAP", CONTENT_TYPE::CSS},
-    {"EOT", CONTENT_TYPE::EOT},
-    {"SVG", CONTENT_TYPE::SVG},
-    {"TTF", CONTENT_TYPE::TTF},
-    {"WOF", CONTENT_TYPE::WOFF},
-    {"WF2", CONTENT_TYPE::WOFF2}
-};
-
-CONTENT_TYPE View::getContentType()
-{
-    int dot = viewFilePath.lastIndexOf('.');
-
-    if (dot == -1)
-        return CONTENT_TYPE::UNKNOWN;
-
-    String ext = viewFilePath.substring(dot + 1);
-    ext.toUpperCase();
-    FileTypesMap::const_iterator fileType = fileTypesMap.find(ext);
-    if (fileType == fileTypesMap.end())
-        return CONTENT_TYPE::UNKNOWN;
-
-    return fileType->second;
+    return false;
 }
-
-bool View::post(EthClient &client, const String &resource, const String &id)
+bool View::Put(HttpClientContext &context, const String id)
+{
+    return false;
+}
+bool View::Delete(HttpClientContext &context, const String id)
 {
     return false;
 }

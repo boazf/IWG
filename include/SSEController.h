@@ -2,7 +2,7 @@
 #define SSEController_h
 
 #include <Arduino.h>
-#include <Controller.h>
+#include <HttpController.h>
 #include <RecoveryControl.h>
 
 struct ClientInfo
@@ -40,21 +40,24 @@ public:
     EthClient client;
 };
 
-class SSEController : public Controller
+class SSEController : public HttpController
 {
 public:
-    SSEController() : Controller("SSE")
+    SSEController()
     {
     }
 
-    bool Get(EthClient &client, String &resource, ControllerContext &context);
-    bool Post(EthClient &client, String &resource, ControllerContext &context);
-    bool Put(EthClient &client, String &resource, ControllerContext &context);
-    bool Delete(EthClient &client, String &resource, ControllerContext &context);
+    bool Get(HttpClientContext &context, const String id);
+    bool Post(HttpClientContext &context, const String id);
+    bool Put(HttpClientContext &context, const String id);
+    bool Delete(HttpClientContext &context, const String id);
     void Init();
     bool DeleteClient(EthClient &client, bool stopClient);
     bool IsValidId(const String &id);
     void AddClient(const String &id);
+    bool isSingleton() { return true; }
+    static HttpController *getInstance();
+    static const String getPath() { return "/API/SSE"; }
 
 private:
     static void RecoveryStateChanged(const RecoveryStateChangedParams &params, const void *context);

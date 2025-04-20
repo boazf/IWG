@@ -6,7 +6,7 @@
 #include <EthernetUtil.h>
 #include <HTTPServer.h>
 #include <NTPClient.h>
-#include <ViewUtil.h>
+#include <HttpContollersUtil.h>
 #include <ControllerUtil.h>
 #include <SSEController.h>
 #include <Relays.h>
@@ -52,7 +52,7 @@ void setup() {
   initProgress();
   InitFileTrace();
   InitControllers();
-  InitViews();
+  InitHttpControllers();
   InitHTTPServer();
   initProgress(true);
 }

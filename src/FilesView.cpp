@@ -5,15 +5,16 @@
 #include <Trace.h>
 #endif
 
-FilesView::FilesView(const char *_viewName, const char *_viewFile) : 
-   View(_viewName, _viewFile)
+FilesView::FilesView(const char *_viewFile) : 
+   FileView(_viewFile)
 {
 }
 
-bool FilesView::post(EthClient &client, const String &resource, const String &id)
+bool FilesView::Post(HttpClientContext &context, const String id)
 {
     AutoSD autoSD;
     String normalizedPath = "/" + id;
+    const String resource = context.getResource();
     normalizedPath.replace("%20", " ");
 #ifdef DEBUG_HTTP_SERVER
     Tracef("FilesView: POST: resource=%s, id=%s, path=%s\n", resource.c_str(), id.c_str(), normalizedPath.c_str());
@@ -48,6 +49,7 @@ bool FilesView::post(EthClient &client, const String &resource, const String &id
 #endif
     unsigned int len = resp.length();
     HttpHeaders::Header additionalHeaders[] = {{CONTENT_TYPE::JSON}};
+    EthClient client = context.getClient();
     HttpHeaders headers(client);
     headers.sendHeaderSection(200, true, additionalHeaders, NELEMS(additionalHeaders), len);
 
@@ -60,5 +62,3 @@ bool FilesView::post(EthClient &client, const String &resource, const String &id
 
     return true;
 }
-
-FilesViewCreator filesViewCreator("/FILES", "/FILES.HTM");

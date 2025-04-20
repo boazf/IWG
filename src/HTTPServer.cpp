@@ -3,10 +3,10 @@
 #include <HTTPServer.h>
 #include <LinkedList.h>
 #include <AutoPtr.h>
-#include <FileView.h>
+#include <DirectFileView.h>
 #include <SSEController.h>
 
-ClientContext::ClientContext(EthClient &client) :
+HttpClientContext::HttpClientContext(EthClient &client) :
     keepAlive(false),
     client(client), 
     requestType(HTTP_REQ_TYPE::HTTP_UNKNOWN),
@@ -15,7 +15,7 @@ ClientContext::ClientContext(EthClient &client) :
     remotePort = client.remotePort();
 }
 
-bool ClientContext::parseRequestHeaderSection()
+bool HttpClientContext::parseRequestHeaderSection()
 {
     HttpHeaders headers(client);
 
@@ -31,143 +31,51 @@ bool ClientContext::parseRequestHeaderSection()
     return res;
 }
 
-HTTPServer::ViewCreatorsList HTTPServer::viewCreators;
-HTTPServer::ControllersList HTTPServer::controllers;
+HTTPServer::ControllersDataList HTTPServer::controllersData;
 
-void HTTPServer::AddView(ViewCreator *viewCreator)
+void HTTPServer::AddController(const String path, GetControllerInstance getControllerInstance)
 {
-    viewCreators.Insert(viewCreator);
+    HttpControllerCreatorData creatorData(path, getControllerInstance);
+    controllersData.Insert(creatorData);
 }
 
-void HTTPServer::AddController(Controller *controller)
+bool HTTPServer::GetController(HttpClientContext *context, HttpController *&controller, String &id)
 {
-    controllers.Insert(controller);
-}
+    String resource = context->getResource();
 
-bool HTTPServer::DoController(ClientContext *context, String &resource, HTTP_REQ_TYPE requestType)
-{
-    int slashIndex = resource.indexOf('/');
-    String id;
-    String controllerName;
-
-    if (slashIndex != -1)
-    {
-        id = resource.substring(slashIndex + 1);
-        controllerName = resource.substring(0, slashIndex);
-    }
-    else
-    {
-        id = "";
-        controllerName = resource;
-    }
-
-    controllerName.toUpperCase();
-
-#ifdef DEBUG_HTTP_SERVER
-    {
-        LOCK_TRACE();
-        Tracef("%d ", context->getClient().remotePort());
-        Trace("controller: ");
-        Trace(controllerName.c_str());
-        Trace(" id=");
-        Traceln(id);
-    }
-#endif
-
-    struct Params
-    {
-        Controller *controller;
-        String name;
-    } params = { NULL, controllerName};
-    
-    controllers.ScanNodes([](Controller *const &controllerInst, const void *param)->bool
-    {
-        Params *params = (Params *)param;
-
-        if (controllerInst->name.equals(params->name))
-        {
-            params->controller = controllerInst;
-            return false;
-        }
-        return true;
-    }, &params);
-
-    Controller *controller = params.controller;
-
-    if (controller == NULL)
-    {
-#ifdef DEBUG_HTTP_SERVER
-        Tracef("%d Controller was not found!\n", context->getClient().remotePort());
-#endif
-        return false;
-    }
-
-    ControllerContext controllerContext(context->getContentLength(), context->getContentType());
-    bool ret = false;
-
-    switch(requestType)
-    {
-    case HTTP_REQ_TYPE::HTTP_GET:
-        ret = controller->Get(context->getClient(), id, controllerContext);
-        break;
-
-    case HTTP_REQ_TYPE::HTTP_POST:
-        ret = controller->Post(context->getClient(), id, controllerContext);
-        break;
-
-    case HTTP_REQ_TYPE::HTTP_PUT:
-        ret = controller->Put(context->getClient(), id, controllerContext);
-        break;
-
-    case HTTP_REQ_TYPE::HTTP_DELETE:
-        ret = controller->Delete(context->getClient(), id, controllerContext);
-        break;
-
-    default:;
-        break;
-    }
-
-    context->keepAlive = controllerContext.keepAlive;
-
-    return ret;
-}
-
-bool HTTPServer::GetView(const String resource, View *&view, String &id)
-{
     struct Params
     {
         String id;
         String resource;
-        View *view;
-        bool ret;
-    } params = { id, resource, NULL, true };
+        HttpController *controller;
+    } params = {"", resource, NULL };
 
-    viewCreators.ScanNodes([](ViewCreator *const &viewCreatorInst, const void *param)->bool
+    controllersData.ScanNodes([](HttpControllerCreatorData const &creatorData, const void *param)->bool
     {
         Params *params = (Params *)param;
+        String path = creatorData.getPath();
+        String resource = params->resource;
+        resource.toUpperCase();
 
-        if (viewCreatorInst->viewPath.equals("/"))
+        if (path.equals("/"))
         {
-            if (params->resource.equals("/"))
+            if (resource.equals("/"))
             {
-                params->view = viewCreatorInst->createView();
+                params->controller = creatorData.getInstanceGetter()();
                 return false;
             }
             return true;
         }
-        if (params->resource.startsWith(viewCreatorInst->viewPath))
+        if (resource.startsWith(path))
         {
-            if (!params->resource.equals(viewCreatorInst->viewPath))
-                params->id = params->resource.substring(viewCreatorInst->viewPath.length() + 1);
-            else
-                params->id = "";
-            params->view = viewCreatorInst->createView();
-            return false;
-        }
-
-        if (!viewCreatorInst->viewFilePath.equals("") && params->resource.startsWith(viewCreatorInst->viewFilePath))
-        {
-            params->ret = false;
+            if (!resource.equals(path))
+            {
+                params->id = params->resource.substring(path.length());
+                if (params->id[0] != '/')
+                    return false;
+                params->id = params->id.substring(1);
+            }
+            params->controller = creatorData.getInstanceGetter()();
             return false;
         }
 
@@ -175,136 +83,10 @@ bool HTTPServer::GetView(const String resource, View *&view, String &id)
     }, &params);
 
     id = params.id;
-    view = params.view;
-    return params.ret;
-}
-
-bool HTTPServer::HandlePostRequest(ClientContext *context, const String &resource)
-{
-    View *view;
-    String id;
-
-    if (!GetView(resource, view, id))
-        return false;
-    if (view == NULL)
-        return false;
-
-    bool ret = view->post(context->getClient(), resource, id);
-    delete view;
-
-    return ret;
-}
-
-bool HTTPServer::HandleGetRequest(ClientContext *context, String &resource)
-{
-    EthClient *client = &context->getClient();
-    AutoPtr<View> tempView;
-    View *view = NULL;
-    String id;
-
-    if (!GetView(resource, view, id))
-        return false;
-
-    if (view == NULL)
-    {
-        view = new FileView(resource.c_str(), resource.c_str());
-    }
-
-    tempView.Attach(view);
-
-#ifdef DEBUG_HTTP_SERVER
-    {
-        LOCK_TRACE();
-        Tracef("%d ", context->getClient().remotePort());
-        Trace("View=");
-        Trace(view->viewPath);
-        Trace(", id=");
-        Trace(id);
-        Trace(", Path=");
-        Traceln(view->viewFilePath);
-    }
-#endif
-
-    if (view->redirect(*client, id))
-        return true;
-
-    byte buff[256];
-    if (!view->open(buff, sizeof(buff)))
-    {
-        return false;
-    }
-
-    if (!context->getLastModified().isEmpty())
-    {
-        String lastModifiedTime;
-
-        view->getLastModifiedTime(lastModifiedTime);
-        if (context->getLastModified().equals(lastModifiedTime))
-        {
-#ifdef DEBUG_HTTP_SERVER
-            {
-                LOCK_TRACE();
-                Tracef("%d ", context->getClient().remotePort());
-                Trace("Resource: ");
-                Trace(resource);
-                Trace(" File was not modified. ");
-                Traceln(context->getLastModified());
-            }
-#endif
-            NotModified(*client);
-            view->close();
-            return true;
-        }
-    }
-
-    CONTENT_TYPE type = view->getContentType();
-    if (type == CONTENT_TYPE::UNKNOWN)
-    {
-#ifdef DEBUG_HTTP_SERVER
-        Traceln("Unknown extention");
-#endif
-        view->close();
-        return false;
-    }
-
-    long size = view->getViewSize();
-
-    HttpHeaders::Header additionalHeaders[] = { {type}, {} };
-    if (type != CONTENT_TYPE::HTML)
-    {
-        String lastModifiedTime;
-        if (view->getLastModifiedTime(lastModifiedTime))
-        {
-            additionalHeaders[1] = {"Last-Modified", lastModifiedTime};
-        }
-    }
-
-    HttpHeaders headers(*client);
-    headers.sendHeaderSection(200, true, additionalHeaders, NELEMS(additionalHeaders), size);
-
-    long bytesSent = 0;
-    while (bytesSent < size)
-    {
-        int nBytes = view->read();
-        client->write(buff, nBytes);
-        bytesSent += nBytes;
-    }
-
-#ifdef DEBUG_HTTP_SERVER
-    {
-        LOCK_TRACE();
-        Tracef("%d ", context->getClient().remotePort());
-        Trace("Done sending ");
-        Trace(view->viewFilePath.c_str());
-        Trace(" Sent ");
-        Trace(bytesSent);
-        Traceln(" bytes");
-    }
-#endif
-
-    view->close();
-
-    return true;
+    controller = params.controller;
+    if (controller == NULL)
+        controller = new DirectFileView(resource.c_str());
+    return controller != NULL;
 }
 
 void HTTPServer::NotModified(EthClient &client)
@@ -319,39 +101,48 @@ void HTTPServer::PageNotFound(EthClient &client)
     headers.sendHeaderSection(404);
 }
 
-void HTTPServer::ServiceRequest(ClientContext *context)
+void HTTPServer::ServiceRequest(HttpClientContext *context)
 {
-    String resource = context->getResource();
-    String resourceOrg = resource;
-    resource.toUpperCase();
-    HTTP_REQ_TYPE requestType = context->getRequestType();
+    HttpController *controller;
+    String id;
 
-    if (resource.startsWith("/API"))
+    if (!GetController(context, controller, id))
     {
-        String controller = resourceOrg.substring(5);
-        if (!DoController(context, controller, requestType))
-            PageNotFound(context->getClient());
+        PageNotFound(context->getClient());
         return;
     }
+
+    HTTP_REQ_TYPE requestType = context->getRequestType();
+
+    bool ret = false;
 
     switch(requestType)
     {
     case HTTP_REQ_TYPE::HTTP_GET:
-        if (!HandleGetRequest(context, resource))
-            PageNotFound(context->getClient());
+        ret = controller->Get(*context, id);
         break;
 
     case HTTP_REQ_TYPE::HTTP_POST:
-        if (!HandlePostRequest(context, resource))
-            PageNotFound(context->getClient());
+        ret = controller->Post(*context, id);
         break;
 
     case HTTP_REQ_TYPE::HTTP_PUT:
+        ret = controller->Put(*context, id);
+        break;
+
     case HTTP_REQ_TYPE::HTTP_DELETE:
-    case HTTP_REQ_TYPE::HTTP_UNKNOWN:
-        PageNotFound(context->getClient());
+        ret = controller->Delete(*context, id);
+        break;
+
+    default:
         break;
     }
+
+    if (!ret)
+        PageNotFound(context->getClient());
+
+    if (!controller->isSingleton())
+        delete controller;
 }
 
 #ifndef USE_WIFI
@@ -384,7 +175,7 @@ void HTTPServer::ServeClient()
     Tracef("New client: IP=%s, port=%d\n", client.remoteIP().toString().c_str(), client.remotePort());
 #endif
 #endif
-    ClientContext *context = new ClientContext(client);
+    HttpClientContext *context = new HttpClientContext(client);
     BaseType_t ret;
     for (int i = 0; i <= TASK_CREATE_MAX_RETRIES; i++)
     {
@@ -423,7 +214,7 @@ void HTTPServer::ServeClient()
     }
 }
 
-void HTTPServer::RequestTask(ClientContext *context)
+void HTTPServer::RequestTask(HttpClientContext *context)
 {
     EthClient client = context->getClient();
     unsigned long t0 = millis();
@@ -441,7 +232,7 @@ void HTTPServer::RequestTask(ClientContext *context)
 
 void HTTPServer::RequestTask(void *params)
 {
-    ClientContext *context = (ClientContext *)params;
+    HttpClientContext *context = (HttpClientContext *)params;
     RequestTask(context);
     if (!context->keepAlive)
     {

@@ -6,7 +6,7 @@
 #include <Trace.h>
 #endif
 
-bool RecoveryController::Get(EthClient &client, String &resource, ControllerContext &context)
+bool RecoveryController::Get(HttpClientContext &context, const String id)
 {
 #ifdef DEBUG_HTTP_SERVER
     Traceln("RecoveryController Get");
@@ -14,7 +14,7 @@ bool RecoveryController::Get(EthClient &client, String &resource, ControllerCont
     return false;
 }
 
-bool RecoveryController::Put(EthClient &client, String &resource, ControllerContext &context)
+bool RecoveryController::Put(HttpClientContext &context, const String id)
 {
 #ifdef DEBUG_HTTP_SERVER
     Traceln("RecoveryController Put");
@@ -22,7 +22,7 @@ bool RecoveryController::Put(EthClient &client, String &resource, ControllerCont
     return false;
 }
 
-bool RecoveryController::Delete(EthClient &client, String &resource, ControllerContext &context)
+bool RecoveryController::Delete(HttpClientContext &context, const String id)
 {
 #ifdef DEBUG_HTTP_SERVER
     Traceln("RecoveryController Delete");
@@ -30,12 +30,13 @@ bool RecoveryController::Delete(EthClient &client, String &resource, ControllerC
     return false;
 }
 
-bool RecoveryController::Post(EthClient &client, String &resource, ControllerContext &context)
+bool RecoveryController::Post(HttpClientContext &context, const String id)
 {
 #ifdef DEBUG_HTTP_SERVER
     Traceln("RecoveryController Post");
 #endif
     String content;
+    EthClient client = context.getClient();
 
     while (client.available())
     {
@@ -69,5 +70,7 @@ bool RecoveryController::Post(EthClient &client, String &resource, ControllerCon
 
     return true;
 }
+
+HttpController *RecoveryController::getInstance() { return &recoveryController; }
 
 RecoveryController recoveryController;

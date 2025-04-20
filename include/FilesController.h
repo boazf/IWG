@@ -1,23 +1,26 @@
 #ifndef FilesController_h
 #define FilesController_h
 
-#include <Controller.h>
+#include <HttpController.h>
 
-class FilesController : public Controller
+class FilesController : public HttpController
 {
 public:
-    FilesController() : Controller("FILES")
+    FilesController()
     {
     }
 
-    bool Get(EthClient &client, String &resource, ControllerContext &context);
-    bool Post(EthClient &client, String &resource, ControllerContext &context);
-    bool Put(EthClient &client, String &resource, ControllerContext &context);
-    bool Delete(EthClient &client, String &resource, ControllerContext &context);
+    bool Get(HttpClientContext &context, const String id);
+    bool Post(HttpClientContext &context, const String id);
+    bool Put(HttpClientContext &context, const String id);
+    bool Delete(HttpClientContext &context, const String id);
+    bool isSingleton() { return true; }
+    static HttpController *getInstance();
+    static const String getPath() { return "/API/FILES"; }
 
 private:
-    void normalizePath(String &path);
-    void parseUploadHeaders(const String &header, String &boundary, String &fileName);
+    static void normalizePath(String &path);
+    static void parseUploadHeaders(const String &header, String &boundary, String &fileName);
 };
 
 extern FilesController filesController;

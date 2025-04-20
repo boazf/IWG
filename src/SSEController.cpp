@@ -6,8 +6,10 @@
 #include <Trace.h>
 #endif
 
-bool SSEController::Get(EthClient &client, String &id, ControllerContext &context)
+bool SSEController::Get(HttpClientContext &context, const String id)
 {
+    EthClient client = context.getClient();
+
 #ifdef DEBUG_HTTP_SERVER
     {
         LOCK_TRACE();
@@ -15,7 +17,7 @@ bool SSEController::Get(EthClient &client, String &id, ControllerContext &contex
         Trace(id);
 #ifndef USE_WIFI
         Trace(", socket=");
-        Traceln(client.getSocketNumber());
+        Traceln(context.getClient().getSocketNumber());
 #else
         Traceln();
 #endif
@@ -54,17 +56,17 @@ bool SSEController::Get(EthClient &client, String &id, ControllerContext &contex
     return true;
 }
 
-bool SSEController::Post(EthClient &client, String &resource, ControllerContext &context)
+bool SSEController::Post(HttpClientContext &context, const String id)
 {
     return false;
 }
 
-bool SSEController::Put(EthClient &client, String &resource, ControllerContext &context)
+bool SSEController::Put(HttpClientContext &context, const String id)
 {
     return false;
 }
 
-bool SSEController::Delete(EthClient &client, String &id, ControllerContext &context)
+bool SSEController::Delete(HttpClientContext &context, const String id)
 {
     struct Params
     {
@@ -86,7 +88,7 @@ bool SSEController::Delete(EthClient &client, String &id, ControllerContext &con
     }, &params);
 
     HttpHeaders::Header additionalHeaders[] = { {"Access-Control-Allow-Origin", "*" }, {"Cache-Control", "no-cache"} };
-    HttpHeaders headers(client);
+    HttpHeaders headers(context.getClient());
     headers.sendHeaderSection(200, true, additionalHeaders, NELEMS(additionalHeaders));
 
     return true;
@@ -356,5 +358,7 @@ void SSEController::AddClient(const String &id)
 
     clients.Insert(ClientInfo(id));
 }
+
+HttpController *SSEController::getInstance() { return &sseController; }
 
 SSEController sseController;

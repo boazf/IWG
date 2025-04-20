@@ -7,8 +7,11 @@
 class IndexView : public HtmlFillerView
 {
 public:
-    IndexView(const char *_viewName, const char *_viewFile);     
+    IndexView(const char *_viewFile);     
     bool redirect(EthClient &client, const String &_id);
+    bool isSingleton() { return false; }
+    static HttpController *getInstance() { return new IndexView("/INDEX.HTM"); }
+    static const String getPath() { return "/INDEX"; }
 
 protected:
     int getFillers(const ViewFiller *&fillers);
@@ -19,21 +22,4 @@ private:
 private:
     static std::atomic<int> id;
 };
-
-class IndexViewCreator : public ViewCreator
-{
-public:
-    IndexViewCreator(const char *_viewPath, const char *_viewFilePath) :
-        ViewCreator(_viewPath, _viewFilePath)
-    {
-    }
-
-    View *createView()
-    {
-        return new IndexView(viewPath.c_str(), viewFilePath.c_str());
-    }
-};
-
-extern IndexViewCreator indexViewCreator;
-
 #endif // IndexView_h

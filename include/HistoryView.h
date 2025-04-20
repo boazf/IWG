@@ -1,38 +1,24 @@
 #ifndef HistoryView_h
 #define HistoryView_h
 
-#include <View.h>
+#include <FileView.h>
 #include <Lock.h>
 
-class HistoryView : public View
+class HistoryView : public FileView
 {
 public:
-    HistoryView(const char *viewName, const char *viewFile) : 
-        View(viewName, viewFile)
+    HistoryView(const char *viewFile) : 
+        FileView(viewFile)
     {
     }
 
-    bool open(byte *buff, int buffSize);
-    void close();
+    virtual bool open(byte *buff, int buffSize);
+    virtual void close();
+    bool isSingleton() { return false; }
+    static HttpController *getInstance() { return new HistoryView("/HISTORY.HTM"); }
+    static const String getPath() { return "/HISTORY"; }
 
 private:
     static CriticalSection cs;
 };
-
-class HistoryViewCreator : public ViewCreator
-{
-public:
-    HistoryViewCreator(const char *_viewPath, const char *_viewFilePath) :
-        ViewCreator(_viewPath, _viewFilePath)
-    {
-    }
-
-    View *createView()
-    {
-        return new HistoryView(viewPath.c_str(), viewFilePath.c_str());
-    }
-};
-
-extern HistoryViewCreator historyViewCreator;
-
 #endif // HistoryView_h

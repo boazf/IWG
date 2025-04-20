@@ -7,11 +7,16 @@
 class DefaultView : public DummyView
 {
 public:
-    DefaultView(const char *viewPath, const char *viewFilePath) :
-        DummyView(viewPath, viewFilePath)
+    DefaultView(const char *viewFilePath) :
+        DummyView(viewFilePath)
     {
     }
 
+    bool isSingleton() { return false; }
+    static HttpController *getInstance() { return new DefaultView(""); }
+    static const String getPath() { return "/"; }
+
+protected:
     bool redirect(EthClient &client, const String &id)
     {
         HttpHeaders::Header additionalHeaders[] = { {"Location", "/index"} };
@@ -19,22 +24,6 @@ public:
         headers.sendHeaderSection(302, true, additionalHeaders, NELEMS(additionalHeaders));
         return true;
     }
+
 };
-
-class DefaultViewCreator : public ViewCreator
-{
-public:
-    DefaultViewCreator(const char *_viewPath, const char *_viewFilePath) :
-        ViewCreator(_viewPath, _viewFilePath)
-    {
-    }
-
-    View *createView()
-    {
-        return new DefaultView(viewPath.c_str(), viewFilePath.c_str());
-    }
-};
-
-extern DefaultViewCreator defaultViewCreator;
-
 #endif // DefaultView_h

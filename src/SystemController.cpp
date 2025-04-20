@@ -6,22 +6,22 @@
 #endif
 #include <HttpHeaders.h>
 
-bool SystemController::sendVersionInfo(EthClient &client, ControllerContext &context)
+bool SystemController::sendVersionInfo(HttpClientContext &context)
 {
     
     String version = Version::getOtaVersion();
     String versionJson = "{ \"Version\" : \"" + version + "\" }";
 
     HttpHeaders::Header additionalHeaders[] = {{CONTENT_TYPE::JSON}, {"Access-Control-Allow-Origin", "*"}};
-    HttpHeaders headers(client);
+    HttpHeaders headers(context.getClient());
     headers.sendHeaderSection(200, true, additionalHeaders, NELEMS(additionalHeaders), versionJson.length());
 
-    client.print(versionJson.c_str());
+    context.getClient().print(versionJson.c_str());
 
     return true;
 }
 
-bool SystemController::updateVersion(EthClient &client, ControllerContext &context)
+bool SystemController::updateVersion(HttpClientContext &context)
 {
     BaseType_t ret = xTaskCreate(
         [](void *param)
@@ -60,13 +60,13 @@ bool SystemController::updateVersion(EthClient &client, ControllerContext &conte
         },
         "UpdateFirmware",
         4*1024,
-        &client,
+        &context.getClient(),
         tskIDLE_PRIORITY,
         NULL);
     if (ret != pdPASS)
         return false;
 
-    HttpHeaders headers(client);
+    HttpHeaders headers(context.getClient());
     headers.sendStreamHeaderSection();
     context.keepAlive = true;
 
@@ -98,6 +98,7 @@ void SystemController::notify(EthClient &client, const String &json)
     client.println(String("data:") + json + "\n");
 }
 
+HttpController *SystemController::getInstance() { return &systemController; }
 
 SystemController systemController;
 

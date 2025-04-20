@@ -1,19 +1,22 @@
 #ifndef RecoveryController_h
 #define RecoveryController_h
 
-#include <Controller.h>
+#include <HttpController.h>
 
-class RecoveryController : public Controller
+class RecoveryController : public HttpController
 {
 public:
-    RecoveryController() : Controller("RECOVERY")
+    RecoveryController()
     {
     }
 
-    bool Get(EthClient &client, String &resource, ControllerContext &context);
-    bool Post(EthClient &client, String &resource, ControllerContext &context);
-    bool Put(EthClient &client, String &resource, ControllerContext &context);
-    bool Delete(EthClient &client, String &resource, ControllerContext &context);
+    bool Get(HttpClientContext &context, const String id);
+    bool Post(HttpClientContext &context, const String id);
+    bool Put(HttpClientContext &context, const String id);
+    bool Delete(HttpClientContext &context, const String id);
+    bool isSingleton() { return true; }
+    static HttpController *getInstance();
+    static const String getPath() { return "/API/RECOVERY"; }
 };
 
 extern RecoveryController recoveryController;

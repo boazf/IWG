@@ -12,10 +12,6 @@ void InitControllers()
     historyControl.Init();
     recoveryControl.Init();
     sseController.Init();
-    HTTPServer::AddController(&sseController);
-    HTTPServer::AddController(&recoveryController);
-    HTTPServer::AddController(&filesController);
-    HTTPServer::AddController(&systemController);
 }
 
 void PerformControllersCycles()

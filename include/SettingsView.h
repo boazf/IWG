@@ -35,8 +35,11 @@ class SettingsView : public HtmlFillerView
     typedef std::map<const std::string, settingsKeys> SettingsMap;
 
 public:
-    SettingsView(const char *_viewName, const char *_viewFile);     
-    bool post(EthClient &client, const String &resource, const String &id);
+    SettingsView(const char *_viewFile);     
+    virtual bool Post(HttpClientContext &context, const String id);
+    bool isSingleton() { return false; }
+    static HttpController *getInstance() { return new SettingsView("/SETTINGS.HTM"); }
+    static const String getPath() { return "/SETTINGS"; }
     
 protected:
     int getFillers(const ViewFiller *&fillers);
@@ -52,21 +55,4 @@ private:
     time_t parseTime(const String &val);
     void SetConfigValue(const String &pair, SettingsValuesSetMap &settingsValuesSetMap);
 };
-
-class SettingsViewCreator : public ViewCreator
-{
-public:
-    SettingsViewCreator(const char *_viewPath, const char *_viewFilePath) :
-        ViewCreator(_viewPath, _viewFilePath)
-    {
-    }
-
-    View *createView()
-    {
-        return new SettingsView(viewPath.c_str(), viewFilePath.c_str());
-    }
-};
-
-extern SettingsViewCreator settingsViewCreator;
-
 #endif // SettingsView_h

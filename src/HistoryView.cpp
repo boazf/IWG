@@ -142,7 +142,7 @@ bool HistoryView::open(byte *buff, int buffSize)
             return false;
         }
 
-        if (!View::open(buff, buffSize))
+        if (!FileView::open(buff, buffSize))
         {
             historyFile.close();
             SD.remove(TEMP_HISTORY_FILE_PATH);
@@ -154,11 +154,11 @@ bool HistoryView::open(byte *buff, int buffSize)
 #ifdef DEBUG_HTTP_SERVER
         Tracef("Reusing %s\n", TEMP_HISTORY_FILE_PATH);
 #endif
-        return View::open(buff, buffSize, historyFile);
+        return FileView::open(buff, buffSize, historyFile);
     }
 
     fillFile fillers[] = { fillAlerts, fillJS };
-    for (int nBytes = View::read(); nBytes; nBytes = View::read())
+    for (int nBytes = FileView::read(); nBytes; nBytes = FileView::read())
     {
         int byte0 = 0;
         for (int i = 0; i < nBytes; i++)
@@ -194,16 +194,14 @@ bool HistoryView::open(byte *buff, int buffSize)
         historyFile.write(buff + byte0, nBytes - byte0);
     }
 
-    View::close();
+    FileView::close();
     historyFile.close();
 
-    return View::open(buff, buffSize, SD.open(TEMP_HISTORY_FILE_PATH, FILE_READ));
+    return FileView::open(buff, buffSize, SD.open(TEMP_HISTORY_FILE_PATH, FILE_READ));
 }
 
 void HistoryView::close()
 {
-    View::close();
+    FileView::close();
     cs.Leave();
 }
-
-HistoryViewCreator historyViewCreator("/HISTORY", "/HISTORY.HTM");

@@ -1,64 +1,33 @@
 #ifndef View_h
 #define View_h
 
-#include <Arduino.h>
-#include <SDUtil.h>
-#include <EthernetUtil.h>
-#include <HttpHeaders.h>
+#include <HttpController.h>
 
-struct View
+class View : public HttpController
 {
 public:
-    View(const String _viewPath, const String _viewFilePath) :
-        viewPath(_viewPath),
-        viewFilePath(_viewFilePath),
+    View() : 
         buff(NULL),
         buffSize(0)
-    {
-    }
+    {}
 
-    virtual ~View()
-    {
-        if (file)
-            file.close();
-        buff = NULL;
-        buffSize = 0;
-    }
+    virtual bool Get(HttpClientContext &context, const String id);
+    virtual bool Post(HttpClientContext &context, const String id);
+    virtual bool Put(HttpClientContext &context, const String id);
+    virtual bool Delete(HttpClientContext &context, const String id);
 
-    const String viewPath;
-    const String viewFilePath;
+protected:
     virtual bool open(byte *buff, int buffSize);
     virtual void close();
     virtual bool redirect(EthClient &client, const String &id);
-    bool getLastModifiedTime(String &lastModifiedTimeStr);
-    virtual CONTENT_TYPE getContentType();
-    virtual long getViewSize();
-    virtual int read();
-    virtual bool post(EthClient &client, const String &resource, const String &id);
+    virtual bool getLastModifiedTime(String &lastModifiedTimeStr) = 0;
+    virtual CONTENT_TYPE getContentType() = 0;
+    virtual long getViewSize() = 0;
+    virtual int read() = 0;
 
 protected:
-    bool openWWWROOT(SdFile &dir);
-    bool open(byte *buff, int buffSize, SdFile file);
-
-protected:
-    SdFile file;
     byte *buff;
     int buffSize;
-};
-
-class ViewCreator
-{
-public:
-    ViewCreator(const char *_viewPath, const char *_viewFilePath) :
-        viewPath(_viewPath),
-        viewFilePath(_viewFilePath)
-    {
-    }
-
-    virtual View *createView() = 0;
-
-    const String viewPath;
-    const String viewFilePath;
 };
 
 #endif // View_h

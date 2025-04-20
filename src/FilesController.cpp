@@ -15,14 +15,18 @@ void FilesController::normalizePath(String &path)
     path.replace("%20", " ");
 }
 
-bool FilesController::Get(EthClient &client, String &resource, ControllerContext &context)
+bool FilesController::Get(HttpClientContext &context, const String id)
 {
     AutoSD autoSD;
-#ifdef DEBUG_HTTP_SERVER
+    EthClient client = context.getClient();
+    String resource = context.getResource();
+
+    #ifdef DEBUG_HTTP_SERVER
     Tracef("FilesController Get %s\n", resource.c_str());
 #endif
-    normalizePath(resource);
-    SdFile file = SD.open("/" + resource, FILE_READ);
+    String path = id;
+    normalizePath(path);
+    SdFile file = SD.open("/" + path, FILE_READ);
 
     if (!file)
         return false;
@@ -61,12 +65,18 @@ void FilesController::parseUploadHeaders(const String &header, String &boundary,
         char fileNameId[] = "; filename=";
         fileName = header.substring(header.indexOf(fileNameId) + NELEMS(fileNameId));
         fileName = fileName.substring(0, fileName.indexOf("\""));
+#ifdef DEBUG_HTTP_SERVER
+        Tracef("File Name=%s\n", fileName.c_str());
+#endif
     }
 }
 
-bool FilesController::Post(EthClient &client, String &resource, ControllerContext &context)
+bool FilesController::Post(HttpClientContext &context, const String id)
 {
     AutoSD autoSD;
+    EthClient client = context.getClient();
+    String resource = context.getResource();
+
     normalizePath(resource);
 #ifdef DEBUG_HTTP_SERVER
     Tracef("FilesController Post resource=%s, contentLength=%lu, contentType=%s\n", resource.c_str(), context.getContentLength(), context.getContentType().c_str());
@@ -99,9 +109,11 @@ bool FilesController::Post(EthClient &client, String &resource, ControllerContex
         }
     }
 
-    if (!resource.equals(""))
-        resource = "/" + resource;
-    SdFile file = SD.open(resource + "/" + fileName, FILE_WRITE);
+    String filePath = id;
+    normalizePath(filePath);
+    if (!filePath.equals(""))
+        filePath = "/" + filePath;
+    SdFile file = SD.open(filePath + "/" + fileName, FILE_WRITE);
 
     if (!file)
         return false;
@@ -169,33 +181,37 @@ bool FilesController::Post(EthClient &client, String &resource, ControllerContex
     return true;
 }
 
-bool FilesController::Put(EthClient &client, String &resource, ControllerContext &context)
+bool FilesController::Put(HttpClientContext &context, const String id)
 {
 #ifdef DEBUG_HTTP_SERVER
-    Tracef("FilesController Put %s\n", resource.c_str());
+    Tracef("FilesController Put %s\n", context.getResource().c_str());
 #endif
 
-    normalizePath(resource);
-    String dirPath = "/" + resource;
+    String dirPath = id;
+    normalizePath(dirPath);
+    dirPath = "/" + dirPath;
 
     if (SD.exists(dirPath) || !SD.mkdir(dirPath))
         return false;
 
-    HttpHeaders headers(client);
+    HttpHeaders headers(context.getClient());
     headers.sendHeaderSection(200, true, commonHeaders, NELEMS(commonHeaders));
 
     return true;
 }
 
-bool FilesController::Delete(EthClient &client, String &resource, ControllerContext &context)
+bool FilesController::Delete(HttpClientContext &context, const String id)
 {
     AutoSD autoSD;
+    String resource = context.getResource();
+
 #ifdef DEBUG_HTTP_SERVER
     Tracef("FilesController Delete %s\n", resource.c_str());
 #endif
 
-    normalizePath(resource);
-    String path = "/" + resource;
+    String path = id;
+    normalizePath(path);
+    path = String("/") + path;
 
     if (!SD.exists(path))
     {
@@ -231,10 +247,12 @@ bool FilesController::Delete(EthClient &client, String &resource, ControllerCont
         return false;
     }
 
-    HttpHeaders headers(client);
+    HttpHeaders headers(context.getClient());
     headers.sendHeaderSection(200, true, commonHeaders, NELEMS(commonHeaders));
 
     return true;
 }
+
+HttpController *FilesController::getInstance() { return &filesController; }
 
 FilesController filesController;

@@ -1,16 +1,21 @@
 #ifndef DummyView_h
 #define DummyView_h
 
-#include <View.h>
+#include <FileView.h>
 
-class DummyView : public View
+class DummyView : public FileView
 {
 public:
-    DummyView(const char *viewPath, const char *viewFilePath) :
-        View(viewPath, viewFilePath)
+    DummyView(const char *viewFilePath) :
+        FileView(viewFilePath)
     {
     }
 
+    bool isSingleton() { return false; }
+    static HttpController *getInstance() { return new DummyView(""); }
+    static const String getPath() { return "/DUMMY"; }
+
+protected:
     int read()
     {
         return -1;
@@ -35,21 +40,4 @@ public:
     {
     }
 };
-
-class DummyViewCreator : public ViewCreator
-{
-public:
-    DummyViewCreator(const char *_viewPath, const char *_viewFilePath) :
-        ViewCreator(_viewPath, _viewFilePath)
-    {
-    }
-
-    View *createView()
-    {
-        return new DummyView(viewPath.c_str(), viewFilePath.c_str());
-    }
-};
-
-extern DummyViewCreator dummyViewCreator;
-
 #endif // DummyView_h

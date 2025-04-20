@@ -9,8 +9,8 @@
 #include <Trace.h>
 #endif
 
-SettingsView::SettingsView(const char *_viewName, const char *_viewFile) : 
-    HtmlFillerView(_viewName, _viewFile)
+SettingsView::SettingsView(const char *_viewFile) : 
+    HtmlFillerView(_viewFile)
 {
 }
 
@@ -172,7 +172,7 @@ void SettingsView::SetConfigValue(const String &pair, SettingsValuesSetMap &sett
     }
 }
 
-bool SettingsView::post(EthClient &client, const String &resource, const String &id)
+bool SettingsView::Post(HttpClientContext &context, const String id)
 {
     String pair = "";
 
@@ -184,6 +184,8 @@ bool SettingsView::post(EthClient &client, const String &resource, const String 
         { settingsKeys::periodicallyRestartRouter, false },
         { settingsKeys::periodicallyRestartModem, false }
     };
+
+    EthClient client = context.getClient();
 
     while(client.available())
     {
@@ -207,5 +209,3 @@ bool SettingsView::post(EthClient &client, const String &resource, const String 
 
     return true;
 }
-
-SettingsViewCreator settingsViewCreator("/SETTINGS", "/SETTINGS.HTM");
