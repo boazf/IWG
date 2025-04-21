@@ -5,6 +5,7 @@
 #include <Trace.h>
 #endif
 #include <HttpHeaders.h>
+#include <atomic>
 
 bool SystemController::sendVersionInfo(HttpClientContext &context)
 {
@@ -23,52 +24,69 @@ bool SystemController::sendVersionInfo(HttpClientContext &context)
 
 bool SystemController::updateVersion(HttpClientContext &context)
 {
-    BaseType_t ret = xTaskCreate(
-        [](void *param)
+    static std::atomic<bool> busy(false);
+
+    bool free = !busy.exchange(true);
+
+    if (free)
+    {
+        BaseType_t ret = xTaskCreate(
+            [](void *param)
+            {
+                static EthClient notificationClient;
+                notificationClient = *(EthClient *)param;
+                Version::onStart([]()
+                {
+                    notify(notificationClient, NotificationType::start);
+                });
+                Version::onProgress([](int sent, int total)
+                {
+                    notify(notificationClient, NotificationType::progress, sent, total);
+                });
+                Version::onEnd([]()
+                {
+                    notify(notificationClient, NotificationType::end);
+                    delay(1000);
+                });
+                Version::onError([](int error, const String &message)
+                {
+                    notify(notificationClient, NotificationType::error, error, message);
+                });
+
+                Version::UpdateResult res = Version::updateFirmware();
+                if (res == Version::UpdateResult::noAvailUpdate)
+                    notify(notificationClient, NotificationType::error, 0, "No available update");
+    #ifdef DEBUG_HTTP_SERVER
+                Tracef("%d Stopping client\n", notificationClient.remotePort());
+    #endif
+                notificationClient.stop();
+    #ifdef DEBUG_HTTP_SERVER
+                Tracef("Update task stack high watermark: %d\n", uxTaskGetStackHighWaterMark(NULL));
+    #endif
+                busy.exchange(res == Version::UpdateResult::done);
+                vTaskDelete(NULL);
+            },
+            "UpdateFirmware",
+            4*1024,
+            &context.getClient(),
+            tskIDLE_PRIORITY,
+            NULL);
+        if (ret != pdPASS)
         {
-            static EthClient notificationClient;
-            notificationClient = *(EthClient *)param;
-            Version::onStart([]()
-            {
-                notify(notificationClient, NotificationType::start);
-            });
-            Version::onProgress([](int sent, int total)
-            {
-                notify(notificationClient, NotificationType::progress, sent, total);
-            });
-            Version::onEnd([]()
-            {
-                notify(notificationClient, NotificationType::end);
-                delay(1000);
-            });
-            Version::onError([](int error, const String &message)
-            {
-                notify(notificationClient, NotificationType::error, error, message);
-            });
+            busy.exchange(false);
+            return false;
+        }
+    }
 
-            Version::UpdateResult res = Version::updateFirmware();
-            if (res == Version::UpdateResult::noAvailUpdate)
-                notify(notificationClient, NotificationType::error, 0, "No available update");
-#ifdef DEBUG_HTTP_SERVER
-            Tracef("%d Stopping client\n", notificationClient.remotePort());
-#endif
-            notificationClient.stop();
-#ifdef DEBUG_HTTP_SERVER
-            Tracef("Update task stack high watermark: %d\n", uxTaskGetStackHighWaterMark(NULL));
-#endif
-            vTaskDelete(NULL);
-        },
-        "UpdateFirmware",
-        4*1024,
-        &context.getClient(),
-        tskIDLE_PRIORITY,
-        NULL);
-    if (ret != pdPASS)
-        return false;
-
-    HttpHeaders headers(context.getClient());
+    EthClient client = context.getClient();
+    HttpHeaders headers(client);
     headers.sendStreamHeaderSection();
-    context.keepAlive = true;
+    context.keepAlive = free;
+
+    if (!free)
+    {
+        notify(client, NotificationType::error, 0, "An update already started by another client!");
+    }
 
     return true;
 }
