@@ -26,11 +26,12 @@ protected:
     virtual bool open(byte *buff, int buffSize, SdFile file);
     virtual void close();
     virtual int read();
+    int read(int offset);
     virtual long getViewSize();
     virtual bool getLastModifiedTime(String &lastModifiedTimeStr);
     virtual CONTENT_TYPE getContentType();
 
-protected:
+private:
     String viewFilePath;
     SdFile file;
 };

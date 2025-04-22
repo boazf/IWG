@@ -13,8 +13,8 @@ public:
     {
     }
 
-    bool open(byte *buff, int buffSize);
-    int read();
+    virtual bool open(byte *buff, int buffSize);
+    virtual int read();
 
 protected:
     virtual int getFillers(const ViewFiller *&fillers) = 0;

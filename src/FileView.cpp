@@ -47,6 +47,11 @@ int FileView::read()
     return file.read(buff, buffSize);
 }
 
+int FileView::read(int offset)
+{
+    return file.read(buff + offset, buffSize - offset);
+}
+
 long FileView::getViewSize()
 {
     return file.size();

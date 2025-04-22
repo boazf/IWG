@@ -73,7 +73,7 @@ int HtmlFillerView::read()
 {
     memcpy(buff, buff + offset, buffSize - offset);
     offset = buffSize - offset;
-    size_t nBytes = file.read(buff + offset, buffSize - offset) + offset;
+    size_t nBytes = FileView::read(offset) + offset;
     offset = viewHandler(buff, nBytes);
     return offset;
 }
