@@ -57,7 +57,6 @@ public:
     void AddClient(const String &id);
     bool isSingleton() { return true; }
     static HttpController *getInstance();
-    static const String getPath() { return "/API/SSE"; }
 
 private:
     static void RecoveryStateChanged(const RecoveryStateChangedParams &params, const void *context);

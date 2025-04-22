@@ -14,7 +14,6 @@ public:
 
     bool isSingleton() { return false; }
     static HttpController *getInstance() { return new DefaultView(""); }
-    static const String getPath() { return "/"; }
 
 protected:
     bool redirect(EthClient &client, const String &id)

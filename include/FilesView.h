@@ -10,7 +10,6 @@ public:
     virtual bool Post(HttpClientContext &context, const String id);
     bool isSingleton() { return false; }
     static HttpController *getInstance() { return new FilesView("/FILES.HTM"); }
-    static const String getPath() { return "/FILES"; }
 };
 
 #endif // FilesView_h

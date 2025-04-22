@@ -13,7 +13,6 @@ public:
 
     bool isSingleton() { return false; }
     static HttpController *getInstance() { return new DummyView(""); }
-    static const String getPath() { return "/DUMMY"; }
 
 protected:
     int read()

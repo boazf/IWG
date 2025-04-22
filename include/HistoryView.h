@@ -16,7 +16,6 @@ public:
     virtual void close();
     bool isSingleton() { return false; }
     static HttpController *getInstance() { return new HistoryView("/HISTORY.HTM"); }
-    static const String getPath() { return "/HISTORY"; }
 
 private:
     static CriticalSection cs;

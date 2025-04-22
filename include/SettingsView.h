@@ -39,7 +39,6 @@ public:
     virtual bool Post(HttpClientContext &context, const String id);
     bool isSingleton() { return false; }
     static HttpController *getInstance() { return new SettingsView("/SETTINGS.HTM"); }
-    static const String getPath() { return "/SETTINGS"; }
     
 protected:
     int getFillers(const ViewFiller *&fillers);

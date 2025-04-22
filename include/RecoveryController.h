@@ -16,7 +16,6 @@ public:
     bool Delete(HttpClientContext &context, const String id);
     bool isSingleton() { return true; }
     static HttpController *getInstance();
-    static const String getPath() { return "/API/RECOVERY"; }
 };
 
 extern RecoveryController recoveryController;

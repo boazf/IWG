@@ -11,7 +11,6 @@ public:
     bool redirect(EthClient &client, const String &_id);
     bool isSingleton() { return false; }
     static HttpController *getInstance() { return new IndexView("/INDEX.HTM"); }
-    static const String getPath() { return "/INDEX"; }
 
 protected:
     int getFillers(const ViewFiller *&fillers);

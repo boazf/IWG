@@ -42,7 +42,6 @@ public:
 
     bool isSingleton() { return true; }
     static HttpController *getInstance();
-    static const String getPath() { return "/API/SYSTEM"; }
 
 private:
     #define NOTIFICATION_TYPES \
