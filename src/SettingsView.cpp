@@ -10,7 +10,7 @@
 #endif
 
 SettingsView::SettingsView(const char *_viewFile) : 
-    HtmlFillerView(_viewFile)
+    HtmlFillerView(_viewFile, getFillers)
 {
 }
 

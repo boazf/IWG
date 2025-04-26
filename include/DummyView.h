@@ -1,18 +1,14 @@
 #ifndef DummyView_h
 #define DummyView_h
 
-#include <FileView.h>
+#include <View.h>
 
-class DummyView : public FileView
+class DummyViewReader : public ViewReader
 {
 public:
-    DummyView(const char *viewFilePath) :
-        FileView(viewFilePath)
+    DummyViewReader()
     {
     }
-
-    bool isSingleton() { return false; }
-    static HttpController *getInstance() { return new DummyView(""); }
 
 protected:
     int read()
@@ -20,9 +16,19 @@ protected:
         return -1;
     }
 
+    int read(int offset)
+    {
+        return -1;
+    }
+
     long getViewSize()
     {
         return 0;
+    }
+
+    bool getLastModifiedTime(String &lastModifiedTimeStr)
+    {
+        return false;
     }
 
     CONTENT_TYPE getContentType()
@@ -38,5 +44,19 @@ protected:
     void close()
     {
     }
+};
+
+class DummyView : public View
+{
+public:
+    DummyView(const char *viewFilePath) :
+        View(new DummyViewReader())
+    {
+    }
+
+    bool isSingleton() { return false; }
+    static HttpController *getInstance() { return new DummyView(""); }
+
+protected:
 };
 #endif // DummyView_h

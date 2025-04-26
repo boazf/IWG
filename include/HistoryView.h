@@ -4,20 +4,29 @@
 #include <FileView.h>
 #include <Lock.h>
 
-class HistoryView : public FileView
+class HistoryViewReader : public FileViewReader
 {
 public:
-    HistoryView(const char *viewFile) : 
-        FileView(viewFile)
-    {
-    }
-
+    HistoryViewReader(const char *viewFile) :
+        FileViewReader(viewFile)
+    {}
+    
     virtual bool open(byte *buff, int buffSize);
     virtual void close();
-    bool isSingleton() { return false; }
-    static HttpController *getInstance() { return new HistoryView("/HISTORY.HTM"); }
 
 private:
     static CriticalSection cs;
+};
+
+class HistoryView : public View
+{
+public:
+    HistoryView(const char *viewFile) : 
+        View(new HistoryViewReader(viewFile))
+    {
+    }
+
+    bool isSingleton() { return false; }
+    static HttpController *getInstance() { return new HistoryView("/HISTORY.HTM"); }
 };
 #endif // HistoryView_h

@@ -9,7 +9,7 @@
 #include <HttpHeaders.h>
 
 IndexView::IndexView(const char *_viewFile) : 
-   HtmlFillerView(_viewFile)
+   HtmlFillerView(_viewFile, getFillers)
 {
 }
 

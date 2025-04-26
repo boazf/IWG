@@ -103,12 +103,12 @@ static bool fillJS(SdFile &file)
     return true;
 }
 
-CriticalSection HistoryView::cs;
+CriticalSection HistoryViewReader::cs;
 
 #define TEMP_HISTORY_FILE_DIR "/wwwroot/temp"
 #define TEMP_HISTORY_FILE_PATH TEMP_HISTORY_FILE_DIR "/history.htm"
 
-bool HistoryView::open(byte *buff, int buffSize)
+bool HistoryViewReader::open(byte *buff, int buffSize)
 {
     AutoSD autoSD;
     cs.Enter();
@@ -142,7 +142,7 @@ bool HistoryView::open(byte *buff, int buffSize)
             return false;
         }
 
-        if (!FileView::open(buff, buffSize))
+        if (!FileViewReader::open(buff, buffSize))
         {
             historyFile.close();
             SD.remove(TEMP_HISTORY_FILE_PATH);
@@ -154,11 +154,11 @@ bool HistoryView::open(byte *buff, int buffSize)
 #ifdef DEBUG_HTTP_SERVER
         Tracef("Reusing %s\n", TEMP_HISTORY_FILE_PATH);
 #endif
-        return FileView::open(buff, buffSize, historyFile);
+        return FileViewReader::open(buff, buffSize, historyFile);
     }
 
     fillFile fillers[] = { fillAlerts, fillJS };
-    for (int nBytes = FileView::read(); nBytes; nBytes = FileView::read())
+    for (int nBytes = FileViewReader::read(); nBytes; nBytes = FileViewReader::read())
     {
         int byte0 = 0;
         for (int i = 0; i < nBytes; i++)
@@ -194,14 +194,14 @@ bool HistoryView::open(byte *buff, int buffSize)
         historyFile.write(buff + byte0, nBytes - byte0);
     }
 
-    FileView::close();
+    FileViewReader::close();
     historyFile.close();
 
-    return FileView::open(buff, buffSize, SD.open(TEMP_HISTORY_FILE_PATH, FILE_READ));
+    return FileViewReader::open(buff, buffSize, SD.open(TEMP_HISTORY_FILE_PATH, FILE_READ));
 }
 
-void HistoryView::close()
+void HistoryViewReader::close()
 {
-    FileView::close();
+    FileViewReader::close();
     cs.Leave();
 }

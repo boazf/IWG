@@ -13,7 +13,7 @@ public:
     static HttpController *getInstance() { return new IndexView("/INDEX.HTM"); }
 
 protected:
-    int getFillers(const ViewFiller *&fillers);
+    static int getFillers(const ViewFiller *&fillers);
 
 private:
     static ViewFiller fillers[];

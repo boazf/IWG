@@ -1,32 +1,10 @@
-#include <AutoPtr.h>
-#include <View.h>
-#include <SDUtil.h>
-#include <time.h>
 #include <Common.h>
-#include <Config.h>
+#include <View.h>
 #include <HttpHeaders.h>
 #include <HttpServer.h>
-#include <map>
 #ifdef DEBUG_HTTP_SERVER
 #include <Trace.h>
 #endif
-
-bool View::open(byte *buff, int buffSize)
-{
-    this->buff = buff;
-    this->buffSize = buffSize;
-
-    return true;
-}
-
-void View::close()
-{
-}
-
-bool View::redirect(EthClient &client, const String &id)
-{
-    return false;
-}
 
 bool View::Get(HttpClientContext &context, const String id)
 {
@@ -36,7 +14,7 @@ bool View::Get(HttpClientContext &context, const String id)
         return true;
 
     byte buff[256];
-    if (!open(buff, sizeof(buff)))
+    if (!viewReader->open(buff, sizeof(buff)))
     {
         return false;
     }
@@ -45,7 +23,7 @@ bool View::Get(HttpClientContext &context, const String id)
     {
         String lastModifiedTime;
 
-        getLastModifiedTime(lastModifiedTime);
+        viewReader->getLastModifiedTime(lastModifiedTime);
         if (context.getLastModified().equals(lastModifiedTime))
         {
 #ifdef DEBUG_HTTP_SERVER
@@ -59,28 +37,28 @@ bool View::Get(HttpClientContext &context, const String id)
             }
 #endif
             HTTPServer::NotModified(client);
-            close();
+            viewReader->close();
             return true;
         }
     }
 
-    CONTENT_TYPE type = getContentType();
+    CONTENT_TYPE type = viewReader->getContentType();
     if (type == CONTENT_TYPE::UNKNOWN)
     {
 #ifdef DEBUG_HTTP_SERVER
         Traceln("Unknown extention");
 #endif
-        close();
+        viewReader->close();
         return false;
     }
 
-    long size = getViewSize();
+    long size = viewReader->getViewSize();
 
     HttpHeaders::Header additionalHeaders[] = { {type}, {} };
     if (type != CONTENT_TYPE::HTML)
     {
         String lastModifiedTime;
-        if (getLastModifiedTime(lastModifiedTime))
+        if (viewReader->getLastModifiedTime(lastModifiedTime))
         {
             additionalHeaders[1] = {"Last-Modified", lastModifiedTime};
         }
@@ -92,7 +70,7 @@ bool View::Get(HttpClientContext &context, const String id)
     long bytesSent = 0;
     while (bytesSent < size)
     {
-        int nBytes = read();
+        int nBytes = viewReader->read();
         client.write(buff, nBytes);
         bytesSent += nBytes;
     }
@@ -107,7 +85,7 @@ bool View::Get(HttpClientContext &context, const String id)
     }
 #endif
 
-    close();
+    viewReader->close();
 
     return true;
 }

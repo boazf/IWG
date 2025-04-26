@@ -7,6 +7,7 @@
 class HttpController
 {
 public:
+    virtual ~HttpController() {}
     virtual bool Get(HttpClientContext &client, const String id = "") = 0;
     virtual bool Post(HttpClientContext &client, const String id = "") = 0;
     virtual bool Put(HttpClientContext &client, const String id = "") = 0;

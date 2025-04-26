@@ -1,7 +1,9 @@
-#include <FileView.h>
+#include <FileViewReader.h>
+#ifdef DEBUG_HTTP_SERVER
 #include <Trace.h>
+#endif
 
-bool FileView::open(byte *buff, int buffSize)
+bool FileViewReader::open(byte *buff, int buffSize)
 {
     AutoSD autoSD;
     String fileName;
@@ -19,9 +21,9 @@ bool FileView::open(byte *buff, int buffSize)
     return open(buff, buffSize, file);
 }
 
-bool FileView::open(byte *buff, int buffSize, SdFile file)
+bool FileViewReader::open(byte *buff, int buffSize, SdFile file)
 {
-    if (!View::open(buff, buffSize))
+    if (!ViewReader::open(buff, buffSize))
         return false;
     this->file = file;
     if (file)
@@ -33,7 +35,7 @@ bool FileView::open(byte *buff, int buffSize, SdFile file)
     return false;
 }
 
-void FileView::close()
+void FileViewReader::close()
 {
     if (file)
     {
@@ -42,22 +44,22 @@ void FileView::close()
     }
 }
 
-int FileView::read()
+int FileViewReader::read()
 {
     return file.read(buff, buffSize);
 }
 
-int FileView::read(int offset)
+int FileViewReader::read(int offset)
 {
     return file.read(buff + offset, buffSize - offset);
 }
 
-long FileView::getViewSize()
+long FileViewReader::getViewSize()
 {
     return file.size();
 }
 
-bool FileView::getLastModifiedTime(String &lastModifiedTimeStr)
+bool FileViewReader::getLastModifiedTime(String &lastModifiedTimeStr)
 {
     tm tr;
     time_t fileTime = file.getLastWrite();
@@ -86,7 +88,7 @@ static FileTypesMap fileTypesMap =
     {"WF2", CONTENT_TYPE::WOFF2}
 };
 
-CONTENT_TYPE FileView::getContentType()
+CONTENT_TYPE FileViewReader::getContentType()
 {
     int dot = viewFilePath.lastIndexOf('.');
 

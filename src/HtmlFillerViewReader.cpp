@@ -1,9 +1,9 @@
-#include <HtmlFillerView.h>
+#include <HtmlFillerViewReader.h>
 #ifdef DEBUG_HTTP_SERVER
 #include <Trace.h>
 #endif
 
-size_t HtmlFillerView::viewHandler(byte *buff, size_t buffSize)
+size_t HtmlFillerViewReader::viewHandler(byte *buff, size_t buffSize)
 {
     for(size_t i = 0; i < buffSize; i++)
     {
@@ -53,7 +53,7 @@ size_t HtmlFillerView::viewHandler(byte *buff, size_t buffSize)
     return buffSize;
 }
 
-bool HtmlFillerView::DoFill(int nFill, String &fill)
+bool HtmlFillerViewReader::DoFill(int nFill, String &fill)
 {
     const ViewFiller *fillers;
     int nFillers = getFillers(fillers);
@@ -63,18 +63,17 @@ bool HtmlFillerView::DoFill(int nFill, String &fill)
     return true;
 }
 
-bool HtmlFillerView::open(byte *buff, int buffSize)
+bool HtmlFillerViewReader::open(byte *buff, int buffSize)
 {
     offset = buffSize;
-    return FileView::open(buff, buffSize);
+    return ViewReader::open(buff, buffSize) && viewReader->open(buff, buffSize);
 }
 
-int HtmlFillerView::read()
+int HtmlFillerViewReader::read()
 {
     memcpy(buff, buff + offset, buffSize - offset);
     offset = buffSize - offset;
-    size_t nBytes = FileView::read(offset) + offset;
+    size_t nBytes = viewReader->read(offset) + offset;
     offset = viewHandler(buff, nBytes);
     return offset;
 }
-
