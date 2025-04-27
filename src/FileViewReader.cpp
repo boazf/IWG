@@ -9,14 +9,14 @@ bool FileViewReader::open(byte *buff, int buffSize)
     String fileName;
     fileName = "/wwwroot" + viewFilePath;
     SdFile file = SD.open(fileName, FILE_READ);
+#ifdef DEBUG_HTTP_SERVER
     if (!file)
     {
-#ifdef DEBUG_HTTP_SERVER
         LOCK_TRACE();
         Trace("Failed to open file ");
         Traceln(fileName.c_str());
-#endif
     }
+#endif
 
     return open(buff, buffSize, file);
 }
