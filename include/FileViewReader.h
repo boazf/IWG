@@ -14,8 +14,7 @@ public:
     
     virtual ~FileViewReader()
     {
-        if (file)
-            file.close();
+        close();
     }
 
 protected:
