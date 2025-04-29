@@ -12,7 +12,7 @@ const String Version::unknownVersion = "Unknown";
 #define API_KEY "d54ef031-6f61-4f00-bcdc-c803c3fa8ce8"
 #endif
 
-#define APP_VERSION "1.0.21"
+#define APP_VERSION "1.0.22"
 
 const char *Version::apiKey = API_KEY;
 
