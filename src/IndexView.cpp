@@ -7,9 +7,17 @@
 #include <TimeUtil.h>
 #include <Config.h>
 #include <HttpHeaders.h>
+#include <HttpHeaders.h>
 
-IndexView::IndexView(const char *_viewFile) : 
-   HtmlFillerView(_viewFile, getFillers)
+extern const uint8_t _binary_sd_wwwroot_index_htm_start[];
+extern const uint8_t _binary_sd_wwwroot_index_htm_end[];
+  
+IndexView::IndexView() : 
+   HtmlFillerView(
+    _binary_sd_wwwroot_index_htm_start, 
+    _binary_sd_wwwroot_index_htm_end - _binary_sd_wwwroot_index_htm_start, 
+    CONTENT_TYPE::HTML, 
+    getFillers)
 {
 }
 

@@ -1,7 +1,7 @@
 #ifndef HtmlFillerViewReader_h
 #define HtmlFillerViewReader_h
 
-#include <FileViewReader.h>
+#include <ViewReader.h>
 
 typedef void (*ViewFiller)(String &fill);
 typedef int (*GetFillers)(const ViewFiller *&fillers);

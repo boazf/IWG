@@ -7,10 +7,10 @@
 class IndexView : public HtmlFillerView
 {
 public:
-    IndexView(const char *_viewFile);     
+    IndexView();     
     bool redirect(EthClient &client, const String &_id);
     bool isSingleton() { return false; }
-    static HttpController *getInstance() { return new IndexView("/INDEX.HTM"); }
+    static HttpController *getInstance() { return new IndexView(); }
 
 protected:
     static int getFillers(const ViewFiller *&fillers);
