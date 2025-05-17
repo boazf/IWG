@@ -175,6 +175,7 @@ CriticalSection HistoryViewReader::cs;
 
 #define TEMP_HISTORY_FILE_DIR "/wwwroot/temp"
 #define TEMP_HISTORY_FILE_PATH TEMP_HISTORY_FILE_DIR "/history.htm"
+#define fillerChar '%'
 
 bool HistoryViewReader::open(byte *buff, int buffSize)
 {
@@ -227,15 +228,15 @@ bool HistoryViewReader::open(byte *buff, int buffSize)
 
     fillFile fillers[] = 
     { 
-        fillAlerts, 
-        fillEnums, 
-        fillJS, 
-        [](SdFile &file)->bool { return fillRecoveryStatusEnum(file, RecoveryStatus::RecoveryFailure); },
-        [](SdFile &file)->bool { return fillRecoveryStatusEnum(file, RecoveryStatus::RecoverySuccess); },
-        [](SdFile &file)->bool { return fillRecoveryStatusEnum(file, RecoveryStatus::OnGoingRecovery); },
-        [](SdFile &file)->bool { return fillRecoverySourceEnum(file, RecoverySource::Auto); },
-        [](SdFile &file)->bool { return fillRecoverySourceEnum(file, RecoverySource::UserInitiated); },
-        [](SdFile &file)->bool { return fillRecoverySourceEnum(file, RecoverySource::Periodic); }
+        /* 1 */ fillAlerts, 
+        /* 2 */ fillEnums, 
+        /* 3 */ fillJS, 
+        /* 4 */ [](SdFile &file)->bool { return fillRecoveryStatusEnum(file, RecoveryStatus::RecoveryFailure); },
+        /* 5 */ [](SdFile &file)->bool { return fillRecoveryStatusEnum(file, RecoveryStatus::RecoverySuccess); },
+        /* 6 */ [](SdFile &file)->bool { return fillRecoveryStatusEnum(file, RecoveryStatus::OnGoingRecovery); },
+        /* 7 */ [](SdFile &file)->bool { return fillRecoverySourceEnum(file, RecoverySource::Auto); },
+        /* 8 */ [](SdFile &file)->bool { return fillRecoverySourceEnum(file, RecoverySource::UserInitiated); },
+        /* 9 */ [](SdFile &file)->bool { return fillRecoverySourceEnum(file, RecoverySource::Periodic); }
     };
 
     for (int nBytes = FileViewReader::read(); nBytes; nBytes = FileViewReader::read())
@@ -243,7 +244,7 @@ bool HistoryViewReader::open(byte *buff, int buffSize)
         int byte0 = 0;
         for (int i = 0; i < nBytes; i++)
         {
-            if (buff[i] == (byte)'%')
+            if (buff[i] == (byte)fillerChar)
             {
                 if (i > 0)
                     historyFile.write(buff + byte0, i - byte0);
@@ -260,7 +261,8 @@ bool HistoryViewReader::open(byte *buff, int buffSize)
                 if (i == fillerIndex)
                 {
                     // Not a filler
-                    --i;
+                    byte0 = i--;
+                    historyFile.write(fillerChar);
                     continue;
                 }
                 if (i == nBytes)
