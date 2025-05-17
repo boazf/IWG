@@ -11,12 +11,17 @@
 
 #define HISTORY_EEPROM_START_ADDRESS 512
 
+#define RecoveryStatuses \
+    X(OnGoingRecovery) \
+    X(RecoverySuccess) \
+    X(RecoveryFailure)
+
+#define X(a) a,
 enum class RecoveryStatus
 {
-    OnGoingRecovery = 0,
-    RecoverySuccess = 1,
-    RecoveryFailure = 2
+    RecoveryStatuses
 };
+#undef X
 
 class HistoryStorage;
 

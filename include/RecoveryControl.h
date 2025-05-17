@@ -71,12 +71,17 @@ enum class RecoveryTypes
 	Periodic
 };
 
+#define RecoverySources \
+	X(UserInitiated) \
+	X(Auto) \
+	X(Periodic)
+
+#define X(a) a,
 enum class RecoverySource : uint8_t
 {
-	UserInitiated,
-	Auto,
-	Periodic
+	RecoverySources
 };
+#undef X
 
 class RecoveryStateChangedParams
 {

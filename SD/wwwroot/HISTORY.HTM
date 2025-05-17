@@ -48,20 +48,10 @@
 
 <script type="text/javascript">
 
-    const recoveryStatus = {
-        Failure: 2,
-        Success: 1,
-        OnGoing: 0
-    };
-
-    const recoverySource = {
-        userInitiated: 0,
-        autoRecovery: 1,
-        Periodic: 2
-    };
+%2
 
     $(document).ready(function () {
-%2
+%3
     });
 
     function checkLoadError() {
@@ -73,15 +63,15 @@
         var historyItem = $("#historyItem" + index);
         var recoveryStatusElem = $("#recoveryStatus" + index)[0];
         switch (status) {
-            case recoveryStatus.Failure:
+            case %4:
                 historyItem.addClass("alert-danger");
                 recoveryStatusElem.innerHTML = "Failure";
                 break;
-            case recoveryStatus.Success:
+            case %5:
                 historyItem.addClass("alert-success");
                 recoveryStatusElem.innerHTML = "Success";
                 break;
-            case recoveryStatus.OnGoing:
+            case %6:
                 historyItem.addClass("alert-warning");
                 recoveryStatusElem.innerHTML = "On going";
                 break;
@@ -91,13 +81,13 @@
     function setRecoverySource(index, source) {
         var recoverySourceElem = $("#recoverySource" + index)[0];
         switch (source) {
-            case recoverySource.autoRecovery:
+            case %7:
                 recoverySourceElem.innerHTML = "Auto-Recovery";
                 break;
-            case recoverySource.userInitiated:
+            case %8:
                 recoverySourceElem.innerHTML = "User Initiated Recovery";
                 break;
-            case recoverySource.Periodic:
+            case %9:
                 recoverySourceElem.innerHTML = "Periodic Restart";
                 break;
         }

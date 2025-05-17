@@ -4,18 +4,37 @@
 #include <Common.h>
 #include <Config.h>
 #include <TimeUtil.h>
+#include <map>
 #ifdef DEBUG_HTTP_SERVER
 #include <Trace.h>
 #endif
 
+typedef std::map<RecoveryStatus, String> RecoveryStatusesMap;
+#define X(a) {RecoveryStatus::a, #a},
+static const RecoveryStatusesMap recoveryStatusesMap = 
+{
+    RecoveryStatuses
+};
+#undef X
+
+typedef std::map<RecoverySource, String> RecoverySourcesMap;
+#define X(a) {RecoverySource::a, #a},
+static const RecoverySourcesMap recoverySourcesMap = 
+{
+    RecoverySources
+};
+#undef X
+
 typedef bool(*fillFile)(SdFile &file);
+
+#define CHECK_PRINT(f, b, l) if ((l) > NELEMS(b) || f.print(b) != (l)) return false
 
 static bool fillAlerts(SdFile &file)
 {
     if (historyControl.Available() == 0)
     {
         char noHistory[] = "<div class=\"alert alert-success\">There is no history yet.</div>\n";
-        file.write((byte *)noHistory, NELEMS(noHistory) - 1);
+        CHECK_PRINT(file, noHistory, NELEMS(noHistory) - 1);
         return true;
     }
 
@@ -24,17 +43,17 @@ static bool fillAlerts(SdFile &file)
         HistoryStorageItem hItem = historyControl.GetHistoryItem(i);
         {
             char str[] = "<div class=\"col-lg-3 col-md-4 col-sm-6 col-xs-12\">\n";
-            file.write((byte *)str, NELEMS(str) - 1);
+            CHECK_PRINT(file, str, NELEMS(str) - 1);
         }
         char buff[128];
-        int len = sprintf(buff, "<div id=\"historyItem%d\" class=\"alert\">\n", i);
-        file.write((byte *)buff, len);
-        len = sprintf(buff, "<h4 id=\"recoverySource%d\" class=\"alert-heading\"></h4>\n<hr />\n<p><span class=\"attribute-name\">\n", i);
-        file.write((byte *)buff, len);
+        int len = snprintf(buff, NELEMS(buff), "<div id=\"historyItem%d\" class=\"alert\">\n", i);
+        CHECK_PRINT(file, buff, len);
+        len = snprintf(buff, NELEMS(buff), "<h4 id=\"recoverySource%d\" class=\"alert-heading\"></h4>\n<hr />\n<p><span class=\"attribute-name\">\n", i);
+        CHECK_PRINT(file, buff, len);
         if (hItem.endTime() != INT32_MAX)
         {
             char str[] = "Start ";
-            file.write((byte *)str, NELEMS(str) - 1);
+            CHECK_PRINT(file, str, NELEMS(str) - 1);
         }
         {
             tm tr;
@@ -42,17 +61,17 @@ static bool fillAlerts(SdFile &file)
             localtime_r(&startTime, &tr);
             char timeBuff[64];
             strftime(timeBuff, sizeof(buff), "%d/%m/%Y %T", &tr);
-            len = sprintf(buff, "Time:</span><br /><span class=\"indented\">%s</span></p>\n<p ", timeBuff);
-            file.write((byte *)buff, len);
+            len = snprintf(buff, NELEMS(buff), "Time:</span><br /><span class=\"indented\">%s</span></p>\n<p ", timeBuff);
+            CHECK_PRINT(file, buff, len);
         }
         if (hItem.endTime() == INT32_MAX)
         {
             char str[] = "style=\"visibility:hidden\"";
-            file.write((byte *)str, NELEMS(str) - 1);
+            CHECK_PRINT(file, str, NELEMS(str) - 1);
         }
         {
             char str[] = "><span class=\"attribute-name\">End Time:</span><br /><span class=\"indented\">";
-            file.write((byte *)str, NELEMS(str) - 1);
+            CHECK_PRINT(file, str, NELEMS(str) - 1);
         }
         {
             tm tr;
@@ -60,33 +79,60 @@ static bool fillAlerts(SdFile &file)
             localtime_r(&startTime, &tr);
             char timeBuff[64];
             len = strftime(timeBuff, sizeof(buff), "%d/%m/%Y %T", &tr);
-            file.write((byte *)timeBuff, len);
+            CHECK_PRINT(file, timeBuff, len);
         }
         {
             char str[] = "</span></p>\n<p ";
-            file.write((byte *)str, NELEMS(str) - 1);
+            CHECK_PRINT(file, str, NELEMS(str) - 1);
         }
         if (hItem.modemRecoveries() == 0 && hItem.routerRecoveries() == 0)
         {
             char str[] = "style=\"visibility:hidden\"";
-            file.write((byte *)str, NELEMS(str) - 1);
+            CHECK_PRINT(file, str, NELEMS(str) - 1);
         }
         {
             char str[] = "><span class=\"attribute-name\">Recoveries:</span><br />";
-            file.write((byte *)str, NELEMS(str) - 1);
+            CHECK_PRINT(file, str, NELEMS(str) - 1);
         }
-        len = sprintf(buff, "<span class=\"indented\">%s: %d</span>", Config::deviceName, hItem.routerRecoveries());
-        file.write((byte *)buff, len);
+        len = snprintf(buff, NELEMS(buff), "<span class=\"indented\">%s: %d</span>", Config::deviceName, hItem.routerRecoveries());
+        CHECK_PRINT(file, buff, len);
         if (!Config::singleDevice)
         {
-            len = sprintf(buff, "<span class=\"indented\">Modem: %d</span>", hItem.modemRecoveries());
-            file.write((byte *)buff, len);
+            len = snprintf(buff, NELEMS(buff), "<span class=\"indented\">Modem: %d</span>", hItem.modemRecoveries());
+            CHECK_PRINT(file, buff, len);
         }
-        len = sprintf(buff, "</p>\n<hr />\n<h4 id=\"recoveryStatus%d\"></h4>\n</div>\n</div>\n", i);
-        file.write((byte *)buff, len);
+        len = snprintf(buff, NELEMS(buff), "</p>\n<hr />\n<h4 id=\"recoveryStatus%d\"></h4>\n</div>\n</div>\n", i);
+        CHECK_PRINT(file, buff, len);
     }
 
     return true;
+}
+
+#define recoveryStatusEnumName "recoveryStatus"
+#define recoverySourceEnumName "recoverySource"
+#define enumClose "\t};\n"
+
+template <typename T>
+static bool fillEnum(SdFile &file, T map, const char *varName)
+{
+    char buff[128];
+
+    size_t len = snprintf(buff, NELEMS(buff), "\tconst %s = {\n", varName);
+    CHECK_PRINT(file, buff, len);
+    for (typename T::const_iterator i = map.begin(); i != map.end(); i++)
+    {
+        len = snprintf(buff, NELEMS(buff), "\t\t%s: %d,\n", i->second.c_str(), static_cast<int>(i->first));
+        CHECK_PRINT(file, buff, len);
+    };
+    CHECK_PRINT(file, enumClose, NELEMS(enumClose) - 1);
+
+    return true;
+}
+
+static bool fillEnums(SdFile &file)
+{
+    return fillEnum<RecoveryStatusesMap>(file, recoveryStatusesMap, recoveryStatusEnumName) && 
+           fillEnum<RecoverySourcesMap>(file, recoverySourcesMap, recoverySourceEnumName);
 }
 
 static bool fillJS(SdFile &file)
@@ -95,11 +141,33 @@ static bool fillJS(SdFile &file)
     for (int i = 0; i < historyControl.Available(); i++)
     {
         HistoryStorageItem hItem = historyControl.GetHistoryItem(i);
-        int len = sprintf(buff, "setRecoverySource(%d, %d);\n", i, static_cast<int>(hItem.recoverySource()));
-        file.write((byte *)buff, len);
-        len = sprintf(buff, "setRecoveryStatus(%d, %d);\n", i, static_cast<int>(hItem.recoveryStatus()));
-        file.write((byte *)buff, len);
+        int len = snprintf(buff, NELEMS(buff), "\t\tsetRecoverySource(%d, %s.%s);\n", i, recoverySourceEnumName, recoverySourcesMap.at(hItem.recoverySource()).c_str());
+        CHECK_PRINT(file, buff, len);
+        len = snprintf(buff, NELEMS(buff), "\t\tsetRecoveryStatus(%d, %s.%s);\n", i, recoveryStatusEnumName, recoveryStatusesMap.at(hItem.recoveryStatus()).c_str());
+        CHECK_PRINT(file, buff, len);
     }
+    return true;
+}
+
+static bool fillRecoverySourceEnum(SdFile file, RecoverySource source)
+{
+    char buff[128];
+
+    size_t len = snprintf(buff, NELEMS(buff), "%s.%s", recoverySourceEnumName, recoverySourcesMap.at(source).c_str());
+
+    CHECK_PRINT(file, buff, len);
+
+    return true;
+}
+
+static bool fillRecoveryStatusEnum(SdFile file, RecoveryStatus status)
+{
+    char buff[128];
+
+    size_t len = snprintf(buff, NELEMS(buff), "%s.%s", recoveryStatusEnumName, recoveryStatusesMap.at(status).c_str());
+
+    CHECK_PRINT(file, buff, len);
+
     return true;
 }
 
@@ -113,7 +181,6 @@ bool HistoryViewReader::open(byte *buff, int buffSize)
     AutoSD autoSD;
     cs.Enter();
 
-    SdFile historyFile;
     if (!SD.exists(TEMP_HISTORY_FILE_DIR))
     {
         if (!SD.mkdir(TEMP_HISTORY_FILE_DIR))
@@ -125,7 +192,8 @@ bool HistoryViewReader::open(byte *buff, int buffSize)
         }
     }
 
-    historyFile = SD.open(TEMP_HISTORY_FILE_PATH, FILE_READ);
+    SdFile historyFile = SD.open(TEMP_HISTORY_FILE_PATH, FILE_READ);
+
     if (!historyFile || 
         historyFile.getLastWrite() > t_now || // Handle case where current time wasn't set well
         historyFile.getLastWrite() < historyControl.getLastUpdate())
@@ -157,7 +225,19 @@ bool HistoryViewReader::open(byte *buff, int buffSize)
         return FileViewReader::open(buff, buffSize, historyFile);
     }
 
-    fillFile fillers[] = { fillAlerts, fillJS };
+    fillFile fillers[] = 
+    { 
+        fillAlerts, 
+        fillEnums, 
+        fillJS, 
+        [](SdFile &file)->bool { return fillRecoveryStatusEnum(file, RecoveryStatus::RecoveryFailure); },
+        [](SdFile &file)->bool { return fillRecoveryStatusEnum(file, RecoveryStatus::RecoverySuccess); },
+        [](SdFile &file)->bool { return fillRecoveryStatusEnum(file, RecoveryStatus::OnGoingRecovery); },
+        [](SdFile &file)->bool { return fillRecoverySourceEnum(file, RecoverySource::Auto); },
+        [](SdFile &file)->bool { return fillRecoverySourceEnum(file, RecoverySource::UserInitiated); },
+        [](SdFile &file)->bool { return fillRecoverySourceEnum(file, RecoverySource::Periodic); }
+    };
+
     for (int nBytes = FileViewReader::read(); nBytes; nBytes = FileViewReader::read())
     {
         int byte0 = 0;
@@ -166,7 +246,7 @@ bool HistoryViewReader::open(byte *buff, int buffSize)
             if (buff[i] == (byte)'%')
             {
                 if (i > 0)
-                    historyFile.write(buff + byte0, i - byte0 - 1);
+                    historyFile.write(buff + byte0, i - byte0);
                 if (i == nBytes - 1)
                 {
 #ifdef DEBUG_HTTP_SERVER
@@ -175,8 +255,14 @@ bool HistoryViewReader::open(byte *buff, int buffSize)
                     byte0 = nBytes;
                     continue;
                 }
-                int fillerIndex = i + 1;
-                for(; buff[i] != (byte)'\n' && i < nBytes; i++);
+                int fillerIndex = ++i;
+                for(; isdigit(buff[i]) && i < nBytes; i++);
+                if (i == fillerIndex)
+                {
+                    // Not a filler
+                    --i;
+                    continue;
+                }
                 if (i == nBytes)
                 {
 #ifdef DEBUG_HTTP_SERVER
@@ -185,17 +271,20 @@ bool HistoryViewReader::open(byte *buff, int buffSize)
                     byte0 = nBytes;
                     continue;
                 }
-                byte0 = i + 1;
-                int n;
-                sscanf((char *)(buff + fillerIndex), "%d", &n);
-                fillers[n - 1](historyFile);
+                byte0 = i;
+                int n = atoi(reinterpret_cast<char*>(buff + fillerIndex));
+                if (!fillers[n - 1](historyFile))
+                {
+                    historyFile.close();
+                    return false;
+                }
             }
         }
         historyFile.write(buff + byte0, nBytes - byte0);
     }
 
-    FileViewReader::close();
     historyFile.close();
+    FileViewReader::close();
 
     return FileViewReader::open(buff, buffSize, SD.open(TEMP_HISTORY_FILE_PATH, FILE_READ));
 }
