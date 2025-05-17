@@ -159,8 +159,6 @@ void Config::Init()
   #endif
   };
 
-  SdFile config;
-
   String configFilePath = String("/") + configFileName;
 #ifdef DEBUG_CONFIG
   {
@@ -169,7 +167,8 @@ void Config::Init()
     Traceln(configFilePath);
   }
 #endif
-  config = SD.open(configFilePath);
+
+  SdFile config = SD.open(configFilePath);
 
   if (!config)
   {

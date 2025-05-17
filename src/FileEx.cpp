@@ -1,46 +1,52 @@
 #include <Common.h>
 #include <FileEx.h>
 
+FileEx &FileEx::operator=(const File& file) 
+{
+    *((File*)(this)) = file;
+    return *this;
+}
+
 size_t FileEx::write(uint8_t byte)
 {
     Lock lock(csSpi);
-    return file.write(byte);
+    return File::write(byte);
 }
 
 size_t FileEx::write(const uint8_t *buf, size_t size)
 {
     Lock lock(csSpi);
-    return file.write(buf, size);
+    return File::write(buf, size);
 }
 
 int FileEx::available()
 {
     Lock lock(csSpi);
-    return file.available();
+    return File::available();
 }
 
 int FileEx::read()
 {
     Lock lock(csSpi);
-    return file.read();
+    return File::read();
 }
 
 int FileEx::peek()
 {
     Lock lock(csSpi);
-    return file.peek();
+    return File::peek();
 }
 
 void FileEx::flush()
 {
     Lock lock(csSpi);
-    file.flush();
+    File::flush();
 }
 
 size_t FileEx::read(uint8_t* buf, size_t size)
 {
     Lock lock(csSpi);
-    return file.read(buf, size);
+    return File::read(buf, size);
 }
 
 size_t FileEx::readBytes(char *buffer, size_t length)
@@ -51,7 +57,7 @@ size_t FileEx::readBytes(char *buffer, size_t length)
 bool FileEx::seek(uint32_t pos, SeekMode mode)
 {
     Lock lock(csSpi);
-    return file.seek(pos, mode);
+    return File::seek(pos, mode);
 }
 
 bool FileEx::seek(uint32_t pos)
@@ -62,59 +68,59 @@ bool FileEx::seek(uint32_t pos)
 size_t FileEx::position() const
 {
     Lock lock(csSpi);
-    return file.position();
+    return File::position();
 }
 
 size_t FileEx::size() const
 {
     Lock lock(csSpi);
-    return file.size();
+    return File::size();
 }
 
 void FileEx::close()
 {
     Lock lock(csSpi);
-    file.close();
+    File::close();
 }
 
 FileEx::operator bool() const
 {
     Lock lock(csSpi);
-    return !!file;
+    return !!File::operator bool();
 }
 
 time_t FileEx::getLastWrite()
 {
     Lock lock(csSpi);
-    return file.getLastWrite();
+    return File::getLastWrite();
 }
 
 const char* FileEx::path() const
 {
     Lock lock(csSpi);
-    return file.path();
+    return File::path();
 }
 
 const char* FileEx::name() const
 {
     Lock lock(csSpi);
-    return file.name();
+    return File::name();
 }
 
 boolean FileEx::isDirectory(void)
 {
     Lock lock(csSpi);
-    return file.isDirectory();
+    return File::isDirectory();
 }
 
 FileEx FileEx::openNextFile(const char* mode)
 {
     Lock lock(csSpi);
-    return file.openNextFile(mode);
+    return File::openNextFile(mode);
 }
 
 void FileEx::rewindDirectory(void)
 {
     Lock lock(csSpi);
-    file.rewindDirectory();
+    File::rewindDirectory();
 }
