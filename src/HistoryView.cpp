@@ -243,6 +243,7 @@ bool HistoryViewReader::open(byte *buff, int buffSize)
     int offset = 0;
     for (int nBytes = read(offset) + offset; nBytes; nBytes = read(offset) + offset)
     {
+        bool eof = nBytes == offset;
         const char *pBuff = reinterpret_cast<const char *>(buff);
         offset = 0;
         for (const char *delim = STRNCHR(pBuff, fillerChar, nBytes); 
@@ -254,7 +255,7 @@ bool HistoryViewReader::open(byte *buff, int buffSize)
             size_t fillerIndex = delimIndex + 1;
             for(; isdigit(pBuff[fillerIndex]) && fillerIndex < nBytes; fillerIndex++);
 
-            if (delimIndex != 0 && nBytes == fillerIndex)
+            if (!eof && nBytes == fillerIndex)
             {
                 offset = fillerIndex - delimIndex;
                 memcpy(buff, delim, offset);
