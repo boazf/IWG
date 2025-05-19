@@ -12,6 +12,7 @@ public:
     FileEx& operator=(const File& file);
     size_t write(uint8_t) override;
     size_t write(const uint8_t *buf, size_t size) override;
+    size_t write(const char *buf, size_t size) { return write(reinterpret_cast<const byte *>(buf), size); }
     int available() override;
     int read() override;
     int peek() override;

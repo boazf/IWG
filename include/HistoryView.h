@@ -12,7 +12,6 @@ public:
     {}
     
     virtual bool open(byte *buff, int buffSize);
-    virtual void close();
 
 private:
     static CriticalSection cs;

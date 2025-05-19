@@ -176,11 +176,12 @@ CriticalSection HistoryViewReader::cs;
 #define TEMP_HISTORY_FILE_DIR "/wwwroot/temp"
 #define TEMP_HISTORY_FILE_PATH TEMP_HISTORY_FILE_DIR "/history.htm"
 #define fillerChar '%'
+#define STRNCHR(b, c, n) reinterpret_cast<char *>(memchr(b, c, n))
 
 bool HistoryViewReader::open(byte *buff, int buffSize)
 {
     AutoSD autoSD;
-    cs.Enter();
+    Lock lock(cs);
 
     if (!SD.exists(TEMP_HISTORY_FILE_DIR))
     {
@@ -239,60 +240,47 @@ bool HistoryViewReader::open(byte *buff, int buffSize)
         /* 9 */ [](SdFile &file)->bool { return fillRecoverySourceEnum(file, RecoverySource::Periodic); }
     };
 
-    for (int nBytes = FileViewReader::read(); nBytes; nBytes = FileViewReader::read())
+    for (int nBytes = read(); nBytes; nBytes = read())
     {
-        int byte0 = 0;
-        for (int i = 0; i < nBytes; i++)
+        const char *pBuff = reinterpret_cast<const char *>(buff);
+        for (const char *delim = STRNCHR(pBuff, fillerChar, nBytes); 
+             delim != NULL; 
+             delim = STRNCHR(pBuff, fillerChar, nBytes))
         {
-            if (buff[i] == (byte)fillerChar)
+            size_t delimIndex = delim - pBuff;
+            historyFile.write(pBuff, delimIndex);
+            size_t fillerIndex = delimIndex + 1;
+            for(; isdigit(pBuff[fillerIndex]) && fillerIndex < nBytes; fillerIndex++);
+
+            if (nBytes == fillerIndex)
             {
-                if (i > 0)
-                    historyFile.write(buff + byte0, i - byte0);
-                if (i == nBytes - 1)
-                {
 #ifdef DEBUG_HTTP_SERVER
-                    Traceln("Filler resides at end of buffer, cannot process filler!");
+                Traceln("Filler resides at end of buffer, cannot process filler!");
 #endif
-                    byte0 = nBytes;
-                    continue;
-                }
-                int fillerIndex = ++i;
-                for(; isdigit(buff[i]) && i < nBytes; i++);
-                if (i == fillerIndex)
-                {
-                    // Not a filler
-                    byte0 = i--;
-                    historyFile.write(fillerChar);
-                    continue;
-                }
-                if (i == nBytes)
-                {
-#ifdef DEBUG_HTTP_SERVER
-                    Traceln("Filler resides at end of buffer, cannot process filler!");
-#endif
-                    byte0 = nBytes;
-                    continue;
-                }
-                byte0 = i;
-                int n = atoi(reinterpret_cast<char*>(buff + fillerIndex));
-                if (!fillers[n - 1](historyFile))
-                {
-                    historyFile.close();
-                    return false;
-                }
+                pBuff += fillerIndex;
+                continue;
+            }
+            nBytes -= fillerIndex;
+            pBuff += fillerIndex;
+            if (fillerIndex == delimIndex + 1)
+            {
+                // Not a filler
+                historyFile.write(fillerChar);
+                continue;
+            }
+            int n = atoi(delim + 1);
+            if (!fillers[n - 1](historyFile))
+            {
+                historyFile.close();
+                SD.remove(TEMP_HISTORY_FILE_PATH);
+                return false;
             }
         }
-        historyFile.write(buff + byte0, nBytes - byte0);
+        historyFile.write(pBuff, nBytes);
     }
 
     historyFile.close();
-    FileViewReader::close();
+    close();
 
     return FileViewReader::open(buff, buffSize, SD.open(TEMP_HISTORY_FILE_PATH, FILE_READ));
-}
-
-void HistoryViewReader::close()
-{
-    FileViewReader::close();
-    cs.Leave();
 }
