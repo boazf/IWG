@@ -237,12 +237,14 @@ bool HistoryViewReader::open(byte *buff, int buffSize)
         /* 6 */ [](SdFile &file)->bool { return fillRecoveryStatusEnum(file, RecoveryStatus::OnGoingRecovery); },
         /* 7 */ [](SdFile &file)->bool { return fillRecoverySourceEnum(file, RecoverySource::Auto); },
         /* 8 */ [](SdFile &file)->bool { return fillRecoverySourceEnum(file, RecoverySource::UserInitiated); },
-        /* 9 */ [](SdFile &file)->bool { return fillRecoverySourceEnum(file, RecoverySource::Periodic); }
+        /* 9 */ [](SdFile &file)->bool { return fillRecoverySourceEnum(file, RecoverySource::Periodic); },
     };
 
-    for (int nBytes = read(); nBytes; nBytes = read())
+    int offset = 0;
+    for (int nBytes = read(offset) + offset; nBytes; nBytes = read(offset) + offset)
     {
         const char *pBuff = reinterpret_cast<const char *>(buff);
+        offset = 0;
         for (const char *delim = STRNCHR(pBuff, fillerChar, nBytes); 
              delim != NULL; 
              delim = STRNCHR(pBuff, fillerChar, nBytes))
@@ -252,13 +254,12 @@ bool HistoryViewReader::open(byte *buff, int buffSize)
             size_t fillerIndex = delimIndex + 1;
             for(; isdigit(pBuff[fillerIndex]) && fillerIndex < nBytes; fillerIndex++);
 
-            if (nBytes == fillerIndex)
+            if (delimIndex != 0 && nBytes == fillerIndex)
             {
-#ifdef DEBUG_HTTP_SERVER
-                Traceln("Filler resides at end of buffer, cannot process filler!");
-#endif
-                pBuff += fillerIndex;
-                continue;
+                offset = fillerIndex - delimIndex;
+                memcpy(buff, delim, offset);
+                nBytes = 0;
+                break;
             }
             nBytes -= fillerIndex;
             pBuff += fillerIndex;
