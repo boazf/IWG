@@ -14,6 +14,7 @@
 #include <Indicators.h>
 #include <GWConnTest.h>
 #include <PwrCntl.h>
+#include <Buttons.h>
 
 void initProgress(bool last = false)
 {
@@ -49,12 +50,12 @@ void setup() {
   WaitForDNS();
   initProgress();
   InitTime();
-  initProgress();
+  initProgress(true);
   InitFileTrace();
   InitControllers();
   InitHttpControllers();
   InitHTTPServer();
-  initProgress(true);
+  initButtons();
 }
 
 void loop() 
