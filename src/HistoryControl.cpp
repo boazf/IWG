@@ -1,410 +1,270 @@
 #include <HistoryControl.h>
 #include <AppConfig.h>
-#include <Common.h>
 #include <TimeUtil.h>
-#ifdef DEBUG_STATE_MACHINE
-#include <StringableEnum.h>
-#include <Trace.h>
-#endif
 
-HistoryControl::HistoryControl() :
-    currStorageItem(NULL),
-    m_pSM(NULL)
+namespace historycontrol
 {
-}
+    int HistoryControl::maxHistory;
+    RecoveryTypes HistoryControl::recoveryType;
+    RecoverySource HistoryControl::recoverySource;
+    HistoryStorage HistoryControl::storage;
+    HistoryStorageItem *HistoryControl::currStorageItem = NULL;
+    time_t HistoryControl::lastUpdate;
 
-void HistoryControl::Init()
-{
-    recoveryControl.GetRecoveryStateChanged().addObserver(RecoveryStateChanged, this);
-    maxHistory = AppConfig::getMaxHistory();
-    recoveryControl.GetMaxHistoryRecordsChanged().addObserver(MaxHistoryChanged, this);
-
-    typedef Transition<H_Message, H_State> HistoryTransition;
-
-    HistoryTransition initTrans[] =
+    void HistoryControl::init()
     {
-        { H_Message::RecoverySuccess, H_State::Connected }
-    };
-
-    HistoryTransition connectedTrans[] =
-    {
-        { H_Message::RecoverySuccess, H_State::Connected },
-        { H_Message::CheckConnectivity, H_State::CheckingConnectivity },
-        { H_Message::ModemRecovery, H_State::RecoveringModem },
-        { H_Message::RouterRecovery, H_State::RecoveringRouter },
-        { H_Message::PeriodicRestart, H_State::PeriodicRestart },
-        { H_Message::HWFailure, H_State::HWFailure }
-    };
-
-    HistoryTransition checkingConnectivityTrans[] =
-    {
-        { H_Message::RecoverySuccess, H_State::Connected },
-        { H_Message::ModemRecovery, H_State::RecoveringModem },
-        { H_Message::RouterRecovery, H_State::RecoveringRouter}
-    };
-
-    HistoryTransition recoveringModemTrans[] =
-    {
-        { H_Message::RouterRecovery, H_State::RecoveringRouter },
-        { H_Message::RecoveryFailure, H_State::RecoveryFailed },
-        { H_Message::RecoverySuccess, H_State::Connected },
-        { H_Message::HWFailure, H_State::HWFailure},
-    };
-
-    HistoryTransition recoveringRouterTrans[] =
-    { 
-        { H_Message::ModemRecovery, H_State::RecoveringModem },
-        { H_Message::RouterRecovery, H_State::RecoveringRouter },
-        { H_Message::RecoveryFailure, H_State::RecoveryFailed },
-        { H_Message::RecoverySuccess, H_State::Connected },
-        { H_Message::HWFailure, H_State::HWFailure}
-    };
-
-    HistoryTransition periodicRestartTrans[] =
-    { 
-        { H_Message::ModemRecovery, H_State::RecoveringModem },
-        { H_Message::RouterRecovery, H_State::RecoveringRouter },
-        { H_Message::RecoveryFailure, H_State::RecoveryFailed },
-        { H_Message::RecoverySuccess, H_State::Connected },
-        { H_Message::HWFailure, H_State::HWFailure}
-    };
-
-    HistoryTransition recoveryFailedTrans[] =
-    {
-        { H_Message::ModemRecovery, H_State::RecoveringModem },
-        { H_Message::RouterRecovery, H_State::RecoveringRouter },
-        { H_Message::RecoverySuccess, H_State::Connected },
-        { H_Message::CheckConnectivity, H_State::CheckingConnectivityWhileInFailure}
-    };
-
-    HistoryTransition checkingConnectivityWhileInFailureTrans[] =
-    {
-        { H_Message::ModemRecovery, H_State::RecoveringModem },
-        { H_Message::RouterRecovery, H_State::RecoveringRouter },
-        { H_Message::RecoverySuccess, H_State::Connected}
-    };
-
-    HistoryTransition HWFailureTrans[] =
-    { 
-        { H_Message::CheckConnectivity, H_State::CheckingConnectivity }
-    };
-
-    typedef SMState<H_Message, H_State, HistoryControl> HistoryState;
-
-    HistoryState states[] =
-    {
-        HistoryState(
-            H_State::Init, 
-            HistoryState::OnEnterDoNothing, 
-            OnInit,
-   			HistoryState::OnExitDoNothing,
-            TRANSITIONS(initTrans)),
-        HistoryState(
-            H_State::Connected, 
-            OnConnected, 
-            OnStateDoNothing,
-   			HistoryState::OnExitDoNothing,
-            TRANSITIONS(connectedTrans)),
-        HistoryState(
-            H_State::CheckingConnectivity, 
-            OnCheckingConnectivity,
-            OnStateDoNothing,
-   			HistoryState::OnExitDoNothing,
-            TRANSITIONS(checkingConnectivityTrans)),
-        HistoryState(
-            H_State::RecoveringModem, 
-            OnRecoveringModem,
-            OnStateDoNothing,
-   			HistoryState::OnExitDoNothing,
-            TRANSITIONS(recoveringModemTrans)),
-        HistoryState(
-            H_State::RecoveringRouter, 
-            OnRecoveringRouter,
-            OnStateDoNothing,
-   			HistoryState::OnExitDoNothing,
-            TRANSITIONS(recoveringRouterTrans)),
-        HistoryState(
-            H_State::RecoveryFailed, 
-            OnRecoveryFailed,
-            OnStateDoNothing,
-            AddToHistory,
-            TRANSITIONS(recoveryFailedTrans)),
-        HistoryState(
-            H_State::CheckingConnectivityWhileInFailure, 
-            OnCheckingConnectivity, 
-            OnStateDoNothing,
-            AddToHistory,
-            TRANSITIONS(checkingConnectivityWhileInFailureTrans)),
-        HistoryState(
-            H_State::PeriodicRestart, 
-            OnPeriodicRestart, 
-            OnStateDoNothing,
-   			HistoryState::OnExitDoNothing,
-            TRANSITIONS(periodicRestartTrans)),
-        HistoryState(
-            H_State::HWFailure, 
-            OnHWFailure,
-            OnStateDoNothing,
-   			HistoryState::OnExitDoNothing,
-            TRANSITIONS(HWFailureTrans)),
-    };
-  	m_pSM = new StateMachine<H_Message, H_State, HistoryControl>(states, NELEMS(states), this
-#ifdef DEBUG_STATE_MACHINE
-			, "History"
-#endif
-      );
-    storage.init(maxHistory);
-    lastUpdate = t_now;
-}
-
-HistoryControl::~HistoryControl()
-{
-    delete m_pSM;
-}
-
-time_t HistoryControl::getLastRecovery()
-{ 
-    return storage.getLastRecovery(); 
-}
-
-time_t HistoryControl::getLastUpdate()
-{
-    return lastUpdate;
-}
-
-void HistoryControl::PerformCycle()
-{
-    m_pSM->HandleState();
-}
-
-void HistoryControl::RecoveryStateChanged(const RecoveryStateChangedParams &params, const void* context)
-{
-    HistoryControl *historyControl = (HistoryControl *)context;
-
-    if (historyControl->m_pSM->current()->getState() == H_State::Init)
-        return;
-
-    historyControl->recoverySource = params.m_source;
-
-    switch(params.m_recoveryType)
-    {
-    case RecoveryTypes::ConnectivityCheck:
-        historyControl->m_pSM->ApplyVerb(H_Message::CheckConnectivity);
-        break;
-    case RecoveryTypes::Failed:
-        historyControl->m_pSM->ApplyVerb(H_Message::RecoveryFailure);
-        break;
-    case RecoveryTypes::Modem:
-        historyControl->m_pSM->ApplyVerb(H_Message::ModemRecovery);
-        break;
-    case RecoveryTypes::Router:
-    case RecoveryTypes::RouterSingleDevice:
-        historyControl->m_pSM->ApplyVerb(H_Message::RouterRecovery);
-        break;
-    case RecoveryTypes::HWFailure:
-        historyControl->m_pSM->ApplyVerb(H_Message::HWFailure);
-        break;
-    case RecoveryTypes::NoRecovery:
-        historyControl->m_pSM->ApplyVerb(H_Message::RecoverySuccess);
-        break;
-    case RecoveryTypes::Disconnected:
-        break;
-    case RecoveryTypes::Periodic:
-        historyControl->m_pSM->ApplyVerb(H_Message::PeriodicRestart);
-        break;
+        recoveryControl.GetRecoveryStateChanged().addObserver(onRecoveryStateChanged, this);
+        maxHistory = AppConfig::getMaxHistory();
+        recoveryControl.GetMaxHistoryRecordsChanged().addObserver(onMaxHistoryChanged, this);
+        storage.init(maxHistory);
+        lastUpdate = t_now;
+        tinyfsm::FsmList<HistoryControl>::start();
     }
-}
 
-H_Message HistoryControl::OnInit(HistoryControl *control)
-{
-    if (recoveryControl.GetRecoveryState() == RecoveryTypes::NoRecovery)
-        return H_Message::RecoverySuccess;
-    
-    return H_Message::None;
-}
+    time_t HistoryControl::getLastRecovery()
+    { 
+        return storage.getLastRecovery(); 
+    }
 
-void HistoryControl::MaxHistoryChanged(const MaxHistoryRecordChangedParams &params, const void* context)
-{
-    HistoryControl *historyControl = (HistoryControl *)context;
-    historyControl->maxHistory = params.m_maxRecords;
-    historyControl->storage.resize(historyControl->maxHistory);
-    historyControl->lastUpdate = t_now;
-}
-
-H_Message HistoryControl::OnStateDoNothing(HistoryControl *control)
-{
-    return H_Message::None;
-}
-
-void HistoryControl::OnConnected(HistoryControl *control)
-{
-#ifdef DEBUG_HISTORY
-    Traceln(__func__);
-#endif
-    HistoryStorageItem *currStorageItem = control->currStorageItem;
-    if (currStorageItem != NULL)
+    time_t HistoryControl::getLastUpdate()
     {
-        if (currStorageItem->routerRecoveries() > 0 || currStorageItem->modemRecoveries() > 0)
+        return lastUpdate;
+    }
+
+    class ConnectivityCheck; 
+    class RecoveryFailure;
+    class HWFailure;
+    class ModemRecovery;
+    class Connected;
+    class RouterRecovery;
+    class PeriodicRestart;
+
+    class CommonHistoryControlState : public HistoryControl
+    {
+    public:
+        void react(RecoveryStateChanged const &event) override
         {
-            control->AddToHistoryStorage(RecoveryStatus::RecoverySuccess);
+            recoveryType = event.m_recoveryType;
+            recoverySource = event.m_source;
+
+            switch(event.m_recoveryType)
+            {
+            case RecoveryTypes::ConnectivityCheck:
+                transit<ConnectivityCheck>();
+
+            case RecoveryTypes::Disconnected:
+                break;
+
+            case RecoveryTypes::Failed:
+                transit<RecoveryFailure>();
+                break;
+
+            case RecoveryTypes::HWFailure:
+                transit<HWFailure>();
+                break;
+
+            case RecoveryTypes::Modem:
+                transit<ModemRecovery>();
+                break;
+
+            case RecoveryTypes::NoRecovery:
+                transit<Connected>();
+                break;
+
+            case RecoveryTypes::Router:
+            case RecoveryTypes::RouterSingleDevice:
+                transit<RouterRecovery>();
+                break;
+
+            case RecoveryTypes::Periodic:
+                transit<PeriodicRestart>();
+                break;
+            }
         }
-        else
+    };
+
+    void HistoryControl::onRecoveryStateChanged(const RecoveryStateChangedParams &params, const void* context)
+    {
+        HistoryControl *control = const_cast<HistoryControl *>(reinterpret_cast<const HistoryControl *>(context));
+        control->send_event(RecoveryStateChanged(params.m_recoveryType, params.m_source));
+    }
+
+    void HistoryControl::onMaxHistoryChanged(const MaxHistoryRecordChangedParams &params, const void* context)
+    {
+        HistoryControl *control = const_cast<HistoryControl *>(reinterpret_cast<const HistoryControl *>(context));
+        control->maxHistory = params.m_maxRecords;
+        control->storage.resize(control->maxHistory);
+        control->lastUpdate = t_now;
+    }
+
+    class Init : public CommonHistoryControlState
+    {
+        void entry() override
+        {
+        }
+    };
+
+    class ConnectivityCheck : public CommonHistoryControlState
+    {
+        void entry() override
+        {
+            CreateHistoryItem(recoverySource);
+        }
+    };
+
+    class ConnectivityCheckWhileInFailure : public ConnectivityCheck
+    {
+        void exit() override
+        {
+            AddToHistory();
+        }
+    };
+
+    class RecoveryFailure : public CommonHistoryControlState
+    {
+        void entry() override
+        {
+            AddToHistoryStorage(RecoveryStatus::RecoveryFailure);
+        }
+
+        void react(RecoveryStateChanged const &event) override
+        {
+            recoveryType = event.m_recoveryType;
+            recoverySource = event.m_source;
+
+            if (recoveryType == RecoveryTypes::ConnectivityCheck)
+                transit<ConnectivityCheckWhileInFailure>();
+            else
+                CommonHistoryControlState::react(event);
+        }
+
+        void exit() override
+        {
+            AddToHistory();
+        }
+    };
+
+    class HWFailure : public CommonHistoryControlState
+    {
+        void entry() override
         {
             delete currStorageItem;
-            control->currStorageItem = NULL;
+            currStorageItem = NULL;
+            lastUpdate = t_now;
+        }
+    };
+
+    class ModemRecovery : public CommonHistoryControlState
+    {
+        void entry() override
+        {
+            AddHistoryItem(recoverySource);
+            currStorageItem->modemRecoveries()++;
+            lastUpdate = t_now;
+        }
+    };
+
+    class Connected : public CommonHistoryControlState
+    {
+        void entry() override
+        {
+            if (currStorageItem != NULL)
+            {
+                if (currStorageItem->routerRecoveries() > 0 || currStorageItem->modemRecoveries() > 0)
+                {
+                    AddToHistoryStorage(RecoveryStatus::RecoverySuccess);
+                }
+                else
+                {
+                    delete currStorageItem;
+                    currStorageItem = NULL;
+                }
+            }
+        }
+    };
+
+    class RouterRecovery : public CommonHistoryControlState
+    {
+        void entry() override
+        {
+            AddHistoryItem(recoverySource);
+            currStorageItem->routerRecoveries()++;
+            lastUpdate = t_now;
+        }
+    };
+
+    class PeriodicRestart : public CommonHistoryControlState
+    {
+        void entry() override
+        {
+            AddHistoryItem(recoverySource);
+            if (AppConfig::getPeriodicallyRestartRouter())
+                currStorageItem->routerRecoveries()++;
+            if (AppConfig::getPeriodicallyRestartModem())
+                currStorageItem->modemRecoveries()++;
+            lastUpdate = t_now;
+        }
+    };
+
+    void HistoryControl::AddToHistory()
+    {
+        if (recoveryType == RecoveryTypes::NoRecovery)
+        {
+            AddHistoryItem(recoverySource);
+            AddToHistoryStorage(RecoveryStatus::RecoverySuccess, false);
         }
     }
-}
 
-void HistoryControl::OnCheckingConnectivity(HistoryControl *control)
-{
-#ifdef DEBUG_HISTORY
-    Traceln(__func__);
-#endif
-    control->CreateHistoryItem(control->recoverySource);
-}
-
-void HistoryControl::OnRecoveringModem(HistoryControl *control)
-{
-#ifdef DEBUG_HISTORY
-    Traceln(__func__);
-#endif
-    control->AddHistoryItem(control->recoverySource);
-    control->currStorageItem->modemRecoveries()++;
-    control->lastUpdate = t_now;
-}
-
-void HistoryControl::OnRecoveringRouter(HistoryControl *control)
-{
-#ifdef DEBUG_HISTORY
-    Traceln(__func__);
-#endif
-
-    control->AddHistoryItem(control->recoverySource);
-    control->currStorageItem->routerRecoveries()++;
-    control->lastUpdate = t_now;
-}
-
-void HistoryControl::OnPeriodicRestart(HistoryControl *control)
-{
-#ifdef DEBUG_HISTORY
-    Traceln(__func__);
-#endif
-
-    control->AddHistoryItem(control->recoverySource);
-    if (AppConfig::getPeriodicallyRestartRouter())
-        control->currStorageItem->routerRecoveries()++;
-    if (AppConfig::getPeriodicallyRestartModem())
-        control->currStorageItem->modemRecoveries()++;
-    control->lastUpdate = t_now;
-}
-
-void HistoryControl::OnRecoveryFailed(HistoryControl *control)
-{
-#ifdef DEBUG_HISTORY
-    Traceln(__func__);
-#endif
-    control->AddToHistoryStorage(RecoveryStatus::RecoveryFailure);
-}
-
-void HistoryControl::OnHWFailure(HistoryControl *control)
-{
-#ifdef DEBUG_HISTORY
-    Traceln(__func__);
-#endif
-    delete control->currStorageItem;
-    control->currStorageItem = NULL;
-    control->lastUpdate = t_now;
-}
-
-H_Message HistoryControl::AddToHistory(H_Message message, HistoryControl *control)
-{
-#ifdef DEBUG_HISTORY
-    Traceln(__func__);
-#endif
-    if (message == H_Message::RecoverySuccess)
+    void HistoryControl::AddHistoryItem(RecoverySource recoverySource)
     {
-        control->AddHistoryItem(control->recoverySource);
-        control->AddToHistoryStorage(RecoveryStatus::RecoverySuccess, false);
+        CreateHistoryItem(recoverySource);
     }
 
-    return message;
-}
-
-void HistoryControl::AddHistoryItem(RecoverySource recoverySource)
-{
-#ifdef DEBUG_HISTORY
-    Traceln(__func__);
-#endif
-    CreateHistoryItem(recoverySource);
-}
-
-bool HistoryControl::CreateHistoryItem(RecoverySource recoverySource)
-{
-#ifdef DEBUG_HISTORY
-    Traceln(__func__);
-#endif
-    if (currStorageItem != NULL)
-        return false;
-
-    currStorageItem = new HistoryStorageItem(recoverySource, t_now, INT32_MAX, 0, 0, RecoveryStatus::OnGoingRecovery);
-    lastUpdate = t_now;
-    return true;
-}
-
-void HistoryControl::AddToHistoryStorage(RecoveryStatus status, bool withEndTime)
-{
-#ifdef DEBUG_HISTORY
-    Traceln(__func__);
-#endif
-    currStorageItem->recoveryStatus() = status;
-    if (withEndTime)
+    bool HistoryControl::CreateHistoryItem(RecoverySource recoverySource)
     {
-        currStorageItem->endTime() = t_now;
-    }
-    storage.addHistory(*currStorageItem);
-    delete currStorageItem;
-    currStorageItem = NULL;
-    lastUpdate = t_now;
-}
+        if (currStorageItem != NULL)
+            return false;
 
-int HistoryControl::Available()
-{
-    if (storage.available() < maxHistory)
-    {
-        return storage.available() + (currStorageItem == NULL ? 0 : 1);
+        currStorageItem = new HistoryStorageItem(recoverySource, t_now, INT32_MAX, 0, 0, RecoveryStatus::OnGoingRecovery);
+        lastUpdate = t_now;
+        return true;
     }
 
-    return storage.available();
+    void HistoryControl::AddToHistoryStorage(RecoveryStatus status, bool withEndTime)
+    {
+        currStorageItem->recoveryStatus() = status;
+        if (withEndTime)
+        {
+            currStorageItem->endTime() = t_now;
+        }
+        storage.addHistory(*currStorageItem);
+        delete currStorageItem;
+        currStorageItem = NULL;
+        lastUpdate = t_now;
+    }
+
+    int HistoryControl::Available()
+    {
+        if (storage.available() < maxHistory)
+        {
+            return storage.available() + (currStorageItem == NULL ? 0 : 1);
+        }
+
+        return storage.available();
+    }
+
+    const HistoryStorageItem HistoryControl::GetHistoryItem(int index)
+    {
+        if (currStorageItem == NULL)
+            return storage.getItem(index);
+
+        if (index == Available() - 1)
+            return *currStorageItem;
+
+        return storage.getItem(index + 1 - (storage.available() < maxHistory));
+    }
 }
 
-const HistoryStorageItem HistoryControl::GetHistoryItem(int index)
-{
-    if (currStorageItem == NULL)
-        return storage.getItem(index);
+historycontrol::HistoryControl historyControl;
 
-    if (index == Available() - 1)
-        return *currStorageItem;
-
-    return storage.getItem(index + 1 - (storage.available() < maxHistory));
-}
-
-#ifdef DEBUG_STATE_MACHINE
-#define X(a) {H_State::a, #a},
-template<>
-const std::map<H_State, std::string> StringableEnum<H_State>::strMap = 
-{
-    H_States
-};
-#undef X
-
-#define X(a) {H_Message::a, #a},
-template<>
-const std::map<H_Message, std::string> StringableEnum<H_Message>::strMap = 
-{
-    H_Messages
-};
-#undef X
-#endif
-
-HistoryControl historyControl;
+FSM_INITIAL_STATE(historycontrol::HistoryControl, historycontrol::Init)

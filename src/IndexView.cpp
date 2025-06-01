@@ -9,6 +9,8 @@
 #include <HttpHeaders.h>
 #include <HttpHeaders.h>
 
+using namespace historycontrol;
+
 extern const uint8_t _binary_sd_wwwroot_index_htm_start[];
 extern const uint8_t _binary_sd_wwwroot_index_htm_end[];
   

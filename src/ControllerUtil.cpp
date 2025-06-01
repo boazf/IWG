@@ -8,13 +8,12 @@
 
 void InitControllers()
 {
-    tinyfsm::Fsm<ManualControl>::current_state_ptr->init();
-    historyControl.Init();
+    manualControl.init();
+    historyControl.init();
     recoveryControl.Init();
     sseController.Init();
 }
 
 void PerformControllersCycles()
 {
-    historyControl.PerformCycle();
 }

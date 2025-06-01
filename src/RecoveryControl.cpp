@@ -17,6 +17,8 @@
 #endif
 #include <GWConnTest.h>
 
+using namespace historycontrol;
+
 RecoveryControl::RecoveryControl() :
 	m_currentRecoveryState(RecoveryTypes::ConnectivityCheck),
 		lanConnected(false),

@@ -9,6 +9,8 @@
 #include <Trace.h>
 #endif
 
+using namespace historycontrol;
+
 typedef std::map<RecoveryStatus, String> RecoveryStatusesMap;
 #define X(a) {RecoveryStatus::a, #a},
 static const RecoveryStatusesMap recoveryStatusesMap = 
