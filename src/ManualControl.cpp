@@ -13,6 +13,7 @@ namespace manualcontrol
     class Connected;
     class RouterRecovery;
     class PeriodicRestart;
+    class Unlock;
 
     class CommonManualControlState : public ManualControl
     {
@@ -75,11 +76,27 @@ namespace manualcontrol
             }
         }
 
+        void doButtons(bool isConnected)
+        {
+            CommonManualControlState::isConnected = isConnected;
+            
+            if (ul.state() == ButtonState::PRESSED && rr.state() == ButtonState::UNPRESSED && mr.state() == ButtonState::UNPRESSED && cc.state() == ButtonState::UNPRESSED)
+            {
+                transit<Unlock>();
+            }
+
+            if (cc.state() == ButtonState::PRESSED)
+            {
+                recoveryControl.StartRecoveryCycles(RecoveryTypes::ConnectivityCheck);
+            }
+        }
+
     protected:
         bool isRecovery;
+        static bool isConnected;
     };
 
-    class Unlock;
+    bool CommonManualControlState::isConnected;
 
     class Connected : public CommonManualControlState
     {
@@ -92,15 +109,7 @@ namespace manualcontrol
 
         void react(ButtonsStateChanged const &event) override
         {
-            if (ul.state() == ButtonState::PRESSED && rr.state() == ButtonState::UNPRESSED && mr.state() == ButtonState::UNPRESSED && cc.state() == ButtonState::UNPRESSED)
-            {
-                transit<Unlock>();
-            }
-
-            if (cc.state() == ButtonState::PRESSED)
-            {
-                recoveryControl.StartRecoveryCycles(RecoveryTypes::ConnectivityCheck);
-            }
+            doButtons(true);
         }
     };
 
@@ -176,7 +185,12 @@ namespace manualcontrol
             CommonManualControlState::entry();
             opi.set(ledState::LED_OFF);
         }
-    };
+    
+        void react(ButtonsStateChanged const &event) override
+        {
+            doButtons(false);
+        }
+};
 
     class ConnectivityCheck : public CommonManualControlState
     {
@@ -218,7 +232,10 @@ namespace manualcontrol
             }
             else
             {
-                transit<Connected>();
+                if (isConnected)
+                    transit<Connected>();
+                else
+                    transit<Disconnected>();
             }
         }
 
