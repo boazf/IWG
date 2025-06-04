@@ -99,9 +99,6 @@ namespace historycontrol
 
     class Init : public CommonHistoryControlState
     {
-        void entry() override
-        {
-        }
     };
 
     class ConnectivityCheck : public CommonHistoryControlState
