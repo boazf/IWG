@@ -7,7 +7,8 @@ class GWConnTest
 {
 public:
     GWConnTest() :
-        hGWConnTestTask(NULL)
+        hGWConnTestTask(NULL),
+        isConnected(true)
     {
     }
 
