@@ -8,6 +8,7 @@
 #include <StringableEnum.h>
 #include <Trace.h>
 #endif
+#include <map>
 
 #define TRANSITIONS(a) a, NELEMS(a)
 
@@ -55,16 +56,8 @@ public:
 		m_state(static_cast<State>(0)),
 		m_onEntry(0),
 		m_onState(0),
-		m_onExit(0),
-		m_transitions(NULL),
-		m_nTransitions(0)
+		m_onExit(0)
 	{
-	}
-
-	~SMState()
-	{
-		delete[] m_transitions;
-		m_transitions = NULL;
 	}
 
 	SMState(
@@ -77,9 +70,7 @@ public:
 		m_state(state),
 		m_onEntry(onEntry),
 		m_onState(onState),
-		m_onExit(onExit),
-		m_transitions(NULL),
-		m_nTransitions(nTransitions)
+		m_onExit(onExit)
 	{
 		CopyTransitions(transitions, nTransitions);
 	}
@@ -95,18 +86,19 @@ public:
 		m_onEntry = other.m_onEntry;
 		m_onState = other.m_onState;
 		m_onExit = other.m_onExit;
-		CopyTransitions(other.m_transitions, other.m_nTransitions);
+		m_transitions = other.m_transitions;
 
 		return *this;
 	}
 
-	State PerformTransition(Verb verb)
+	using TransitionsMap = std::map<Verb, State>;
+
+	State PerformTransition(Verb verb) const
 	{
-		for (int i = 0; i < m_nTransitions; i++)
-		{
-			if (m_transitions[i].m_verb == verb)
-				return m_transitions[i].m_state;
-		}
+		typename TransitionsMap::const_iterator state = m_transitions.find(verb);
+		if (state != m_transitions.end())
+			return state->second;
+
 #ifdef DEBUG_STATE_MACHINE
 		Tracef("Error: Transition not found, state=%s, verb=%s\n", 
 			StringableEnum<State>(m_state).ToString().c_str(), 
@@ -116,22 +108,22 @@ public:
 		return (State)0;
 	}
 
-	void doEnter(Param *param)
+	void doEnter(Param *param) const
 	{
 		m_onEntry(param);
 	}
 
-	Verb doState(Param *param)
+	Verb doState(Param *param) const
 	{
 		return m_onState(param);
 	}
 
-	Verb doExit(Verb verb, Param *param)
+	Verb doExit(Verb verb, Param *param) const
 	{
 		return m_onExit(verb, param);
 	}
 
-	State getState()
+	State getState() const 
 	{
 		return m_state;
 	}
@@ -149,11 +141,9 @@ public:
 private:
 	void CopyTransitions(const Transition<Verb, State> *transitions, int nTransitions)
 	{
-		delete m_transitions;
-		m_transitions = new Transition <Verb, State>[nTransitions];
-		m_nTransitions = nTransitions;
+		assert(nTransitions > 0);
 		for (int i = 0; i < nTransitions; i++)
-			m_transitions[i] = transitions[i];
+			m_transitions[transitions[i].m_verb] = transitions[i].m_state;
 	}
 
 private:
@@ -161,36 +151,29 @@ private:
 	OnEntry m_onEntry;
 	OnState m_onState;
 	OnExit m_onExit;
-	Transition<Verb, State> *m_transitions;
-	int m_nTransitions;
+	TransitionsMap m_transitions;
 };
 
 template<typename Verb, typename State, typename Param>
 struct StateMachine
 {
+	using StatesMap=std::map<State, SMState<Verb, State, Param>>;
 public:
 	StateMachine(SMState<Verb, State, Param> states[], int nStates, Param *param
 #ifdef DEBUG_STATE_MACHINE
 		, const char *name
 #endif
 		) :
-		m_nStates(nStates),
 		m_first(true),
 		m_param(param)
 #ifdef DEBUG_STATE_MACHINE
 		, m_name(name)
 #endif
 	{
-		m_states = new SMState<Verb, State, Param>[m_nStates];
-		for (int i = 0; i < m_nStates; i++)
-			m_states[i] = states[i];
-		m_current = m_states;
-	}
-
-	~StateMachine()
-	{
-		delete[] m_states;
-		m_states = NULL;
+		assert(nStates > 0);
+		for (int i = 0; i < nStates; i++)
+			m_states[states[i].getState()] = states[i];
+		m_current = &m_states[states[0].getState()];
 	}
 
 	void ApplyVerb(Verb verb)
@@ -222,21 +205,16 @@ public:
 					m_name, 
 					StringableEnum<State>(state).ToString().c_str());
 #endif
-				int i = 0;
-				for (; i < m_nStates; i++)
-				{
-					if (m_states[i].getState() == state)
-						break;
-				}
+				typename StatesMap::const_iterator newState = m_states.find(state);
 #ifdef DEBUG_STATE_MACHINE
-				if (i >= m_nStates)
+				if (newState == m_states.end())
 					Tracef("Error: State machine: %s, unknown new state: %n (%s)\n", 
 						m_name, 
 						static_cast<int>(state), 
 						StringableEnum<State>(state).ToString().c_str());
 #endif
-				assert(i < m_nStates);
-				m_current = m_states + i;
+				assert(newState != m_states.end());
+				m_current = &(newState->second);
 #ifdef DEBUG_STATE_MACHINE
 				Tracef("State machine: %s, entering  state: %s\n", 
 					m_name, 
@@ -265,10 +243,9 @@ public:
 	}
 
 private:
-	SMState<Verb, State, Param> *m_current;
+	const SMState<Verb, State, Param> *m_current;
 	Verb m_nextVerb;
-	SMState<Verb, State, Param> *m_states;
-	int m_nStates;
+	StatesMap m_states;
 	bool m_first;
 	Param *m_param;
 	const char *m_name;
