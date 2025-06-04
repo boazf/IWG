@@ -198,13 +198,15 @@ private:
 	static RecoveryMessages OnStartCheckConnectivity(RecoveryControl *control);
 	static void OnEnterDisconnectRouter(RecoveryControl *control);
 	static void OnEnterDisconnectRouter(RecoveryControl *control, bool signalStateChanged);
-	static RecoveryMessages OnDisconnectRouter(RecoveryControl *control);
+	static RecoveryMessages OnDisconnectRouter(RecoveryControl *control, bool shouldDelay);
+	static RecoveryMessages OnDisconnectRouter(RecoveryControl *control) { return OnDisconnectRouter(control, true); };
 	static RecoveryMessages OnWaitWhileRecovering(RecoveryControl *control);
 	static RecoveryMessages OnCheckRouterRecoveryTimeout(RecoveryControl *control);
 	static RecoveryMessages OnExitCheckRouterRecoveryTimeout(RecoveryMessages message, RecoveryControl *control);
 	static void OnEnterDisconnectModem(RecoveryControl *control);
 	static void OnEnterDisconnectModem(RecoveryControl *control, bool signalStateChanged);
-	static RecoveryMessages OnDisconnectModem(RecoveryControl *control);
+	static RecoveryMessages OnDisconnectModem(RecoveryControl *control, bool shouldDelay);
+	static RecoveryMessages OnDisconnectModem(RecoveryControl *control) { return OnDisconnectModem(control, true); }
 	static RecoveryMessages OnCheckModemRecoveryTimeout(RecoveryControl *control);
 	static RecoveryMessages OnCheckMaxCyclesExceeded(RecoveryControl *control);
 	static void OnEnterHWError(RecoveryControl *control);

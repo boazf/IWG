@@ -560,7 +560,10 @@ RecoveryMessages RecoveryControl::OnCheckConnectivity(RecoveryControl *control)
 	{
 #ifndef USE_WIFI
 		if (!stateParam->ping.asyncComplete(stateParam->pingResult))
+		{
+			delay(100);
 		 	return RecoveryMessages::None;
+		}
 
 		//status = RecoveryMessages::Connected;
 		status = stateParam->pingResult.status == SUCCESS ? RecoveryMessages::Connected : RecoveryMessages::Disconnected;
@@ -575,6 +578,7 @@ RecoveryMessages RecoveryControl::OnCheckConnectivity(RecoveryControl *control)
 #ifdef DEBUG_RECOVERY_CONTROL
 				Tracef("Ping attempt no. %d failed, address %s\n", stateParam->attempts, stateParam->address.toString().c_str());
 #endif
+				delay(100);
 				return RecoveryMessages::None;
 			}
 		}
@@ -633,7 +637,7 @@ RecoveryMessages RecoveryControl::OnCheckConnectivity(RecoveryControl *control)
 		control->stateParam = NULL;
 	}
 
-    return  status; 
+    return status; 
 }
 
 RecoveryMessages RecoveryControl::UpdateRecoveryState(RecoveryMessages message, RecoveryControl *control)
@@ -793,12 +797,15 @@ void RecoveryControl::OnEnterDisconnectRouter(RecoveryControl *control, bool sig
 	gwConnTest.Start(AppConfig::getRDisconnect() * 1000);
 }
 
-RecoveryMessages RecoveryControl::OnDisconnectRouter(RecoveryControl *control)
+RecoveryMessages RecoveryControl::OnDisconnectRouter(RecoveryControl *control, bool shouldDelay)
 {
 	if (GetRouterPowerState() == PowerState::POWER_OFF)
 	{
 		if (t_now - control->recoveryStart < static_cast<time_t>(AppConfig::getRDisconnect()))
+		{
+			if (shouldDelay) delay(1000);
 			return RecoveryMessages::None;
+		}
 
 #ifdef DEBUG_RECOVERY_CONTROL
 		Traceln("Reconnecting Router");
@@ -850,10 +857,13 @@ void RecoveryControl::OnEnterDisconnectModem(RecoveryControl *control, bool sign
 	control->m_modemPowerStateChanged.callObservers(PowerStateChangedParams(PowerState::POWER_OFF));
 }
 
-RecoveryMessages RecoveryControl::OnDisconnectModem(RecoveryControl *control)
+RecoveryMessages RecoveryControl::OnDisconnectModem(RecoveryControl *control, bool shouldDelay)
 {
 	if (t_now - control->recoveryStart < static_cast<time_t>(AppConfig::getMDisconnect()))
+	{
+		if (shouldDelay) delay(1000);
 		return RecoveryMessages::None;
+	}
 
 	SetModemPowerState(PowerState::POWER_ON);
 	control->m_modemPowerStateChanged.callObservers(PowerStateChangedParams(PowerState::POWER_ON));
@@ -894,18 +904,19 @@ RecoveryMessages RecoveryControl::OnPeriodicRestart(RecoveryControl *control)
 {
 	if (GetRouterPowerState() == PowerState::POWER_OFF)
 	{
-		OnDisconnectRouter(control);
+		OnDisconnectRouter(control, false);
 	}
 	
 	if (GetModemPowerState() == PowerState::POWER_OFF)
 	{
-		OnDisconnectModem(control);
+		OnDisconnectModem(control, false);
 	}
 
 	if (GetRouterPowerState() == PowerState::POWER_ON &&
 		GetModemPowerState() == PowerState::POWER_ON)
 		return RecoveryMessages::Done;
 
+	delay(1000);
 	return RecoveryMessages::None;
 }
 
