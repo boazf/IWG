@@ -16,6 +16,7 @@ public:
     static bool ping(int attempts, int tInterval);
 
 private:
+    bool isConnected;
     TaskHandle_t hGWConnTestTask;
     time_t tDelay;
 

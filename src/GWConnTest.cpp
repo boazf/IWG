@@ -13,7 +13,7 @@ void GWConnTest::Start(time_t delay)
         return ;
 
     tDelay = delay;
-    xTaskCreate(gwConnTestTask, "GWConnTest", 8 * 1024, this, tskIDLE_PRIORITY, &hGWConnTestTask);
+    xTaskCreate(gwConnTestTask, "GWConnTest", 2 * 1024, this, tskIDLE_PRIORITY, &hGWConnTestTask);
 }
 
 void GWConnTest::gwConnTestTask(void *param)
@@ -51,17 +51,19 @@ void GWConnTest::gwConnTestTask()
 #ifdef DEBUG_ETHERNET
     Tracef("GWConnTest: Starting pinging %s\n", Eth.gatewayIP().toString().c_str());
 #endif
-    while (!ping(5, 500));
+    while (!ping(5, 500))
+        isConnected = false;
 #ifdef DEBUG_ETHERNET
     Traceln("GW Connection retrieved!");
 #endif
     hGWConnTestTask = NULL;
+    isConnected = true;
     vTaskDelete(NULL);
 }
 
 bool GWConnTest::IsConnected()
 {
-    return hGWConnTestTask == NULL;
+    return isConnected;
 }
 
 GWConnTest gwConnTest;
