@@ -79,13 +79,14 @@ namespace manualcontrol
         void doButtons(bool isConnected)
         {
             CommonManualControlState::isConnected = isConnected;
-            
+
             if (ul.state() == ButtonState::PRESSED && rr.state() == ButtonState::UNPRESSED && mr.state() == ButtonState::UNPRESSED && cc.state() == ButtonState::UNPRESSED)
             {
                 transit<Unlock>();
+                return;
             }
 
-            if (cc.state() == ButtonState::PRESSED)
+            if (cc.state() == ButtonState::PRESSED && ul.state() == ButtonState::UNPRESSED && rr.state() == ButtonState::UNPRESSED && mr.state() == ButtonState::UNPRESSED)
             {
                 recoveryControl.StartRecoveryCycles(RecoveryTypes::ConnectivityCheck);
             }
@@ -231,32 +232,27 @@ namespace manualcontrol
                 esp_timer_start_once(hTimer, 3000000);
             }
             else
-            {
-                if (isConnected)
-                    transit<Connected>();
-                else
-                    transit<Disconnected>();
-            }
+                returnToPrevState();
         }
 
         void react(ButtonsStateChanged const &event) override
         {
             if (!unlocked)
             {
-                if (ul.state() == ButtonState::UNPRESSED || mr.state() == ButtonState::PRESSED || rr.state() == ButtonState::PRESSED)
-                    transit<Connected>();
+                if (ul.state() == ButtonState::UNPRESSED || mr.state() == ButtonState::PRESSED || rr.state() == ButtonState::PRESSED || cc.state() == ButtonState::PRESSED)
+                    returnToPrevState();
             }
             else
             {
-                if (ul.state() == ButtonState::UNPRESSED && mr.state() == ButtonState::UNPRESSED && rr.state() == ButtonState::PRESSED)
+                if (ul.state() == ButtonState::UNPRESSED && mr.state() == ButtonState::UNPRESSED && rr.state() == ButtonState::PRESSED && cc.state() == ButtonState::UNPRESSED)
                 {
                     recoveryControl.StartRecoveryCycles(RecoveryTypes::Router);
                 }
-                else if (ul.state() == ButtonState::UNPRESSED && mr.state() == ButtonState::PRESSED && rr.state() == ButtonState::UNPRESSED)
+                else if (ul.state() == ButtonState::UNPRESSED && mr.state() == ButtonState::PRESSED && rr.state() == ButtonState::UNPRESSED && cc.state() == ButtonState::UNPRESSED)
                 {
                     recoveryControl.StartRecoveryCycles(RecoveryTypes::Modem);        
                 }
-                else if (cc.state() == ButtonState::PRESSED)
+                else if (cc.state() == ButtonState::PRESSED && ul.state() == ButtonState::UNPRESSED && mr.state() == ButtonState::UNPRESSED && rr.state() == ButtonState::UNPRESSED)
                 {
                     esp_timer_stop(hTimer);
                     opi.set(ledState::LED_BLINK);
@@ -282,6 +278,14 @@ namespace manualcontrol
         static void onTimer(void *arg)
         {
             reinterpret_cast<Unlock *>(arg)->react(UnlockDelay());
+        }
+
+        void returnToPrevState()
+        {
+            if (isConnected)
+                transit<Connected>();
+            else
+                transit<Disconnected>();
         }
     };
 
