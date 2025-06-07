@@ -143,7 +143,7 @@ private:
 	{
 		assert(nTransitions > 0);
 		for (int i = 0; i < nTransitions; i++)
-			m_transitions[transitions[i].m_verb] = transitions[i].m_state;
+			m_transitions.emplace(transitions[i].m_verb, transitions[i].m_state);
 	}
 
 private:
@@ -172,7 +172,7 @@ public:
 	{
 		assert(nStates > 0);
 		for (int i = 0; i < nStates; i++)
-			m_states[states[i].getState()] = states[i];
+			m_states.emplace(states[i].getState(), states[i]);
 		m_current = &m_states[states[0].getState()];
 	}
 
