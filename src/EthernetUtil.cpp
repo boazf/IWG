@@ -150,156 +150,211 @@ EthernetClassEx EthernetEx(Ethernet);
 size_t EthernetClientEx::write(uint8_t byte)
 {
   Lock lock(csSpi);
-  return client.write(byte);
+  return EthernetClient::write(byte);
 }
 
 size_t EthernetClientEx::write(const uint8_t *buf, size_t size)
 {
   Lock lock(csSpi);
-  return client.write(buf, size);
-}
-
-EthernetClientEx::operator bool()
-{
-  Lock lock(csSpi);
-  return !!client;
+  return EthernetClient::write(buf, size);
 }
 
 void EthernetClientEx::stop()
 {
   Lock lock(csSpi);
-  client.stop();
+  EthernetClient::stop();
 }
 
 uint8_t EthernetClientEx::connected()
 {
   Lock lock(csSpi);
-  return client.connected();
+  return EthernetClient::connected();
 }
 IPAddress EthernetClientEx::remoteIP()
 {
   Lock lock(csSpi);
-  return client.remoteIP();
+  return EthernetClient::remoteIP();
 }
 
 int EthernetClientEx::available()
 {
   Lock lock(csSpi);
-  return client.available();
+  return EthernetClient::available();
 }
 
 int EthernetClientEx::read()
 {
   Lock lock(csSpi);
-  return client.read();
+  return EthernetClient::read();
 }
 
 int EthernetClientEx::read(uint8_t *buf, size_t size)
 {
   Lock lock(csSpi);
-  return client.read(buf, size);
+  return EthernetClient::read(buf, size);
 }
 
 void EthernetClientEx::flush()
 {
   Lock lock(csSpi);
-  client.flush();
+  EthernetClient::flush();
 }
 
 uint16_t EthernetClientEx::remotePort()
 {
   Lock lock(csSpi);
-  return client.remotePort();
+  return EthernetClient::remotePort();
 }
 
 int EthernetClientEx::connect(IPAddress ip, uint16_t port)
 {
   Lock lock(csSpi);
-  return client.connect(ip, port);
+  return EthernetClient::connect(ip, port);
 }
 
 int EthernetClientEx::connect(const char *host, uint16_t port)
 {
   Lock lock(csSpi);
-  return client.connect(host, port);
+  return EthernetClient::connect(host, port);
 }
 
 int EthernetClientEx::peek()
 {
   Lock lock(csSpi);
-  return client.peek();
+  return EthernetClient::peek();
+}
+
+int EthernetClientEx::availableForWrite(void)
+{
+  Lock lock(csSpi);
+  return EthernetClient::availableForWrite();
+}
+
+uint16_t EthernetClientEx::localPort()
+{
+  Lock lock(csSpi);
+  return EthernetClient::localPort();
 }
 
 EthernetClientEx EthernetServerEx::available()
 {
   Lock lock(csSpi);
-  return server->available();
+  return EthernetServer::available();
 }
 
 EthernetClientEx EthernetServerEx::accept()
 {
   Lock lock(csSpi);
-  return server->accept();
+  return EthernetServer::accept();
 }
 
-void EthernetServerEx:: begin()
+void EthernetServerEx::begin()
 {
   Lock lock(csSpi);
-  server->begin();
+  EthernetServer::begin();
+}
+
+size_t EthernetServerEx::write(uint8_t byte)
+{
+  Lock lock(csSpi);
+  return EthernetServer::write(byte);
+}
+
+size_t EthernetServerEx::write(const uint8_t *buf, size_t size)
+{
+  Lock lock(csSpi);
+  return EthernetServer::write(buf, size);
+}
+
+EthernetServerEx::operator bool()
+{
+  Lock lock(csSpi);
+  return EthernetServer::operator bool();
 }
 
 uint8_t EthernetUDPEx::begin(uint16_t port)
 {
   Lock lock(csSpi);
-  return udp.begin(port);
+  return EthernetUDP::begin(port);
 }
 
 void EthernetUDPEx::stop()
 {
   Lock lock(csSpi);
-  udp.stop();
+  EthernetUDP::stop();
 }
 
 int EthernetUDPEx::beginPacket(IPAddress ip, uint16_t port)
 {
   Lock lock(csSpi);
-  return udp.beginPacket(ip, port);
+  return EthernetUDP::beginPacket(ip, port);
 }
 
 int EthernetUDPEx::beginPacket(const char *host, uint16_t port)
 {
   Lock lock(csSpi);
-  return udp.beginPacket(host, port);
+  return EthernetUDP::beginPacket(host, port);
 }
 
 int EthernetUDPEx::endPacket()
 {
   Lock lock(csSpi);
-  return udp.endPacket();
+  return EthernetUDP::endPacket();
 }
 
 size_t EthernetUDPEx::write(const uint8_t *buffer, size_t size)
 {
   Lock lock(csSpi);
-  return udp.write(buffer, size);
+  return EthernetUDP::write(buffer, size);
 }
 
 int EthernetUDPEx::available()
 {
   Lock lock(csSpi);
-  return udp.available();
+  return EthernetUDP::available();
 }
 
 int EthernetUDPEx::read(unsigned char* buffer, size_t len)
 {
   Lock lock(csSpi);
-  return udp.read(buffer, len);
+  return EthernetUDP::read(buffer, len);
 }
 
 int EthernetUDPEx::parsePacket()
 {
   Lock lock(csSpi);
-  return udp.parsePacket();
+  return EthernetUDP::parsePacket();
+}
+size_t EthernetUDPEx::write(uint8_t byte)
+{
+  Lock lock(csSpi);
+  return EthernetUDP::write(byte);
+}
+
+void EthernetUDPEx::flush()
+{
+  Lock lock(csSpi);
+  EthernetUDP::flush();
+}
+
+
+int EthernetUDPEx::read()
+{
+  Lock lock(csSpi);
+  return EthernetUDP::read();
+}
+
+
+int EthernetUDPEx::peek()
+{
+  Lock lock(csSpi);
+  return EthernetUDP::peek();
+}
+
+uint8_t EthernetUDPEx::beginMulticast(IPAddress addr, uint16_t word)
+{
+  Lock lock(csSpi);
+  return EthernetUDP::beginMulticast(addr, word);
 }
 
 #define RESET_P	17				// Tie the W5500 reset pin to ESP32 GPIO17 pin.
