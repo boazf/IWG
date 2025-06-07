@@ -46,9 +46,6 @@ namespace manualcontrol
                 transit<ConnectivityCheck>();
 
             case RecoveryTypes::Disconnected:
-                transit<Disconnected>();
-                break;
-
             case RecoveryTypes::Failed:
                 transit<RecoveryFailure>();
                 break;
@@ -168,19 +165,6 @@ namespace manualcontrol
 
     class RecoveryFailure : public CommonManualControlState
     {
-    public:
-        RecoveryFailure() : CommonManualControlState(true) {}
-
-        void entry() override
-        {
-            CommonManualControlState::entry();
-            opi.set(ledState::LED_OFF);
-        }
-    };
-
-    class Disconnected : public CommonManualControlState
-    {
-    public:
         void entry() override
         {
             CommonManualControlState::entry();
@@ -191,7 +175,7 @@ namespace manualcontrol
         {
             doButtons(false);
         }
-};
+    };
 
     class ConnectivityCheck : public CommonManualControlState
     {
@@ -285,7 +269,7 @@ namespace manualcontrol
             if (isConnected)
                 transit<Connected>();
             else
-                transit<Disconnected>();
+                transit<RecoveryFailure>();
         }
     };
 
