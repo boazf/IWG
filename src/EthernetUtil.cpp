@@ -170,6 +170,7 @@ uint8_t EthernetClientEx::connected()
   Lock lock(csSpi);
   return EthernetClient::connected();
 }
+
 IPAddress EthernetClientEx::remoteIP()
 {
   Lock lock(csSpi);

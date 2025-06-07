@@ -55,7 +55,7 @@ public:
 	EthernetClientEx() : EthernetClient() {}
 	EthernetClientEx(const EthernetClient &client) : EthernetClient(client) {}
     uint16_t remotePort() override;
-	size_t write(uint8_t);
+	size_t write(uint8_t) override;
 	size_t write(const uint8_t *buf, size_t size) override;
 	size_t write(const char *buf, size_t size) { return write(reinterpret_cast<const uint8_t *>(buf), size); }
 	int available() override;
