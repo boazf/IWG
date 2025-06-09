@@ -6,6 +6,7 @@
 #include <AppConfig.h>
 #ifdef USE_WIFI
 #include <GWConnTest.h>
+#include <ESPmDNS.h>
 #ifdef DEBUG_ETHERNET
 #include <map>
 #endif
@@ -410,6 +411,7 @@ bool InitEthernet()
 #else // USE_WIFI
   WiFi.setAutoReconnect(true);
   uint8_t *mac = IsZeroIPAddress(Config::mac) ? NULL : Config::mac;
+  WiFi.setHostname(Config::hostName);
   WiFi.begin(Config::ssid, Config::password, 0, mac);
   unsigned long t0 = millis();
   while(true)
@@ -455,6 +457,18 @@ bool InitEthernet()
   }
 #endif
 
+#ifdef USE_WIFI
+#ifdef DEBUG_ETHERNET
+  bool mdnsSuccess = 
+#endif
+  MDNS.begin(Config::hostName);
+#ifdef DEBUG_ETHERNET
+  if (mdnsSuccess)
+    Traceln("mDNS started");
+  else
+    Traceln("mDNS failed to start");
+#endif
+#endif // USE_WIFI
   return true;
 }
 

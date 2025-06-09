@@ -30,6 +30,7 @@ public:
 #ifdef USE_WIFI
     static const char *ssid;
     static const char *password;
+    static const char *hostName;
 #endif
 
 

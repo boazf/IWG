@@ -35,6 +35,7 @@ const char *Config::otaServer = "otadrive.com";
 #ifdef USE_WIFI
 const char *Config::ssid /* = "Your SSID" */;
 const char *Config::password /* = "Your password" */;
+const char *Config::hostName = "InternetRecoveryBox";
 #endif
 
 bool Config::ParseString(const String &configValue, void *str)
@@ -155,7 +156,8 @@ void Config::Init()
     { String("OTAServer"), ParseString, &otaServer },
   #ifdef USE_WIFI
     { String("SSID"), ParseString, &ssid },
-    { String("Password"), ParseString, &password }
+    { String("Password"), ParseString, &password },
+    { String("HostName"), ParseString, &hostName },
   #endif
   };
 
