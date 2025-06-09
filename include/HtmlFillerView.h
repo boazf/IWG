@@ -22,8 +22,7 @@ public:
 
     static const String appBase()
     {
-        IPAddress myIP = Eth.localIP(); 
-        return String("'http://") + myIP[0] + "." + myIP[1]+ "." + myIP[2] + "." + myIP[3] + "/'";
+        return "'/'";
     }
 };
 
