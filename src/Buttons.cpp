@@ -91,7 +91,7 @@ bool Buttons::init(Button buttons[], size_t nButtons)
   if (xTaskCreate(
         [](void *param)
         {
-          Buttons *buttons = reinterpret_cast<Buttons *>(param);
+          Buttons *buttons = static_cast<Buttons *>(param);
           do
           {
             xSemaphoreTake(buttons->semButtonStateChanged, portMAX_DELAY);

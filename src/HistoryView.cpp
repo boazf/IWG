@@ -178,7 +178,7 @@ CriticalSection HistoryViewReader::cs;
 #define TEMP_HISTORY_FILE_DIR "/wwwroot/temp"
 #define TEMP_HISTORY_FILE_PATH TEMP_HISTORY_FILE_DIR "/history.htm"
 #define fillerChar '%'
-#define STRNCHR(b, c, n) reinterpret_cast<char *>(memchr(b, c, n))
+#define STRNCHR(b, c, n) static_cast<char *>(memchr(b, c, n))
 
 bool HistoryViewReader::open(byte *buff, int buffSize)
 {

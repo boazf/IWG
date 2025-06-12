@@ -322,7 +322,7 @@ void RecoveryControl::Start()
 
 void RecoveryControl::RecoveryControlTask(void *param)
 {
-	RecoveryControl *recoveryControl = reinterpret_cast<RecoveryControl *>(param);
+	RecoveryControl *recoveryControl = static_cast<RecoveryControl *>(param);
 
 	recoveryControl->Start();
 	while(true)

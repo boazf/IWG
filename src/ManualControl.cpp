@@ -261,7 +261,7 @@ namespace manualcontrol
     private:
         static void onTimer(void *arg)
         {
-            reinterpret_cast<Unlock *>(arg)->react(UnlockDelay());
+            static_cast<Unlock *>(arg)->react(UnlockDelay());
         }
 
         void returnToPrevState()

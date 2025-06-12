@@ -85,13 +85,13 @@ namespace historycontrol
 
     void HistoryControl::onRecoveryStateChanged(const RecoveryStateChangedParams &params, const void* context)
     {
-        HistoryControl *control = const_cast<HistoryControl *>(reinterpret_cast<const HistoryControl *>(context));
+        HistoryControl *control = const_cast<HistoryControl *>(static_cast<const HistoryControl *>(context));
         control->send_event(RecoveryStateChanged(params.m_recoveryType, params.m_source));
     }
 
     void HistoryControl::onMaxHistoryChanged(const MaxHistoryRecordChangedParams &params, const void* context)
     {
-        HistoryControl *control = const_cast<HistoryControl *>(reinterpret_cast<const HistoryControl *>(context));
+        HistoryControl *control = const_cast<HistoryControl *>(static_cast<const HistoryControl *>(context));
         control->maxHistory = params.m_maxRecords;
         control->storage.resize(control->maxHistory);
         control->lastUpdate = t_now;

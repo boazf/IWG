@@ -39,12 +39,12 @@ namespace manualcontrol
     private:
         static void onRecoveryStateChanged(const RecoveryStateChangedParams &state, const void *context)
         {
-            const_cast<ManualControl *>(reinterpret_cast<const ManualControl *>(context))->send_event(RecoveryStateChanged(state.m_recoveryType, state.m_source));
+            const_cast<ManualControl *>(static_cast<const ManualControl *>(context))->send_event(RecoveryStateChanged(state.m_recoveryType, state.m_source));
         }
 
         static void onButtonsStateChanged(const ButtonStateChangedParam &param, const void *context)
         {
-            const_cast<ManualControl *>(reinterpret_cast<const ManualControl *>(context))->send_event(ButtonsStateChanged());
+            const_cast<ManualControl *>(static_cast<const ManualControl *>(context))->send_event(ButtonsStateChanged());
         }
     };
 }
