@@ -315,11 +315,19 @@ void RecoveryControl::Init()
 	AppConfig::getAppConfigChanged().addObserver(AppConfigChanged, this);
 }
 
+void RecoveryControl::Start()
+{
+	m_pSM->Start();
+}
+
 void RecoveryControl::RecoveryControlTask(void *param)
 {
+	RecoveryControl *recoveryControl = reinterpret_cast<RecoveryControl *>(param);
+
+	recoveryControl->Start();
 	while(true)
 	{
-		((RecoveryControl *)param)->PerformCycle();
+		recoveryControl->PerformCycle();
 		delay(1);
 	}
 }

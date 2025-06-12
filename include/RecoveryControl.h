@@ -135,6 +135,7 @@ public:
 	RecoveryControl();
 	~RecoveryControl();
 	void Init();
+	void Start();
 	void PerformCycle();
 
 public:
