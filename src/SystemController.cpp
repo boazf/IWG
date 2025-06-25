@@ -34,7 +34,7 @@ bool SystemController::updateVersion(HttpClientContext &context)
             [](void *param)
             {
                 static EthClient notificationClient;
-                notificationClient = *(EthClient *)param;
+                notificationClient = *static_cast<EthClient *>(param);
                 Version::onStart([]()
                 {
                     notify(notificationClient, NotificationType::start);

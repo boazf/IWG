@@ -17,7 +17,7 @@ size_t HtmlFillerViewReader::viewHandler(byte *buff, size_t buffSize)
                 return i;
 
             int nFill;
-            if (sscanf((const char *)buff + i + 1, "%d", &nFill) != 1)
+            if (sscanf(reinterpret_cast<const char *>(buff + i + 1), "%d", &nFill) != 1)
             {
                 continue;
             }

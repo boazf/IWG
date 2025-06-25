@@ -342,7 +342,7 @@ void RecoveryControl::AppConfigChanged(const AppConfigChangedParam &param, const
 #ifdef DEBUG_RECOVERY_CONTROL
 	Traceln("Configuration changed");
 #endif
-	RecoveryControl *recoveryControl = (RecoveryControl *)context;
+	RecoveryControl *recoveryControl = const_cast<RecoveryControl *>(static_cast<const RecoveryControl *>(context));
 	bool autoRecovery = AppConfig::getAutoRecovery();
 
 	if (autoRecovery && !recoveryControl->autoRecovery)
@@ -415,7 +415,7 @@ public:
 
 void RecoveryControl::OnEnterCheckConnectivity(RecoveryControl *control)
 {
-	CheckConnectivityStateParam *stateParam = (CheckConnectivityStateParam *)control->stateParam;
+	CheckConnectivityStateParam *stateParam = static_cast<CheckConnectivityStateParam *>(control->stateParam);
 	if (stateParam == NULL)
 	{
 		stateParam = new CheckConnectivityStateParam();
@@ -561,7 +561,7 @@ RecoveryMessages RecoveryControl::OnInit(RecoveryControl *control)
 
 RecoveryMessages RecoveryControl::OnCheckConnectivity(RecoveryControl *control)
 {
-	CheckConnectivityStateParam *stateParam = (CheckConnectivityStateParam *)control->stateParam;
+	CheckConnectivityStateParam *stateParam = static_cast<CheckConnectivityStateParam *>(control->stateParam);
 	RecoveryMessages status = RecoveryMessages::Disconnected;
 
 	if (stateParam->stage != CheckConnectivityStages::ChecksCompleted)

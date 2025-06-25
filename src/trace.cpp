@@ -75,7 +75,7 @@ static void TraceTimeStamp(SdFile logFile)
     localtime_r(&now, &timeStamp);
     char buff[64];
     strftime(buff, sizeof(buff), "%F %H:%M:%S> ", &timeStamp);
-    logFile.write((const uint8_t *)buff, strlen(buff));
+    logFile.write(reinterpret_cast<const uint8_t *>(buff), strlen(buff));
     logFile.flush();
 }
 
@@ -85,7 +85,7 @@ static void Log(SdFile logFile, bool &shouldTraceTimeStamp)
 
     messages.ScanNodes([](const String &messageStr, const void *param)->bool
     {
-        ((String *)param)->concat(messageStr);
+        const_cast<String *>(static_cast<const String *>(param))->concat(messageStr);
         return false;
     }, &messageStr);
 
@@ -95,7 +95,7 @@ static void Log(SdFile logFile, bool &shouldTraceTimeStamp)
     {
         if (shouldTraceTimeStamp)
             TraceTimeStamp(logFile);
-        logFile.write((const uint8_t *)message, newLine - message + 1);
+        logFile.write(reinterpret_cast<const uint8_t *>(message), newLine - message + 1);
         shouldTraceTimeStamp = true;
         message = newLine + 1;
         newLine = strchr(message, '\n');
@@ -105,7 +105,7 @@ static void Log(SdFile logFile, bool &shouldTraceTimeStamp)
         if (shouldTraceTimeStamp)
             TraceTimeStamp(logFile);
         shouldTraceTimeStamp = false;
-        logFile.write((const uint8_t *)message, strlen(message));
+        logFile.write(reinterpret_cast<const uint8_t *>(message), strlen(message));
     }
     logFile.flush();
     messages.Delete(messageStr);

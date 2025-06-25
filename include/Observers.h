@@ -79,9 +79,9 @@ public:
 	{
         m_observers.ScanNodes([](const ObserverData &observer, const void *data)->bool
         {
-            observer.m_handler(*((const EventData *)data), observer.m_context);
+            observer.m_handler(*(static_cast<const EventData *>(data)), observer.m_context);
             return true;
-        }, (const void *)&data);
+        }, &data);
 	}
 
 private:

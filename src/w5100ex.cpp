@@ -46,6 +46,7 @@ void W5100ClassEx::read_data(SOCKET s, volatile uint16_t src, volatile uint8_t *
   uint16_t size;
   uint16_t src_mask;
   uint16_t src_ptr;
+  uint8_t *dst_ptr = const_cast<uint8_t*>(reinterpret_cast<volatile uint8_t *>(dst));
 
   src_mask = src & RMASK;
   src_ptr = RBASE(s) + src_mask;
@@ -53,12 +54,12 @@ void W5100ClassEx::read_data(SOCKET s, volatile uint16_t src, volatile uint8_t *
   if( (src_mask + len) > RSIZE ) 
   {
     size = RSIZE - src_mask;
-    read(src_ptr, (uint8_t *)dst, size);
-    dst += size;
-    read(RBASE(s), (uint8_t *) dst, len - size);
+    read(src_ptr, dst_ptr, size);
+    dst_ptr += size;
+    read(RBASE(s), dst_ptr, len - size);
   } 
   else
-    read(src_ptr, (uint8_t *) dst, len);
+    read(src_ptr, dst_ptr, len);
 }
 
 W5100ClassEx W5100Ex;

@@ -18,7 +18,7 @@ void GWConnTest::Start(time_t delay)
 
 void GWConnTest::gwConnTestTask(void *param)
 {
-    ((GWConnTest *)param)->gwConnTestTask();
+    static_cast<GWConnTest *>(param)->gwConnTestTask();
 }
 
 bool GWConnTest::ping(int attempts, int tInterval)

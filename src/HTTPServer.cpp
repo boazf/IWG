@@ -52,7 +52,7 @@ bool HTTPServer::GetController(HttpClientContext *context, HttpController *&cont
 
     controllersData.ScanNodes([](HttpControllerCreatorData const &creatorData, const void *param)->bool
     {
-        Params *params = (Params *)param;
+        Params *params = const_cast<Params *>(static_cast<const Params *>(param));
         String path = creatorData.getPath();
         String resource = params->resource;
         resource.toUpperCase();
@@ -232,7 +232,7 @@ void HTTPServer::RequestTask(HttpClientContext *context)
 
 void HTTPServer::RequestTask(void *params)
 {
-    HttpClientContext *context = (HttpClientContext *)params;
+    HttpClientContext *context = static_cast<HttpClientContext *>(params);
     RequestTask(context);
     if (!context->keepAlive)
     {

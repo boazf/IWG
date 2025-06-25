@@ -3,7 +3,7 @@
 
 FileEx &FileEx::operator=(const File& file) 
 {
-    *((File*)(this)) = file;
+    *(dynamic_cast<File*>(this)) = file;
     return *this;
 }
 
@@ -51,7 +51,7 @@ size_t FileEx::read(uint8_t* buf, size_t size)
 
 size_t FileEx::readBytes(char *buffer, size_t length)
 {
-    return read((uint8_t*)buffer, length);
+    return read(reinterpret_cast<uint8_t*>(buffer), length);
 }
 
 bool FileEx::seek(uint32_t pos, SeekMode mode)

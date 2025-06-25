@@ -38,19 +38,21 @@ const char *Config::password /* = "Your password" */;
 const char *Config::hostName = "InternetRecoveryBox";
 #endif
 
-bool Config::ParseString(const String &configValue, void *str)
+bool Config::ParseString(const String &configValue, void *strBuffer)
 {
+  char **str = static_cast<char **>(strBuffer);
+
   size_t len = strlen(configValue.c_str());
-  *(char **)str = (char *)malloc(len + 1);
-  strcpy(*(char **)str, configValue.c_str());
+  *str = static_cast<char *>(malloc(len + 1));
+  strcpy(*str, configValue.c_str());
   return true;
 }
 
 bool Config::ParseLong(const String &configValue, void *parsedLong)
 {
-  return sscanf(configValue.c_str(), "%ld", (long *)parsedLong) == 1;
+  return sscanf(configValue.c_str(), "%ld", parsedLong) == 1;
 }
-
+  
 bool Config::ParseByte(const String &strByte, byte *value)
 {
   const char *format = strByte.startsWith("0x") ? "%hhx" : "%hhd";
@@ -77,28 +79,30 @@ bool Config::ParseByteArray(const String &strValue, char separator, byte *bytes,
 
 bool Config::ParseMACAddress(const String &configValue, void *parsedMACAddress)
 {
-  return ParseByteArray(configValue, ',', (byte *)parsedMACAddress, 6);
+  return ParseByteArray(configValue, ',', static_cast<byte *>(parsedMACAddress), 6);
 }
 
 bool Config::ParseIPAddress(const String &configValue, void *parsedIPAddress)
 {
-  return ParseByteArray(configValue, '.', (byte *)parsedIPAddress, 4);
+  return ParseByteArray(configValue, '.', static_cast<byte *>(parsedIPAddress), 4);
 }
 
 bool Config::ParseByte(const String &configValue, void *parsedByte)
 {
-  return ParseByte(configValue, (byte *)parsedByte);
+  return ParseByte(configValue, static_cast<byte *>(parsedByte));
 }
 
 bool Config::ParseBoolean(const String &configValue, void *parsedBoolean)
 {
+  bool *parsedBooleanBuff = static_cast<bool *>(parsedBoolean);
+  
   if (configValue == "true")
   {
-    *(bool *)parsedBoolean = true;
+    *parsedBooleanBuff = true;
     return true;
   } else if (configValue == "false")
   {
-    *(bool *)parsedBoolean = false;
+    *parsedBooleanBuff = false;
     return true;
   } else 
   {
@@ -116,7 +120,7 @@ bool Config::ParseTime(const String &configValue, void *parsedTime)
   if (h > 23 || m > 60)
     return false;
 
-  *((unsigned long *)parsedTime) = (h * 60 + m) * 60;
+  *(static_cast<unsigned long *>(parsedTime)) = (h * 60 + m) * 60;
 
   return true;
 }

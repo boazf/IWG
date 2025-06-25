@@ -46,7 +46,7 @@ bool Button::initStateChangedMonitor(xSemaphoreHandle sem)
 
 void IRAM_ATTR Button::isr(void *param)
 {
-  IsrParam *isrParam = (IsrParam *)param;
+  IsrParam *isrParam = static_cast<IsrParam *>(param);
   // When using WiFi, pins 36 and 39 are geting "false" interrupts because (probably)
   // ADC1 usage by WiFi hardware. According to ChatGPT: Wi-Fi uses ADC1 for:
   // Signal strength measurement (RSSI calibration)

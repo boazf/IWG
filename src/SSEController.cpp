@@ -32,7 +32,7 @@ bool SSEController::Get(HttpClientContext &context, const String id)
 
     clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
     {
-        Params *params = (Params *)param;
+        const Params *params = static_cast<const Params *>(param);
         String id = params->id;
         if (clientInfo.id.equals(id))
         {
@@ -76,7 +76,7 @@ bool SSEController::Delete(HttpClientContext &context, const String id)
 
     clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
     {
-        Params *params = (Params *)param;
+        const Params *params = static_cast<const Params *>(param);
         String id = params->id;
         if (clientInfo.id.equals(id))
         {
@@ -138,7 +138,7 @@ void SSEController::NotifyState(const String &id)
 
     clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
     {
-        Params *params = (Params *)param;
+        const Params *params = static_cast<const Params *>(param);
         String id = params->id;
         if (!id.equals("") && !id.equals(clientInfo.id))
             return true;
@@ -182,7 +182,7 @@ void SSEController::DeleteUnusedClients()
 
     clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
     {
-        ClientsList *clientsToDelete = (ClientsList *)param;
+        ClientsList *clientsToDelete = const_cast<ClientsList *>(static_cast<const ClientsList *>(param));
         EthClient client = clientInfo.client;
         if (!client.connected())
             clientsToDelete->Insert(clientInfo);
@@ -191,7 +191,7 @@ void SSEController::DeleteUnusedClients()
 
     clientsToDelete.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
     {
-        SSEController *controller = (SSEController *)param;
+        SSEController *controller = const_cast<SSEController *>(static_cast<const SSEController *>(param));
         EthClient client = clientInfo.client;
         controller->DeleteClient(clientInfo, client);
         return true;
@@ -211,10 +211,12 @@ void SSEController::Init()
     recoveryControl.GetRouterPowerStateChanged().addObserver(RouterPowerStateChanged, this);
     xTaskCreate([](void *param)
     {
+        SSEController *controller = static_cast<SSEController *>(param);
+
         while (true)
         {
             delay(5000);
-            ((SSEController *)param)->DeleteUnusedClients();
+            controller->DeleteUnusedClients();
         }
     },
     "SSE_DeleteUnusedClients",
@@ -240,7 +242,7 @@ void SSEController::UpdateStateLastRecoveryTime()
 
 void SSEController::RecoveryStateChanged(const RecoveryStateChangedParams &params, const void *context)
 {
-    SSEController *controller = (SSEController *)context;
+    SSEController *controller = const_cast<SSEController *>(static_cast<const SSEController *>(context));
     controller->state.recoveryType = params.m_recoveryType;
     controller->UpdateStateLastRecoveryTime();
     controller->NotifyState("");
@@ -255,21 +257,21 @@ void SSEController::AutoRecoveryStateChanged(const AutoRecoveryStateChangedParam
         Traceln(params.m_autoRecovery);
     }
 #endif
-    SSEController *controller = (SSEController *)context;
+    SSEController *controller = const_cast<SSEController *>(static_cast<const SSEController *>(context));
     controller->state.autoRecovery = params.m_autoRecovery;
     controller->NotifyState("");
 }
 
 void SSEController::ModemPowerStateChanged(const PowerStateChangedParams &params, const void *context)
 {
-    SSEController *controller = (SSEController *)context;
+    SSEController *controller = const_cast<SSEController *>(static_cast<const SSEController *>(context));
     controller->state.modemState = params.m_state;
     controller->NotifyState("");
 }
 
 void SSEController::RouterPowerStateChanged(const PowerStateChangedParams &params, const void *context)
 {
-    SSEController *controller = (SSEController *)context;
+    SSEController *controller = const_cast<SSEController *>(static_cast<const SSEController *>(context));
     controller->state.routerState = params.m_state;
     controller->NotifyState("");
 }
@@ -286,7 +288,7 @@ bool SSEController::DeleteClient(EthClient &client, bool stopClient)
 
     clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
     {
-        Params *params = (Params *)param;
+        Params *params = const_cast<Params *>(static_cast<const Params *>(param));
         EthClient client = clientInfo.client;
         if (client == params->client)
         {
@@ -343,7 +345,7 @@ bool SSEController::IsValidId(const String &id)
 
     clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
     {
-        Params *params = (Params *)param;
+        Params *params = const_cast<Params *>(static_cast<const Params *>(param));
         params->isValid = clientInfo.id.equals(params->id);
         return !params->isValid;
     }, &params);
