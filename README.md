@@ -2,10 +2,24 @@ Arduino Internet Watchdog Device
 ================================
 
 How many times have you lost internet connectivity, then you had to go to your router and/or modem, disconnect it/them from power, wait a while,  reconnect and wait for internet connectivity to resume? Or worth, how many times were you not at home/office and you wanted to remotely connect to your computer at home/office, but there is no internet connectivity at the remote end and there is no one there to recover it? If the answer is too many times, this project is for you! This project will do it all by it self on the spot whenever internet connectivity is lost and practically you'll have continuous internet connectivity whether you're at home or not.
-<br/>
 ## License
-This project is licensed under the [Apache License 2.0](LICENSE).
-<h2>Main Features</h2>
+
+This project is licensed under the [Apache License 2.0](LICENSE), except where otherwise stated.
+
+### Third-Party Components
+
+This project includes third-party components licensed under the **GNU Lesser General Public License v2.1 (LGPL 2.1)**:
+
+- `include/ICMPPing.h`
+- `include/w5100.h`
+- `src/ICMPPing.cpp`
+- `src/w5100.cpp`
+
+These components are included in unmodified form, with their original license headers intact.
+
+You may use and distribute this project under the terms of the Apache License 2.0; however, the LGPL-licensed components remain governed by the LGPL v2.1.
+
+See [`COPYING.LESSER`](COPYING.LESSER) for the full text of the LGPL license.<h2>Main Features</h2>
 
   - Automatically recovers internet connectivity.
   - Supports recovering of router and modem as two separate devices or a single combined device.
