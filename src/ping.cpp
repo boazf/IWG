@@ -1,4 +1,7 @@
 /*
+* This file was copied and a bit modified to make it suitable for this
+* project.
+*
 * ESP32 Ping library
 *
 * All rights reserved.
@@ -27,7 +30,7 @@
 * Lua RTOS, ping utility
 *
 *
-* Author: Jaume Olivé (jolive@iberoxarxa.com / jolive@whitecatboard.org)
+* Original Author: Jaume Olivé (jolive@iberoxarxa.com / jolive@whitecatboard.org)
 *
 * --------------------------------------------------------------------------------
 *

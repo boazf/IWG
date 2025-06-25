@@ -1,3 +1,11 @@
+/*
+* This file was copied and a bit modified to make it suitable for this
+* project.
+*
+* Original Author: Jaume Olivé (jolive@iberoxarxa.com / jolive@whitecatboard.org)
+*
+*/
+
 #ifdef USE_WIFI
 #ifndef _PING_
 #define _PING_
