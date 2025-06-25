@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2010 by Blake Foster <blfoster@vassar.edu>
+ * This file was copied and a modified to make it suitable for this project.
+ * 
+ * Original Copyright (c) 2010 by Blake Foster <blfoster@vassar.edu>
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of either the GNU General Public License version 2
