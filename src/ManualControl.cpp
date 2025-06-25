@@ -77,13 +77,19 @@ namespace manualcontrol
         {
             CommonManualControlState::isConnected = isConnected;
 
-            if (ul.state() == ButtonState::PRESSED && rr.state() == ButtonState::UNPRESSED && mr.state() == ButtonState::UNPRESSED && cc.state() == ButtonState::UNPRESSED)
+            if (ul.state() == ButtonState::PRESSED && 
+                rr.state() == ButtonState::UNPRESSED && 
+                mr.state() == ButtonState::UNPRESSED && 
+                cc.state() == ButtonState::UNPRESSED)
             {
                 transit<Unlock>();
                 return;
             }
 
-            if (cc.state() == ButtonState::PRESSED && ul.state() == ButtonState::UNPRESSED && rr.state() == ButtonState::UNPRESSED && mr.state() == ButtonState::UNPRESSED)
+            if (cc.state() == ButtonState::PRESSED && 
+                ul.state() == ButtonState::UNPRESSED && 
+                rr.state() == ButtonState::UNPRESSED && 
+                mr.state() == ButtonState::UNPRESSED)
             {
                 recoveryControl.StartRecoveryCycles(RecoveryTypes::ConnectivityCheck);
             }
@@ -207,44 +213,56 @@ namespace manualcontrol
 
         void react(const UnlockDelay &event)
         {
-            if (!unlocked)
+            if (unlocked)
             {
-                unlocked = true;
-                mri.set(ledState::LED_ON);
-                rri.set(ledState::LED_ON);
-                uli.set(ledState::LED_ON);
-                esp_timer_start_once(hTimer, 3000000);
-            }
-            else
                 returnToPrevState();
+                return;
+            }
+
+            unlocked = true;
+            mri.set(ledState::LED_ON);
+            rri.set(ledState::LED_ON);
+            uli.set(ledState::LED_ON);
+            esp_timer_start_once(hTimer, 3000000);
         }
 
         void react(ButtonsStateChanged const &event) override
         {
             if (!unlocked)
             {
-                if (ul.state() == ButtonState::UNPRESSED || mr.state() == ButtonState::PRESSED || rr.state() == ButtonState::PRESSED || cc.state() == ButtonState::PRESSED)
+                if (ul.state() == ButtonState::UNPRESSED || 
+                    mr.state() == ButtonState::PRESSED || 
+                    rr.state() == ButtonState::PRESSED || 
+                    cc.state() == ButtonState::PRESSED)
                     returnToPrevState();
+                return;
             }
-            else
+
+            if (ul.state() == ButtonState::UNPRESSED && 
+                mr.state() == ButtonState::UNPRESSED && 
+                rr.state() == ButtonState::PRESSED && 
+                cc.state() == ButtonState::UNPRESSED)
             {
-                if (ul.state() == ButtonState::UNPRESSED && mr.state() == ButtonState::UNPRESSED && rr.state() == ButtonState::PRESSED && cc.state() == ButtonState::UNPRESSED)
-                {
-                    recoveryControl.StartRecoveryCycles(RecoveryTypes::Router);
-                }
-                else if (ul.state() == ButtonState::UNPRESSED && mr.state() == ButtonState::PRESSED && rr.state() == ButtonState::UNPRESSED && cc.state() == ButtonState::UNPRESSED)
-                {
-                    recoveryControl.StartRecoveryCycles(RecoveryTypes::Modem);        
-                }
-                else if (cc.state() == ButtonState::PRESSED && ul.state() == ButtonState::UNPRESSED && mr.state() == ButtonState::UNPRESSED && rr.state() == ButtonState::UNPRESSED)
-                {
-                    esp_timer_stop(hTimer);
-                    opi.set(ledState::LED_BLINK);
-                    uli.set(ledState::LED_OFF);
-                    rri.set(ledState::LED_OFF);
-                    mri.set(ledState::LED_OFF);
-                    HardReset(3000);
-                }
+                recoveryControl.StartRecoveryCycles(RecoveryTypes::Router);
+            }
+            else if (ul.state() == ButtonState::UNPRESSED && 
+                     mr.state() == ButtonState::PRESSED && 
+                     rr.state() == ButtonState::UNPRESSED && 
+                     cc.state() == ButtonState::UNPRESSED)
+            {
+                recoveryControl.StartRecoveryCycles(RecoveryTypes::Modem);        
+            }
+            else if (cc.state() == ButtonState::PRESSED && 
+                     ul.state() == ButtonState::UNPRESSED && 
+                     mr.state() == ButtonState::UNPRESSED && 
+                     rr.state() == ButtonState::UNPRESSED)
+            {
+                esp_timer_stop(hTimer);
+                opi.set(ledState::LED_BLINK);
+                uli.set(ledState::LED_OFF);
+                rri.set(ledState::LED_OFF);
+                mri.set(ledState::LED_OFF);
+                HardReset(3000);
             }
         }
 
