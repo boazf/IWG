@@ -15,7 +15,7 @@ This project includes third-party components licensed under the **GNU Lesser Gen
 - `src/ICMPPing.cpp`
 - `src/w5100.cpp`
 
-These components are included in unmodified form, with their original license headers intact.
+These components are included and modified from the original copy. Their original license headers included.
 
 You may use and distribute this project under the terms of the Apache License 2.0; however, the LGPL-licensed components remain governed by the LGPL v2.1.
 
