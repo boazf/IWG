@@ -20,11 +20,11 @@
 #include <Observers.h>
 #include <Common.h>
 #include <Config.h>
+#include <EthernetUtil.h>
 #ifndef USE_WIFI
-#include <ICMPPing.h>
+#include <ICMPPingEx.h>
 #else
 #include <ping.h>
-#include <EthernetUtil.h>
 #endif
 #include <AppConfig.h>
 #include <TimeUtil.h>
@@ -419,7 +419,7 @@ public:
 
 public:
 #ifndef USE_WIFI
-	ICMPPing ping;
+	ICMPPingEx ping;
 	ICMPEchoReply pingResult;
 #else
 	IPAddress address;

@@ -16,14 +16,17 @@
 
 // SPDX-License-Identifier: Apache-2.0
 
+#include <Common.h>
 #include <GWConnTest.h>
 #include <EthernetUtil.h>
 #ifdef USE_WIFI
 #include <ping.h>
 #else
-#include <ICMPPing.h>
+#include <ICMPPingEx.h>
 #endif
+#ifdef DEBUG_ETHERNET
 #include <Trace.h>
+#endif
 
 void GWConnTest::Start(time_t delay)
 {
@@ -58,7 +61,7 @@ bool GWConnTest::ping()
 #ifdef USE_WIFI
     return ping_start(gw, 1);
 #else
-    ICMPPing ping(MAX_SOCK_NUM, 2);
+    ICMPPingEx ping(MAX_SOCK_NUM, 2);
     return ping(gw, 1).status == SUCCESS;
 #endif
 }
