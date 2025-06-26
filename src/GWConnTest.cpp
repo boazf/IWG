@@ -20,7 +20,7 @@
 #include <GWConnTest.h>
 #include <EthernetUtil.h>
 #ifdef USE_WIFI
-#include <ping.h>
+#include <ESP32ping.h>
 #else
 #include <ICMPPingEx.h>
 #endif
@@ -59,7 +59,7 @@ bool GWConnTest::ping()
 {
     IPAddress gw = Eth.gatewayIP();
 #ifdef USE_WIFI
-    return ping_start(gw, 1);
+    return Ping.ping(gw, 1);
 #else
     ICMPPingEx ping(MAX_SOCK_NUM, 2);
     return ping(gw, 1).status == SUCCESS;

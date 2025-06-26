@@ -596,7 +596,7 @@ RecoveryMessages RecoveryControl::OnCheckConnectivity(RecoveryControl *control)
 #else
 		if (stateParam->attempts < MAX_PING_ATTEMPTS)
 		{
-			if (ping_start(stateParam->address, 1, 0, 0, 1000))
+			if (ping_start(stateParam->address, 1, 0, 0, 1))
 				status = RecoveryMessages::Connected;
 			else
 			{
