@@ -10,9 +10,7 @@ This project is licensed under the [Apache License 2.0](LICENSE), except where o
 
 This project includes third-party components licensed under the **GNU Lesser General Public License v2.1 (LGPL 2.1)**:
 
-- `include/ICMPPing.h`
 - `include/w5100ex.h`
-- `src/ICMPPing.cpp`
 - `src/w5100ex.cpp`
 
 These components are included and modified from the original copy in order to suite the needs of this project. Their original license headers included.
