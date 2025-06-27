@@ -22,6 +22,7 @@ See [`COPYING.LESSER`](COPYING.LESSER) for the full text of the LGPL license.<h2
   - Automatically recovers internet connectivity.
   - Supports recovering of router and modem as two separate devices or a single combined device.
   - Supports recovering of an access point.
+  - Supports optional periodic restart of router and/or modem at a given time every 24 hours.
   - Highly configurable.
   - Supports HTML interface for controlling, configuring and monitoring the device.
   - Supports either WiFi or Wired (w5500) Ethernet connection.
