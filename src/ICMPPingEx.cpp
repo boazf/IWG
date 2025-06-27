@@ -80,7 +80,7 @@ ICMPEchoReplyEx ICMPPingEx::operator()(const IPAddress& addr, int nRetries)
 void ICMPPingEx::operator()(const IPAddress& addr, int nRetries, ICMPEchoReplyEx& result)
 {
     Lock lock(csSpi);
-    result.success = false;
+    result.pingSent = false;
     if (ping)
     {
 #ifdef DEBUG_ETHERNET
@@ -100,7 +100,7 @@ void ICMPPingEx::operator()(const IPAddress& addr, int nRetries, ICMPEchoReplyEx
     ping->operator()(addr, nRetries, reply);
     delete ping;
     ping = NULL;
-    result.success = true;
+    result.pingSent = true;
     result.reply = reply;
 }
 

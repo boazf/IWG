@@ -24,7 +24,7 @@
 
 typedef struct  ICMPEchoReplyEx
 {
-    bool success;
+    bool pingSent;
     ICMPEchoReply reply;
 } ICMPEchoReplyEx;
 

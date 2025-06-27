@@ -63,7 +63,7 @@ bool GWConnTest::ping()
 #else
     ICMPPingEx ping(MAX_SOCK_NUM, 2);
     ICMPEchoReplyEx result = ping(gw, 1);
-    return result.success && result.reply.status == SUCCESS;
+    return result.pingSent && result.reply.status == SUCCESS;
 #endif
 }
 
