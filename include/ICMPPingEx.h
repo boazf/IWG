@@ -22,13 +22,19 @@
 #include <Ethernet.h>
 #include <ICMPPing.h>
 
+typedef struct  ICMPEchoReplyEx
+{
+    bool success;
+    ICMPEchoReply reply;
+} ICMPEchoReplyEx;
+
 class ICMPPingEx
 {
 public:
     ICMPPingEx(SOCKET s, uint8_t id) : orgS(s), s(MAX_SOCK_NUM), id(id), ping(NULL) {}
     ~ICMPPingEx();
-    ICMPEchoReply operator()(const IPAddress&, int nRetries);
-    void operator()(const IPAddress& addr, int nRetries, ICMPEchoReply& result);
+    ICMPEchoReplyEx operator()(const IPAddress&, int nRetries);
+    void operator()(const IPAddress& addr, int nRetries, ICMPEchoReplyEx& result);
 #ifdef ICMPPING_ASYNCH_ENABLE
     bool asyncStart(const IPAddress& addr, int nRetries, ICMPEchoReply& result);
     bool asyncComplete(ICMPEchoReply& result);

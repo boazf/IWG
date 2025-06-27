@@ -70,28 +70,38 @@ ICMPPing *ICMPPingEx::getPing()
     return ping;
 }
 
-ICMPEchoReply ICMPPingEx::operator()(const IPAddress& addr, int nRetries)
+ICMPEchoReplyEx ICMPPingEx::operator()(const IPAddress& addr, int nRetries)
 {
-    ICMPEchoReply reply;
-    operator()(addr, nRetries, reply);
-    return reply;
+    ICMPEchoReplyEx result;
+    operator()(addr, nRetries, result);
+    return result;
 }
 
-void ICMPPingEx::operator()(const IPAddress& addr, int nRetries, ICMPEchoReply& result)
+void ICMPPingEx::operator()(const IPAddress& addr, int nRetries, ICMPEchoReplyEx& result)
 {
     Lock lock(csSpi);
+    result.success = false;
+    if (ping)
+    {
+#ifdef DEBUG_ETHERNET
+        Traceln("ICMPPingEx: can't use object that was created for async ping");
+#endif
+        return;
+    }
     ping = getPing();
     if (!ping)
     {
 #ifdef DEBUG_ETHERNET
         Tracef("ICMPPingEx: No available socket for pinging %s\n", addr.toString().c_str());
 #endif
-        result.status = NO_RESPONSE;
         return;
     }   
-    ping->operator()(addr, nRetries, result);
+    ICMPEchoReply reply;
+    ping->operator()(addr, nRetries, reply);
     delete ping;
     ping = NULL;
+    result.success = true;
+    result.reply = reply;
 }
 
 #ifdef ICMPPING_ASYNCH_ENABLE
@@ -104,8 +114,15 @@ bool ICMPPingEx::asyncStart(const IPAddress& addr, int nRetries, ICMPEchoReply& 
 bool ICMPPingEx::asyncComplete(ICMPEchoReply& result)
 {
     Lock lock(csSpi);
-    return getPing()->asyncComplete(result);
-}
+    if (!ping)
+    {
+#ifdef DEBUG_ETHERNET
+        Traceln("ICMPPingEx: should not call asyncComplete without calling asyncStart first");
 #endif
+        return false;
+    }
+    return ping->asyncComplete(result);
+}
+#endif // CMPPING_ASYNCH_ENABLE
 
 #endif // USE_WIFI
