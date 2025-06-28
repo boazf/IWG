@@ -62,8 +62,8 @@ bool RecoveryController::Post(HttpClientContext &context, const String id)
     }
 
 #ifdef DEBUG_HTTP_SERVER
-    {
-		LOCK_TRACE();
+    TRACE_BLOCK
+	{
         Trace("RecoveryController::Post: ");
         Traceln(content);
     }
@@ -73,8 +73,8 @@ bool RecoveryController::Post(HttpClientContext &context, const String id)
     sscanf(content.c_str(), "{\"recoveryType\":%d}", reinterpret_cast<int*>(&recoveryType));
 
 #ifdef DEBUG_HTTP_SERVER
-    {
-		LOCK_TRACE();
+    TRACE_BLOCK
+	{
         Trace("RecoveryType: ");
         Traceln((int)recoveryType);
     }

@@ -68,4 +68,13 @@ public:
 private:
     const CriticalSection &_cs;
 };
+
+class BlockLock : public Lock
+{
+public:
+    BlockLock(const CriticalSection &cs) : Lock(cs), once(true) {}
+    bool once;
+};
+
+#define CRITICAL_BLOCK(csLock) for (BlockLock _lock(csLock); _lock.once; _lock.once = false)
 #endif // Lock_h

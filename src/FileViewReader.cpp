@@ -29,8 +29,8 @@ bool FileViewReader::open(byte *buff, int buffSize)
     SdFile file = SD.open(fileName, FILE_READ);
 #ifdef DEBUG_HTTP_SERVER
     if (!file)
-    {
-        LOCK_TRACE();
+	{
+        LOCK_TRACE;
         Trace("Failed to open file ");
         Traceln(fileName.c_str());
     }

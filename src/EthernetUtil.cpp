@@ -382,7 +382,7 @@ uint8_t EthernetUDPEx::beginMulticast(IPAddress addr, uint16_t word)
 
 static void WizReset() {
 #ifdef DEBUG_ETHERNET
-    LOCK_TRACE();
+    LOCK_TRACE;
     Trace("Resetting Wiz W5500 Ethernet Board...  ");
 #endif
     pinMode(RESET_P, OUTPUT);
@@ -468,8 +468,8 @@ bool InitEthernet()
 #endif // USE_WIFI
 
 #ifdef DEBUG_ETHERNET
-  {
-    LOCK_TRACE();
+  TRACE_BLOCK
+	{
     Trace("My IP address: ");
     Traceln(Eth.localIP());
   }
@@ -563,8 +563,8 @@ void MaintainEthernet()
 
     case 2:
 #ifdef DEBUG_ETHERNET
-      {
-        LOCK_TRACE();
+      TRACE_BLOCK
+      {    
         //renewed success
         Traceln("Renewed success");
         //print your local IP address:
@@ -583,8 +583,8 @@ void MaintainEthernet()
 
     case 4:
 #ifdef DEBUG_ETHERNET
+      TRACE_BLOCK
       {
-        LOCK_TRACE();
         //rebind success
         Traceln("Rebind success");
         //print your local IP address:

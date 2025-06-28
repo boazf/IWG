@@ -45,8 +45,8 @@ bool View::Get(HttpClientContext &context, const String id)
         if (context.getLastModified().equals(lastModifiedTime))
         {
 #ifdef DEBUG_HTTP_SERVER
-            {
-                LOCK_TRACE();
+            TRACE_BLOCK
+	        {
                 Tracef("%d ", context.getClient().remotePort());
                 Trace("Resource: ");
                 Trace(context.getResource());
@@ -94,8 +94,8 @@ bool View::Get(HttpClientContext &context, const String id)
     }
 
 #ifdef DEBUG_HTTP_SERVER
-    {
-        LOCK_TRACE();
+    TRACE_BLOCK
+	{
         Tracef("%d ", context.getClient().remotePort());
         Trace("Done sending, Sent ");
         Trace(bytesSent);

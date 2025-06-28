@@ -111,8 +111,8 @@ void timeUpdateTask(void *param)
 void InitTime()
 {
 #ifdef DEBUG_TIME
+  TRACE_BLOCK
   {
-    LOCK_TRACE();
     Trace("Time Server: ");
     Traceln(Config::timeServer);
   }

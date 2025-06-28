@@ -472,34 +472,34 @@ void RecoveryControl::OnEnterCheckConnectivity(RecoveryControl *control)
 	if (stateParam->stage == CheckConnectivityStages::CheckServer1 ||
 	    stateParam->stage == CheckConnectivityStages::CheckServer2)
 	{
-		LOCK_TRACE();
+		LOCK_TRACE;
 		Trace("About to ping ");
 		Traceln(server.c_str());
 	}
 #endif
 
-	if (stateParam->stage != CheckConnectivityStages::ChecksCompleted)
-	{
+	if (stateParam->stage == CheckConnectivityStages::ChecksCompleted)
+		return;
+
 #ifdef DEBUG_RECOVERY_CONTROL
-		{
-			LOCK_TRACE();
-			Trace("Pinging address: ");
-			Trace(address[0]);
-			Trace(".");
-			Trace(address[1]);
-			Trace(".");
-			Trace(address[2]);
-			Trace(".");
-			Traceln(address[3]);
-		}
+	TRACE_BLOCK
+	{
+		Trace("Pinging address: ");
+		Trace(address[0]);
+		Trace(".");
+		Trace(address[1]);
+		Trace(".");
+		Trace(address[2]);
+		Trace(".");
+		Traceln(address[3]);
+	}
 #endif
 #ifndef USE_WIFI
-		stateParam->ping.asyncStart(address, MAX_PING_ATTEMPTS, stateParam->pingResult);
+	stateParam->ping.asyncStart(address, MAX_PING_ATTEMPTS, stateParam->pingResult);
 #else
-		stateParam->address = address;
-		stateParam->attempts = 0;
+	stateParam->address = address;
+	stateParam->attempts = 0;
 #endif
-	}
 }
 
 void RecoveryControl::OnEnterInit(RecoveryControl *control)
@@ -591,8 +591,9 @@ RecoveryMessages RecoveryControl::OnCheckConnectivity(RecoveryControl *control)
 		 	return RecoveryMessages::None;
 		}
 
-		//status = RecoveryMessages::Connected;
-		status = stateParam->pingResult.status == SUCCESS ? RecoveryMessages::Connected : RecoveryMessages::Disconnected;
+		// We get here either when ping succeeded, failed, or timedout.
+		if (stateParam->pingResult.status == SUCCESS)
+			status = RecoveryMessages::Connected;
 #else
 		if (stateParam->attempts < MAX_PING_ATTEMPTS)
 		{
@@ -610,8 +611,8 @@ RecoveryMessages RecoveryControl::OnCheckConnectivity(RecoveryControl *control)
 		}
 #endif
 #ifdef DEBUG_RECOVERY_CONTROL
+		TRACE_BLOCK
 		{
-			LOCK_TRACE();
 			Trace("Ping result: ");
 #ifndef USE_WIFI
 			Traceln((unsigned int)stateParam->pingResult.status);
@@ -747,8 +748,8 @@ RecoveryMessages RecoveryControl::OnWaitConnectionTestPeriod(RecoveryControl *co
 							    AppConfig::getConnectionTestPeriod();
 
 #ifdef DEBUG_RECOVERY_CONTROL
+	TRACE_BLOCK
 	{
-		LOCK_TRACE();
 		Trace(__func__);
 		Trace(": Waiting for ");
 		Trace(tWait);

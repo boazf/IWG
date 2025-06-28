@@ -29,8 +29,8 @@ bool SSEController::Get(HttpClientContext &context, const String id)
     EthClient client = context.getClient();
 
 #ifdef DEBUG_HTTP_SERVER
-    {
-        LOCK_TRACE();
+    TRACE_BLOCK
+	{
         Trace("SSEController Get, Client id=");
         Trace(id);
 #ifndef USE_WIFI
@@ -164,8 +164,8 @@ void SSEController::NotifyState(const String &id)
         if (client.connected())
         {
 #ifdef DEBUG_HTTP_SERVER
+            TRACE_BLOCK
             {
-                LOCK_TRACE();
                 Trace("Notifying client id=");
                 Trace(clientInfo.id);
                 Tracef(" IP=%s, port=%d", client.remoteIP().toString().c_str(), client.remotePort());
@@ -269,8 +269,8 @@ void SSEController::RecoveryStateChanged(const RecoveryStateChangedParams &param
 void SSEController::AutoRecoveryStateChanged(const AutoRecoveryStateChangedParams &params, const void *context)
 {
 #ifdef DEBUG_HTTP_SERVER
-    {
-        LOCK_TRACE();
+    TRACE_BLOCK
+	{
         Trace("AutoRecoveryStateChanged: ");
         Traceln(params.m_autoRecovery);
     }
@@ -327,8 +327,8 @@ void SSEController::DeleteClient(const ClientInfo &clientInfo, bool stopClient)
     if (client)
     {
 #ifdef DEBUG_HTTP_SERVER
-        {
-            LOCK_TRACE();
+        TRACE_BLOCK
+	    {
             Tracef("%d Deleting previous session id=%s", client.remotePort(), clientInfo.id.c_str());
 #ifndef USE_WIFI
             Trace(", socket=");

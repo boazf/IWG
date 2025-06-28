@@ -202,7 +202,7 @@ size_t Trace(const char *message)
     if (traceStop)
         return 0;
 
-    LOCK_TRACE();
+    LOCK_TRACE;
     
     size_t ret = Serial.print(message);
 
@@ -214,7 +214,7 @@ size_t Trace(const char *message)
 
 size_t Tracevf(const char *format, va_list valist)
 {
-    LOCK_TRACE();
+    LOCK_TRACE;
 
     char buff[81];
 
@@ -233,7 +233,7 @@ size_t Tracevf(const char *format, va_list valist)
 
 size_t Tracef(const char *format, ...)
 {
-    LOCK_TRACE();
+    LOCK_TRACE;
 
     va_list valist;
     va_start(valist, format);
