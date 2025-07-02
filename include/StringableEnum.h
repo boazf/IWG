@@ -37,11 +37,14 @@ public:
         }
         catch(std::out_of_range)
         {
-            return unknown;
+            return unknown();
         }
     }
 
-    inline static const char *unknown = "Unknown";
+    static const std::string unknown()
+    { 
+        return "Unknown"; 
+    };
 
 private:
     T e;
