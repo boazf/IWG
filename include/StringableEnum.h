@@ -37,9 +37,11 @@ public:
         }
         catch(std::out_of_range)
         {
-            return "Unknown";
+            return unknown;
         }
     }
+
+    inline static const char *unknown = "Unknown";
 
 private:
     T e;
