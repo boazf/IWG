@@ -203,27 +203,27 @@ void RecoveryControl::Init()
 			TRANSITIONS(checkConnectivityTrans)),
 		RecoveryState(
 			RecoveryStates::WaitWhileConnected, 
-			RecoveryState::OnEnterDoNothing,
+			NULL,
 			OnWaitConnectionTestPeriod, 
-			RecoveryState::OnExitDoNothing, 
+			NULL, 
 			TRANSITIONS(waitWhileConnectedTrans)),
 		RecoveryState(
 			RecoveryStates::StartCheckConnectivity, 
-			RecoveryState::OnEnterDoNothing, 
+			NULL, 
 			OnStartCheckConnectivity, 
-			RecoveryState::OnExitDoNothing, 
+			NULL, 
 			TRANSITIONS(startCheckConnectivityTrans)),
 		RecoveryState(
 			RecoveryStates::DisconnectRouter, 
 			OnEnterDisconnectRouter, 
 			OnDisconnectRouter, 
-			RecoveryState::OnExitDoNothing, 
+			NULL, 
 			TRANSITIONS(disconnectRouterTrans)),
 		RecoveryState(
 			RecoveryStates::WaitAfterRouterRecovery, 
-			RecoveryState::OnEnterDoNothing, 
+			NULL, 
 			OnWaitWhileRecovering, 
-			RecoveryState::OnExitDoNothing, 
+			NULL, 
 			TRANSITIONS(waitAfterRouterRecoveryTrans)),
 		RecoveryState(
 			RecoveryStates::CheckConnectivityAfterRouterRecovery, 
@@ -233,7 +233,7 @@ void RecoveryControl::Init()
 			TRANSITIONS(checkConnectivityAfterRouterRecoveryTrans)),
 		RecoveryState(
 			RecoveryStates::CheckRouterRecoveryTimeout, 
-			RecoveryState::OnEnterDoNothing, 
+			NULL, 
 			OnCheckRouterRecoveryTimeout, 
 			OnExitCheckRouterRecoveryTimeout, 
 			TRANSITIONS(checkRouterRecoveryTimeoutTrans)),
@@ -241,13 +241,13 @@ void RecoveryControl::Init()
 			RecoveryStates::DisconnectModem, 
 			OnEnterDisconnectModem, 
 			OnDisconnectModem, 
-			RecoveryState::OnExitDoNothing, 
+			NULL, 
 			TRANSITIONS(disconnectModemTrans)),
 		RecoveryState(
 			RecoveryStates::WaitAfterModemRecovery, 
-			RecoveryState::OnEnterDoNothing, 
+			NULL, 
 			OnWaitWhileRecovering, 
-			RecoveryState::OnExitDoNothing, 
+			NULL, 
 			TRANSITIONS(waitAfterModemRecoveryTrans)),
 		RecoveryState(
 			RecoveryStates::CheckConnectivityAfterModemRecovery, 
@@ -257,15 +257,15 @@ void RecoveryControl::Init()
 			TRANSITIONS(checkConnectivityAfterModemRecoveryTrans)),
 		RecoveryState(
 			RecoveryStates::CheckModemRecoveryTimeout, 
-			RecoveryState::OnEnterDoNothing, 
+			NULL, 
 			OnCheckModemRecoveryTimeout, 
-			RecoveryState::OnExitDoNothing, 
+			NULL, 
 			TRANSITIONS(checkModemRecoveryTimeoutTrans)),
 		RecoveryState(
 			RecoveryStates::CheckMaxCyclesExceeded, 
-			RecoveryState::OnEnterDoNothing, 
+			NULL, 
 			OnCheckMaxCyclesExceeded, 
-			RecoveryState::OnExitDoNothing, 
+			NULL, 
 			TRANSITIONS(checkMaxCyclesExceededTrans)),
 		RecoveryState(
 			RecoveryStates::CheckConnectivityAfterRecoveryFailure, 
@@ -275,21 +275,21 @@ void RecoveryControl::Init()
 			TRANSITIONS(checkConnectivityAfterRecoveryFailureTrans)),
 		RecoveryState(
 			RecoveryStates::WaitWhileRecoveryFailure, 
-			RecoveryState::OnEnterDoNothing, 
+			NULL, 
 			OnWaitConnectionTestPeriod, 
-			RecoveryState::OnExitDoNothing, 
+			NULL, 
 			TRANSITIONS(waitWhileRecoveryFailureTrans)),
 		RecoveryState(
 			RecoveryStates::PeriodicRestart,
 			OnEnterPeriodicRestart,
 			OnPeriodicRestart,
-			RecoveryState::OnExitDoNothing, 
+			NULL, 
 			TRANSITIONS(periodicRestartTrans)),
 		RecoveryState(
 			RecoveryStates::WaitAfterPeriodicRestart, 
-			RecoveryState::OnEnterDoNothing, 
+			NULL, 
 			OnWaitWhileRecovering, 
-			RecoveryState::OnExitDoNothing, 
+			NULL, 
 			TRANSITIONS(waitAfterPeriodicRestartTrans)),
 		RecoveryState(
 			RecoveryStates::CheckConnectivityAfterPeriodicRestart, 
@@ -299,15 +299,15 @@ void RecoveryControl::Init()
 			TRANSITIONS(checkConnectivityAfterPeriodicRestartTrans)),
 		RecoveryState(
 			RecoveryStates::CheckPeriodicRestartTimeout, 
-			RecoveryState::OnEnterDoNothing, 
+			NULL, 
 			OnCheckPeriodicRestartTimeout, 
 			DecideUponPeriodicRestartTimeout, 
 			TRANSITIONS(checkPeriodicRestartTimeoutTrans)),
 		RecoveryState(
 			RecoveryStates::HWError, 
-			RecoveryState::OnEnterDoNothing, 
+			NULL, 
 			OnHWError, 
-			RecoveryState::OnExitDoNothing, 
+			NULL, 
 			TRANSITIONS(hwErrorTrans))
 	};
 

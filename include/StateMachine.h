@@ -62,6 +62,9 @@ public:
 };
 
 template<typename Verb, typename State, typename Param>
+struct StateMachine;
+
+template<typename Verb, typename State, typename Param>
 class SMState
 {
 public:
@@ -109,6 +112,12 @@ public:
 		return *this;
 	}
 
+private:
+	State getState() const 
+	{
+		return m_state;
+	}
+
 	using TransitionsMap = std::map<Verb, State>;
 
 	State PerformTransition(Verb verb) const
@@ -122,13 +131,13 @@ public:
 			StringableEnum<State>(m_state).ToString().c_str(), 
 			StringableEnum<Verb>(verb).ToString().c_str());
 #endif		
-		assert(false);
-		return (State)0;
+		throw std::runtime_error("Transition not found");
 	}
 
 	void doEnter(Param *param) const
 	{
-		m_onEntry(param);
+		if (m_onEntry)
+			m_onEntry(param);
 	}
 
 	Verb doState(Param *param) const
@@ -138,22 +147,7 @@ public:
 
 	Verb doExit(Verb verb, Param *param) const
 	{
-		return m_onExit(verb, param);
-	}
-
-	State getState() const 
-	{
-		return m_state;
-	}
-
-public:
-	static void OnEnterDoNothing(Param *param)
-	{
-	}
-
-	static Verb OnExitDoNothing(Verb verb, Param *param)
-	{
-		return verb;
+		return m_onExit != NULL ? m_onExit(verb, param) : verb;
 	}
 
 private:
@@ -170,6 +164,8 @@ private:
 	OnState m_onState;
 	OnExit m_onExit;
 	TransitionsMap m_transitions;
+
+	friend class StateMachine<Verb, State, Param>;
 };
 
 template<typename Verb, typename State, typename Param>
@@ -187,7 +183,8 @@ public:
 		, m_name(name)
 #endif
 	{
-		assert(nStates > 0);
+		if(states == NULL || nStates <= 0)
+			throw std::invalid_argument("Invalid states");
 		for (int i = 0; i < nStates; i++)
 			m_states.emplace(states[i].getState(), states[i]);
 		m_current = &m_states[states[0].getState()];
@@ -197,59 +194,57 @@ public:
 	{
 #ifdef DEBUG_STATE_MACHINE
 		Tracef("State machine: %s, entering starting state: %s\n", 
-			m_name, 
+			m_name.c_str(), 
 			StringableEnum<State>(m_current->getState()).ToString().c_str());
 #endif
 		m_current->doEnter(m_param);
-		DoState();
 	}
 
 	void HandleState()
 	{
-		if (m_nextVerb != static_cast<Verb>(0))
+		m_nextVerb = m_current->doState(m_param);
+
+		if (m_nextVerb == static_cast<Verb>(0))
+		{
+			return;
+		}
+
+#ifdef DEBUG_STATE_MACHINE
+		Tracef("State machine: %s, exiting state: %s\n", 
+			m_name.c_str(), 
+			StringableEnum<State>(m_current->getState()).ToString().c_str());
+#endif
+		Verb verb = m_current->doExit(m_nextVerb, m_param);
+#ifdef DEBUG_STATE_MACHINE
+		Tracef("State machine: %s, transferring from state: %s, verb: %s\n", 
+			m_name.c_str(), 
+			StringableEnum<State>(m_current->getState()).ToString().c_str(), 
+			StringableEnum<Verb>(verb).ToString().c_str());
+#endif
+		State state = m_current->PerformTransition(verb);
+#ifdef DEBUG_STATE_MACHINE
+		Tracef("State machine: %s, new state: %s\n", 
+			m_name.c_str(), 
+			StringableEnum<State>(state).ToString().c_str());
+#endif
+		typename StatesMap::const_iterator newState = m_states.find(state);
+		if (newState == m_states.end())
 		{
 #ifdef DEBUG_STATE_MACHINE
-			Tracef("State machine: %s, exiting state: %s\n", 
-				m_name, 
-				StringableEnum<State>(m_current->getState()).ToString().c_str());
-#endif
-			Verb verb = m_current->doExit(m_nextVerb, m_param);
-#ifdef DEBUG_STATE_MACHINE
-			Tracef("State machine: %s, transferring from state: %s, verb: %s\n", 
-				m_name, 
-				StringableEnum<State>(m_current->getState()).ToString().c_str(), 
-				StringableEnum<Verb>(verb).ToString().c_str());
-#endif
-			State state = m_current->PerformTransition(verb);
-#ifdef DEBUG_STATE_MACHINE
-			Tracef("State machine: %s, new state: %s\n", 
-				m_name, 
+			Tracef("Error: State machine: %s, unknown new state: %d (%s)\n", 
+				m_name.c_str(), 
+				static_cast<int>(state), 
 				StringableEnum<State>(state).ToString().c_str());
 #endif
-			typename StatesMap::const_iterator newState = m_states.find(state);
-#ifdef DEBUG_STATE_MACHINE
-			if (newState == m_states.end())
-				Tracef("Error: State machine: %s, unknown new state: %n (%s)\n", 
-					m_name, 
-					static_cast<int>(state), 
-					StringableEnum<State>(state).ToString().c_str());
-#endif
-			assert(newState != m_states.end());
-			m_current = &(newState->second);
-#ifdef DEBUG_STATE_MACHINE
-			Tracef("State machine: %s, entering  state: %s\n", 
-				m_name, 
-				StringableEnum<State>(m_current->getState()).ToString().c_str());
-#endif
-			m_current->doEnter(m_param);
+			throw std::runtime_error("Unknown new state");
 		}
-		DoState();
-	}
-
-private:
-	void DoState()
-	{
-		m_nextVerb = m_current->doState(m_param);
+		m_current = &(newState->second);
+#ifdef DEBUG_STATE_MACHINE
+		Tracef("State machine: %s, entering  state: %s\n", 
+			m_name.c_str(), 
+			StringableEnum<State>(m_current->getState()).ToString().c_str());
+#endif
+		m_current->doEnter(m_param);
 	}
 
 private:
@@ -257,7 +252,7 @@ private:
 	Verb m_nextVerb;
 	StatesMap m_states;
 	Param *m_param;
-	const char *m_name;
+	String m_name;
 };
 
 #endif // StateMachine_h
