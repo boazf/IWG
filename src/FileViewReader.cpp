@@ -62,11 +62,6 @@ void FileViewReader::close()
     }
 }
 
-int FileViewReader::read()
-{
-    return file.read(buff, buffSize);
-}
-
 int FileViewReader::read(int offset)
 {
     return file.read(buff + offset, buffSize - offset);

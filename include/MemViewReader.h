@@ -31,12 +31,10 @@ public:
         offset(0) 
     {}
 
-    virtual bool open(byte *buff, int buffSize) { this->buff = buff; this->buffSize = buffSize; return true; };
     virtual void close() {};
     virtual bool getLastModifiedTime(String &lastModifiedTimeStr) {return false; };
     virtual CONTENT_TYPE getContentType() { return contentType; };
     virtual long getViewSize() { return size; }
-    virtual int read() { return read(buff, buffSize); }
     virtual int read(int offset) { return read(buff + offset, buffSize - offset); }
 
     

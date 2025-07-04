@@ -31,7 +31,7 @@ public:
     virtual bool getLastModifiedTime(String &lastModifiedTimeStr) = 0;
     virtual CONTENT_TYPE getContentType() = 0;
     virtual long getViewSize() = 0;
-    virtual int read() = 0;
+    virtual int read() { return read(0); };
     virtual int read(int offset) = 0;
 
 protected:
