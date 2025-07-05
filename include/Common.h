@@ -21,6 +21,23 @@
 
 #include <Lock.h>
 
+enum class CONTENT_TYPE
+{
+    UNKNOWN,
+    JAVASCRIPT,
+    ICON,
+    HTML,
+    CSS,
+    JPEG,
+    EOT,
+    SVG,
+    TTF,
+    WOFF,
+    WOFF2,
+    JSON,
+    STREAM
+};
+
 #ifndef RELEASE
 #define DEBUG_SD
 #define DEBUG_ETHERNET

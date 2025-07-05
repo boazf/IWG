@@ -19,6 +19,7 @@
 #ifndef HtmlFillerViewReader_h
 #define HtmlFillerViewReader_h
 
+#include <Common.h>
 #include <ViewReader.h>
 
 typedef void (*ViewFiller)(String &fill);
@@ -51,11 +52,12 @@ protected:
     ViewReader *viewReader;
 
 private:
-    size_t viewHandler(byte *buff, size_t buffSize);
+    size_t viewHandler(size_t buffSize, bool last = false);
     bool DoFill(int nFill, String &fill);
 
 private:
     int offset;
+    bool endOfView;
 };
 
 #endif // HtmlFillerViewReader_h

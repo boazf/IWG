@@ -16,6 +16,7 @@
 
 // SPDX-License-Identifier: Apache-2.0
 
+#include <map>
 #include <FileViewReader.h>
 #ifdef DEBUG_HTTP_SERVER
 #include <Trace.h>

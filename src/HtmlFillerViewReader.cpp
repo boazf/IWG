@@ -21,7 +21,7 @@
 #include <Trace.h>
 #endif
 
-size_t HtmlFillerViewReader::viewHandler(byte *buff, size_t buffSize)
+size_t HtmlFillerViewReader::viewHandler(size_t buffSize, bool last)
 {
     for(size_t i = 0; i < buffSize; i++)
     {
@@ -49,14 +49,14 @@ size_t HtmlFillerViewReader::viewHandler(byte *buff, size_t buffSize)
                 continue;
             }
             
-            if (i + fill.length() >= buffSize)
+            if (i + fill.length() >= buffSize && !last)
                 return i;
 
             for(j = i; buff[j] != (byte)' '; j++)
                 buff[j] = (byte)' ';
-            for (unsigned int j = 0; j < fill.length(); j++)
+            for (unsigned int j = 0; j < fill.length() && i + j < buffSize; j++)
             {
-                if (buff[i + j] != (char)' ')
+                if (buff[i + j] != (char)' ' || i + j >= buffSize)
                 {
 #ifdef DEBUG_HTTP_SERVER
                     Traceln("Not enough spaces for filled value!");
@@ -84,14 +84,34 @@ bool HtmlFillerViewReader::DoFill(int nFill, String &fill)
 bool HtmlFillerViewReader::open(byte *buff, int buffSize)
 {
     offset = buffSize;
+    endOfView = false;
     return ViewReader::open(buff, buffSize) && viewReader->open(buff, buffSize);
 }
 
 int HtmlFillerViewReader::read()
 {
+    if (endOfView)
+        return -1;
+
     memcpy(buff, buff + offset, buffSize - offset);
     offset = buffSize - offset;
-    size_t nBytes = viewReader->read(offset) + offset;
-    offset = viewHandler(buff, nBytes);
+    int nBytes = viewReader->read(offset);
+    if (nBytes == -1)
+    {
+        endOfView = true;
+        if (offset == 0)
+            return -1;
+        viewHandler(offset, true);
+        return offset;
+    }
+    nBytes += offset;
+    if (nBytes < buffSize)
+    {
+        endOfView = true;
+        viewHandler(nBytes, true);
+        return nBytes;
+    }
+
+    offset = viewHandler(nBytes);
     return offset;
 }

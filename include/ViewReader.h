@@ -20,8 +20,7 @@
 #define ViewReader_h
 
 #include <Arduino.h>
-#include <EthernetUtil.h>
-#include <HttpHeaders.h>
+#include <Common.h>
 
 class ViewReader {
 public:

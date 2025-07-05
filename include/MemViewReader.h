@@ -31,6 +31,11 @@ public:
         offset(0) 
     {}
 
+    virtual bool open(byte *buff, int buffSize) override 
+    {
+        offset = 0; // Reset offset for reading
+        return ViewReader::open(buff, buffSize);
+    };
     virtual void close() {};
     virtual bool getLastModifiedTime(String &lastModifiedTimeStr) {return false; };
     virtual CONTENT_TYPE getContentType() { return contentType; };
@@ -50,7 +55,7 @@ private:
         if (offset >= size)
             return -1;
 
-        readSize = min<size_t>(readSize, size - offset);
+        readSize = std::min<size_t>(readSize, size - offset);
         memcpy(readBuff, mem + offset, readSize);
         offset += readSize;
 

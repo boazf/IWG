@@ -19,6 +19,7 @@
 #ifndef FileViewReader_h
 #define FileViewReader_h
 
+#include <Common.h>
 #include <SDUtil.h>
 #include <ViewReader.h>
 
