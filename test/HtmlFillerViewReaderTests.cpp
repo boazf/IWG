@@ -6,8 +6,8 @@
 #include <HtmlFillerViewReader.cpp>
 
 // Create a mock ViewReader
-static const String mem = "This is a t%est string% with %0                  and %1                        fillers.%";
-static const String expectedContent = "This is a t%est string% with Mock Filler1        and Mock Filler2              fillers.%";
+static const String mem = "This%1is a t%est string% with %0                  and %1                        fillers.%";
+static const String expectedContent = "This%1is a t%est string% with Mock Filler1        and Mock Filler2              fillers.%";
 // Create a mock GetFillers function
 static const GetFillers mockGetFillers = [](const ViewFiller *&fillers) -> int {
     static ViewFiller mockFillers[] =
@@ -94,8 +94,8 @@ void HtmlFillerViewReaderWithNonExistingFiller()
 void HtmlFillerViewReaderWithNotEnoughSpaceForFiller(const String &mem, const String &expectedContent)
 {
     // This test checks if the reader handles cases where there is not enough space for the filler
-    // The expected behavior is that it should not crash and should return the original content
-    // without filling the placeholder.
+    // The expected behavior is that it should not crash and should fill as much as possible.
+    // in .
     
     ViewReader *mockViewReader = new MemViewReader(reinterpret_cast<const byte *>(mem.c_str()), mem.length(), CONTENT_TYPE::HTML);
     HtmlFillerViewReader reader(mockViewReader, mockGetFillers);
@@ -105,9 +105,6 @@ void HtmlFillerViewReaderWithNotEnoughSpaceForFiller(const String &mem, const St
 
 void HtmlFillerViewReaderWithNotEnoughSpaceForFiller()
 {
-    const String mem = "This is a test string with %0 filler.";
-    ViewReader *mockViewReader = new MemViewReader(reinterpret_cast<const byte *>(mem.c_str()), mem.length(), CONTENT_TYPE::HTML);
-
     HtmlFillerViewReaderWithNotEnoughSpaceForFiller(
         "This is a test string with %0 filler.",
         "This is a test string with Mocfiller.");
