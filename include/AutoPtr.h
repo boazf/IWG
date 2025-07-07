@@ -21,6 +21,9 @@
 
 #include <assert.h>
 
+/// @brief This class implements a smart pointer that automatically manages the lifetime of an object.
+/// @tparam T The type of the object to manage.
+/// This class is a simple implementation of an auto pointer that automatically deletes the object it points to when the pointer goes out of scope.
 template <typename T>
 class AutoPtr
 {

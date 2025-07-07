@@ -22,6 +22,10 @@
 #include <Arduino.h>
 #include <SD.h>
 
+/// @brief FileEx class.
+/// This class extends the File class by applying serialization to the file operations.
+/// All file operations are serialized to avoid collisions when multiple threads or tasks
+/// are accessing the file system or the Ethernet adapter.
 class FileEx : public File
 {
 public:

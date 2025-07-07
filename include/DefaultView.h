@@ -22,6 +22,7 @@
 #include <DummyView.h>
 #include <HttpHeaders.h>
 
+/// @brief The default view. This is the view that is called when the URL is set to the root ("/").
 class DefaultView : public DummyView
 {
 public:
@@ -34,6 +35,12 @@ public:
     static HttpController *getInstance() { return new DefaultView(""); }
 
 protected:
+    /// @brief Redirects the client to the index page.
+    /// This method is called when the client requests the root URL ("/").
+    /// @param client The EthClient instance representing the client connection.
+    /// This client is used to send the HTTP response.
+    /// @param id The identifier for the resource being requested.
+    /// @return True to indicate that a redirection response was sent.
     bool redirect(EthClient &client, const String &id)
     {
         HttpHeaders::Header additionalHeaders[] = { {"Location", "/index"} };

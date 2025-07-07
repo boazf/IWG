@@ -21,6 +21,7 @@
 
 #include <FileView.h>
 
+// This view handles the FILES.HTM page.
 class FilesView : public FileView
 {
 public:

@@ -21,6 +21,10 @@
 
 #include <View.h>
 
+/// @brief DummyViewReader class.
+/// This class is a dummy implementation of the ViewReader interface.
+/// It is used with views that doesn't require reading from a file or any other source.
+/// For example the default view is using this view reader.
 class DummyViewReader : public ViewReader
 {
 public:
@@ -29,11 +33,6 @@ public:
     }
 
 protected:
-    int read()
-    {
-        return -1;
-    }
-
     int read(int offset)
     {
         return -1;
@@ -52,11 +51,6 @@ protected:
     CONTENT_TYPE getContentType()
     {
         return CONTENT_TYPE::HTML;
-    }
-
-    bool open(byte *buff, int buffSize)
-    {
-        return true;
     }
 
     void close()

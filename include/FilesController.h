@@ -21,6 +21,8 @@
 
 #include <HttpController.h>
 
+/// @brief FilesController class.
+/// This class handles HTTP requests made from the FILES.HTM page.
 class FilesController : public HttpController
 {
 public:

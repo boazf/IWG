@@ -30,13 +30,18 @@
 
 void GWConnTest::Start(time_t delay)
 {
+    // Check if the task is already running
     if (hGWConnTestTask != NULL)
         return ;
 
-    tDelay = delay;
+    isConnected = false; // Reset the connection status. Assume it is not connected until proven otherwise.
+    tDelay = delay; // Set the delay before starting pinging the gateway
+    // Create the task to test the gateway connection
     xTaskCreate(gwConnTestTask, "GWConnTest", 2 * 1024, this, tskIDLE_PRIORITY, &hGWConnTestTask);
 }
 
+// Static function to be used as a task entry point
+// It calls the gwConnTestTask method of the GWConnTest instance
 void GWConnTest::gwConnTestTask(void *param)
 {
     static_cast<GWConnTest *>(param)->gwConnTestTask();
@@ -46,6 +51,7 @@ bool GWConnTest::ping(int attempts, int tInterval)
 {
     bool success = true;
 
+    // Check of the Ethernet is connected. Once it is connected, return true
     for (int i = 0; i < attempts && success; i++)
     {
         delay(tInterval);
@@ -57,10 +63,15 @@ bool GWConnTest::ping(int attempts, int tInterval)
 
 bool GWConnTest::ping()
 {
+    // Get the gateway IP address of the gateway
     IPAddress gw = Eth.gatewayIP();
 #ifdef USE_WIFI
+    // Use the ESP32Ping library to ping the gateway
+    // The ping method returns true if the gateway is reachable, false otherwise
     return Ping.ping(gw, 1);
 #else
+    // Use the ICMPEchoReplyEx class to ping the gateway
+    // The ping method returns true if the gateway is reachable, false otherwise
     ICMPPingEx ping(MAX_SOCK_NUM, 2);
     ICMPEchoReplyEx result = ping(gw, 1);
     return result.pingSent && result.reply.status == SUCCESS;
@@ -69,18 +80,22 @@ bool GWConnTest::ping()
 
 void GWConnTest::gwConnTestTask()
 {
+    // This is the task that runs the gateway connection test
+    // It will ping the gateway until it is reachable
+
+    // Wait before starting the pinging
     delay(tDelay);
 #ifdef DEBUG_ETHERNET
     Tracef("GWConnTest: Starting pinging %s\n", Eth.gatewayIP().toString().c_str());
 #endif
-    while (!ping(5, 500))
-        isConnected = false;
+    // Ping the gateway until it is reachable
+    while (!ping(5, 500));
 #ifdef DEBUG_ETHERNET
     Traceln("GW Connection retrieved!");
 #endif
-    hGWConnTestTask = NULL;
-    isConnected = true;
-    vTaskDelete(NULL);
+    hGWConnTestTask = NULL; // Clear the task handle to indicate that the task is no longer running
+    isConnected = true; // Set the connection status to true, indicating that the gateway is reachable
+    vTaskDelete(NULL); // Delete the task
 }
 
 bool GWConnTest::IsConnected()
@@ -88,4 +103,5 @@ bool GWConnTest::IsConnected()
     return isConnected;
 }
 
+/// @brief Global instance of GWConnTest.
 GWConnTest gwConnTest;

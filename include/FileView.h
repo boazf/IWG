@@ -22,6 +22,8 @@
 #include <View.h>
 #include <FileViewReader.h>
 
+/// @brief FileView class.
+/// This class is a view that reads from a file on the SD card.
 class FileView : public View
 {
 public:

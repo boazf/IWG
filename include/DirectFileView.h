@@ -21,9 +21,15 @@
 
 #include <FileView.h>
 
+/// @brief DirectFileView class.
+/// This class takes the resource part of the URL from the request and attempts to 
+/// find a file that matches the resource in the SD card.
+/// If the file is found, it will return the content of the file to the client.
 class DirectFileView : public FileView
 {
 public:
+    // @brief Constructor for DirectFileView.
+    // @param viewFilePath The file path to the view file.
     DirectFileView(const char *viewFilePath) :
         FileView(mapper(viewFilePath))
     {
@@ -31,10 +37,18 @@ public:
     bool isSingleton() { return false; }
 
 private:
+    /// @brief Maps the file path to a specific format.
+    /// This method is used to map the file path to a specific format that is used on the SD card.
     static const String mapper(const String _filePath)
     {
         String filePath = _filePath;
         filePath.toUpperCase();
+        // Map "GLYPHICONS-HALFLINGS-REGULAR.WOFF" to "GHR.WOF"
+        // "GLYPHICONS-HALFLINGS-REGULAR.WOFF2" to "GHR.WF2"
+        // This was done when the code used to run on an arduino AVR board. There,
+        // there was only one file system type (FAT16). And only 8.3 file names could be used.
+        // So this mapping was required. Now that the code only runs on ESP32, mapping can
+        // be removed. But for now we remain with this mapping.
         int fileIndex = filePath.indexOf("GLYPHICONS-HALFLINGS-REGULAR");
         if (fileIndex != -1)
         {

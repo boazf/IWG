@@ -21,9 +21,16 @@
 
 #include <ViewReader.h>
 
+/// @brief This class is a ViewReader that reads from a memory buffer.
+/// It is used to read data from a memory buffer and provide it as a view.
 class MemViewReader : public ViewReader
 {
 public:
+    /// @brief Class constructor
+    /// @param mem A buffer in memory to read from
+    /// @param size The size of the memory buffer
+    /// @param contentType The content type of the data in the memory buffer
+    /// @note The content type is used to determine how the data should be interpreted.
     MemViewReader(const byte *mem, size_t size, CONTENT_TYPE contentType) : 
         mem(mem), 
         size(size), 

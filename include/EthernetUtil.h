@@ -128,6 +128,10 @@ public:
 #define EthUDP EthernetUDPEx
 #endif // USE_WIFI
 
+/// @brief AutoStopClient class.
+/// This class is a wrapper around the EthClient class that automatically stops the client
+/// when it is destroyed. This is useful to ensure that the client is properly stopped
+/// and resources are released when the client is no longer needed.
 class AutoStopClient : public EthClient
 {
 public:
@@ -137,11 +141,24 @@ public:
 	}
 };
 
+/// @brief Wait for DNS available.
+/// @return True if DNS is available, false otherwise.
 bool WaitForDNS();
 
+/// @brief Initialize Ethernet.
+/// @return True if Ethernet is initialized successfully, false otherwise.
 bool InitEthernet();
+/// @brief Do ethernet maintenance.
+/// This function should be called periodically to maintain the Ethernet connection.
 void MaintainEthernet();
+/// @brief Check if the IP address is a zero address.
+/// @param address The IP address to check.
+/// @return True if the address is a zero address.
 bool IsZeroIPAddress(const IPAddress &address);
+/// @brief Try to get the host address from the server name.
+/// @param address The IPAddress object to store the resolved address.
+/// @param server The server name to resolve.
+/// @return True if the host address was successfully resolved, false otherwise.
 bool TryGetHostAddress(IPAddress &address, String server);
 
 #endif // EthernetUtil_h

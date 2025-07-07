@@ -25,9 +25,24 @@
 typedef void (*ViewFiller)(String &fill);
 typedef int (*GetFillers)(const ViewFiller *&fillers);
 
+/// @brief This class is a ViewReader that fills the view with values from a provided GetFillers function.
+/// It replaces filler indices in the view with their corresponding values.
+/// It searches for '%' characters followed by a number (filler index), which indicates a filler index and
+/// replaces it with the corresponding filler value.
+/// After the filler index there should be enough spaces to fill the value.
+/// If the filler index is not valid or there is not enough space in the buffer to fill the value, it will
+/// fill whatever possible and will continue processing rest of the buffer.
 class HtmlFillerViewReader : public ViewReader
 {
 public:
+    /// @brief Class constructor
+    /// @param viewReader A pointer to a ViewReader object that will be used to read the view.
+    /// The data provided by this ViewReader will be processed to fill the view.
+    /// When the HtmlFillerViewReader is opened, it will also open the viewReader.
+    /// When the HtmlFillerViewReader is closed, it will also close the viewReader.
+    /// When the HtmlFillerViewReader is deleted, it will also delete the viewReader.
+    /// @param getFillers A function that retrieves the fillers from the provided GetFillers function.
+    /// It should return the number of fillers available and fill the fillers array with the appropriate values
     HtmlFillerViewReader(ViewReader *viewReader, GetFillers getFillers) :
         viewReader(viewReader),
         getFillers(getFillers)
