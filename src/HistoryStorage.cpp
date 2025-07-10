@@ -42,7 +42,7 @@ void HistoryStorage::ReportInitializationResult()
     tm tr;
     char buff[64];
     localtime_r(&lastRecovery, &tr);
-    strftime(buff, sizeof(buff), "%d/%m/%Y %T", &tr);
+    strftime(buff, sizeof(buff), "%d/%m/%Y %H:%M:%S", &tr);
     Trace("Last Recovery: ");
     Traceln(buff);
 }
@@ -56,7 +56,7 @@ void HistoryStorage::init(int _maxRecords)
     EEPROM.commit();
 #endif
     maxRecords = _maxRecords;
-    getAvailableRecords();
+    getAvailableRecords(); // Retrieve the number of available records from EEPROM
     if (availableRecords == -1)
     {
         // Reset history on first time the board is running
@@ -65,6 +65,8 @@ void HistoryStorage::init(int _maxRecords)
     }
     if (availableRecords < maxRecords)
     {
+        // If the number of available records is less than the maximum records, set startIndex to 
+        // the number of available records and set lastRecovery to the recovery time of the last record.
         startIndex = availableRecords;
         if (availableRecords > 0)
         {
@@ -73,6 +75,7 @@ void HistoryStorage::init(int _maxRecords)
             lastRecovery = historyStorageItem.recoveryTime();
         }
         else
+            // If there are no available records, set lastRecovery to INT32_MAX.
             lastRecovery = INT32_MAX;
 #ifdef DEBUG_HISTORY
         ReportInitializationResult();
@@ -80,6 +83,9 @@ void HistoryStorage::init(int _maxRecords)
         return;
     }
 
+    // If the number of available records is equal to the maximum records, find the earliest record
+    // and set startIndex to the index of that record.
+    // The lastRecovery to the recovery time of the oldest record.
     time_t minT = INT32_MAX;
     startIndex = 0;
     bool first = true;
@@ -92,6 +98,11 @@ void HistoryStorage::init(int _maxRecords)
         time_t startTime = historyStorageItem.startTime();
         if (minT > startTime)
         {
+            // We always get here with record index 0.
+            // Next time that we'll get here, we will actually hit the earliest record.
+            // This is because we are using a circular buffer.
+            // If don't get here again, this means that all records are arranged in ascending order
+            // and the first record is the earliest one.
             minT = startTime;
             startIndex = i;
             if (!first)
@@ -108,17 +119,19 @@ void HistoryStorage::init(int _maxRecords)
 
 void HistoryStorage::addHistory(HistoryStorageItem &item)
 {
+    // Store the item in the EEPROM at the current startIndex.
     item.put(startIndex);
-    if (startIndex == availableRecords && availableRecords < maxRecords)
+    if (availableRecords < maxRecords)
     {
+        // If the circular buffer is not full yet, increment the availableRecords count.
         availableRecords++;
         putAvailableRecords();
     }
+    // Increment the startIndex in a circular manner.
     startIndex = (startIndex + 1) % maxRecords;
-    if (item.recoveryStatus() != RecoveryStatus::RecoverySuccess)
-        lastRecovery = INT32_MAX;
-    else
-        lastRecovery = item.endTime();
+    // Update last recovery time.
+    lastRecovery = item.recoveryTime();
+    // Commit changes to EEPROM
     EEPROM.commit();
 }
 
@@ -129,17 +142,23 @@ void HistoryStorage::resize(int _maxRecords)
 
     if (availableRecords < maxRecords)
     {
+        // We haven't reached the maximum records yet, so we can just set the new maxRecords.
         if (availableRecords <= _maxRecords)
         {
+            // If the new maxRecords is greater than or equal to the available records,
+            // we can just set maxRecords to _maxRecords and return.
             maxRecords = _maxRecords;
             return;
         }
         else
         {
+            // If the new maxRecords is less than the available records, we need to reshuffle the records.
             maxRecords = availableRecords;
         }
     }
 
+    // Calculate the difference between the current maxRecords and the new _maxRecords.
+    // If the difference is zero, we don't need to do anything.
     int delta = _maxRecords - maxRecords;
     if (delta == 0)
         return;
@@ -148,26 +167,70 @@ void HistoryStorage::resize(int _maxRecords)
 
     if (delta < 0)
     {
-        if (startIndex - delta <= maxRecords)
+        // If we are reducing the number of records, we need to shift the records.
+        if (startIndex <= _maxRecords)
         {
-
-            for(int i = startIndex; i < maxRecords + delta; i++)
+            // maxRecords = 10
+            // startIndex = 5
+            // availableRecords = 10
+            // _maxRecords = 6
+            // delta = -4
+            // +-+-+-+-+-+-+-+-+-+-+
+            // |5|6|7|8|9|0|1|2|3|4|
+            // +-+-+-+-+-+-+-+-+-+-+
+            //            ↑
+            // startIndex ┘
+            // Shift from the end of the buffer to the startIndex.
+            for(int i = startIndex; i < _maxRecords; i++)
                 item.get(i - delta).put(i);
             maxRecords = _maxRecords;
             if (startIndex >= maxRecords)
                 startIndex = 0;
+            // +-+-+-+-+-+-+
+            // |5|6|7|8|9|4|
+            // +-+-+-+-+-+-+
+            //            ↑
+            // startIndex ┘
         }
         else
         {
+            // maxRecords = 10
+            // startIndex = 7
+            // availableRecords = 10
+            // _maxRecords = 6
+            // delta = -4
+            // +-+-+-+-+-+-+-+-+-+-+
+            // |3|4|5|6|7|8|9|0|1|2|
+            // +-+-+-+-+-+-+-+-+-+-+
+            //                ↑
+            //     startIndex ┘
+            // Shift the latest _maxRecords to the start of the buffer.
             maxRecords = _maxRecords;
             delta = startIndex - maxRecords;
             startIndex = 0;
             for (int i = 0; i < maxRecords; i++)
                 item.get(i + delta).put(i);
+            // maxRecords = 6
+            // delta = 7 - 6 = 1
+            // +-+-+-+-+-+-+
+            // |4|5|6|7|8|9|
+            // +-+-+-+-+-+-+
+            //  ↑
+            //  └─ startIndex
         }
     }
     else
     {
+        // maxRecords = 10
+        // startIndex = 7
+        // availableRecords = 10
+        // _maxRecords = 12
+        // delta = 2
+        // +-+-+-+-+-+-+-+-+-+-+
+        // |3|4|5|6|7|8|9|0|1|2|
+        // +-+-+-+-+-+-+-+-+-+-+
+        //                ↑
+        //     startIndex ┘
         // Bubble  sort
         for (int i = 0; i < maxRecords - 1; i++)
         {
@@ -177,8 +240,7 @@ void HistoryStorage::resize(int _maxRecords)
             for (int j = 0; j < maxRecords - i - 1; j++)
             {
                 HistoryStorageItem sj1;
-                sj1.get(j+1);
-                if (sj.startTime() > sj1.startTime())
+                if (sj > sj1.get(j+1))
                 {
                     sj.put(j+1);
                     sj1.put(j);
@@ -192,6 +254,14 @@ void HistoryStorage::resize(int _maxRecords)
         }
         maxRecords = _maxRecords;
         startIndex = availableRecords < maxRecords ? availableRecords : 0; 
+        // +-+-+-+-+-+-+-+-+-+-+-+-+
+        // |0|1|2|3|4|5|6|7|8|9| | |
+        // +-+-+-+-+-+-+-+-+-+-+-+-+
+        //                      ↑
+        //           startIndex ┘
+        // startIndex = 10
+        // maxRecords = 12
+        // availableRecords = 10
     }
 
     if (availableRecords > maxRecords)
