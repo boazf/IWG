@@ -39,11 +39,3 @@ void test_stringable_enum_invalid()
     StringableEnum<TestEnum> enumValue(static_cast<TestEnum>(999)); // Invalid value
     TEST_ASSERT_EQUAL_STRING(StringableEnum<TestEnum>::unknown().c_str(), enumValue.ToString().c_str());
 }
-
-void test_StringableEnum()
-{
-    UNITY_BEGIN();
-    RUN_TEST(test_stringable_enum);
-    RUN_TEST(test_stringable_enum_invalid);
-    UNITY_END();
-}

@@ -19,10 +19,27 @@ void tearDown(void) {
 int main(void) {
   Traceln("Starting tests...");
   UNITY_BEGIN();
-  test_StateMachine();
-  test_StringableEnum();
-  test_HtmlFillerViewReader();
-  test_HistoryStorage();
+	RUN_TEST(sm_test_basic_transitions);
+	RUN_TEST(sm_test_invalid_verb_transition);
+	RUN_TEST(sm_test_basic_transitions);
+	RUN_TEST(sm_test_invalid_verb_transition);
+	RUN_TEST(sm_test_invalid_state_transition);
+	RUN_TEST(sm_test_no_entry_exit_actions);
+	RUN_TEST(sm_test_invalid_states);
+	RUN_TEST(sm_test_change_verb_at_exit);
+	RUN_TEST(test_stringable_enum);
+	RUN_TEST(test_stringable_enum_invalid);
+	RUN_TEST(HtmlFillerViewReaderBasicTests);
+	RUN_TEST(HtmlFillerViewReaderWithVariousBuffLen);
+	RUN_TEST(HtmlFillerViewReaderWithNonExistingFiller);
+	RUN_TEST(HtmlFillerViewReaderWithNotEnoughSpaceForFiller);
+	RUN_TEST(HistoryStorageBasicTests);
+	RUN_TEST(BasicResizeHistoryStorageTests);
+	RUN_TEST(InitHistoryStorageTests);
+	RUN_TEST(TestShrinkHistoryStorage);
+	RUN_TEST(EnlargeHistoryStorageTests);
+	RUN_TEST(TestLastRecovery);
+	RUN_TEST(TestModemAndRouterRecoveryCounts);
   return UNITY_END();
 }
 

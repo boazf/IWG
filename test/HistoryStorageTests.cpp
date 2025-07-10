@@ -350,14 +350,3 @@ void TestModemAndRouterRecoveryCounts()
     TEST_ASSERT_EQUAL(4, item.modemRecoveries());
     TEST_ASSERT_EQUAL(2, item.routerRecoveries());
 }
-
-void test_HistoryStorage()
-{
-    RUN_TEST(HistoryStorageBasicTests);
-    RUN_TEST(BasicResizeHistoryStorageTests);
-    RUN_TEST(InitHistoryStorageTests);
-    RUN_TEST(TestShrinkHistoryStorage);
-    RUN_TEST(EnlargeHistoryStorageTests);
-    RUN_TEST(TestLastRecovery);
-    RUN_TEST(TestModemAndRouterRecoveryCounts);
-}

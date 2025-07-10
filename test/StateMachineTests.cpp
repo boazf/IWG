@@ -423,15 +423,3 @@ void sm_test_change_verb_at_exit()
     exp.runningEntryCount++;
     testCounters(exp, ctx);
 }
-
-void test_StateMachine()
-{
-    RUN_TEST(sm_test_basic_transitions);
-    RUN_TEST(sm_test_invalid_verb_transition);
-    RUN_TEST(sm_test_basic_transitions);
-    RUN_TEST(sm_test_invalid_verb_transition);
-    RUN_TEST(sm_test_invalid_state_transition);
-    RUN_TEST(sm_test_no_entry_exit_actions);
-    RUN_TEST(sm_test_invalid_states);
-    RUN_TEST(sm_test_change_verb_at_exit);
-}

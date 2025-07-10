@@ -115,11 +115,3 @@ void HtmlFillerViewReaderWithNotEnoughSpaceForFiller()
         "This is a test string with %0 filler, but without enough space.", 
         "This is a test string with Mocfiller, but without enough space.");
 }
-
-void test_HtmlFillerViewReader()
-{
-    RUN_TEST(HtmlFillerViewReaderBasicTests);
-    RUN_TEST(HtmlFillerViewReaderWithVariousBuffLen);
-    RUN_TEST(HtmlFillerViewReaderWithNonExistingFiller);
-    RUN_TEST(HtmlFillerViewReaderWithNotEnoughSpaceForFiller);
-}
