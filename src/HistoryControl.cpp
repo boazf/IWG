@@ -22,6 +22,7 @@
 
 namespace historycontrol
 {
+    // Static members initialization
     int HistoryControl::maxHistory;
     RecoveryTypes HistoryControl::recoveryType;
     RecoverySource HistoryControl::recoverySource;
@@ -31,11 +32,17 @@ namespace historycontrol
 
     void HistoryControl::init()
     {
+        // Add recovery state change observer
         recoveryControl.GetRecoveryStateChanged().addObserver(onRecoveryStateChanged, this);
+        // Get the maximum history records from the application configuration
         maxHistory = AppConfig::getMaxHistory();
+        // Add observer for maximum history record changes
         recoveryControl.GetMaxHistoryRecordsChanged().addObserver(onMaxHistoryChanged, this);
+        // Read the history records from storage (EEPROM)
         storage.init(maxHistory);
+        // Set the last update time to the current time
         lastUpdate = t_now;
+        // Start the FSM
         tinyfsm::FsmList<HistoryControl>::start();
     }
 
@@ -57,6 +64,8 @@ namespace historycontrol
     class RouterRecovery;
     class PeriodicRestart;
 
+    /// @brief Common base class for all states in the HistoryControl FSM.
+    /// This class handles the common functionality for reacting to recovery state changes.
     class CommonHistoryControlState : public HistoryControl
     {
     public:
@@ -69,8 +78,10 @@ namespace historycontrol
             {
             case RecoveryTypes::ConnectivityCheck:
                 transit<ConnectivityCheck>();
+                break;
 
             case RecoveryTypes::Disconnected:
+                // Do nothing.
                 break;
 
             case RecoveryTypes::Failed:
@@ -103,22 +114,28 @@ namespace historycontrol
 
     void HistoryControl::onRecoveryStateChanged(const RecoveryStateChangedParams &params, const void* context)
     {
+        // Cast the context to HistoryControl pointer and call the send_event method`
         HistoryControl *control = const_cast<HistoryControl *>(static_cast<const HistoryControl *>(context));
+        // Trigger the FSM transition by sending the RecoveryStateChanged event
         control->send_event(RecoveryStateChanged(params.m_recoveryType, params.m_source));
     }
 
     void HistoryControl::onMaxHistoryChanged(const MaxHistoryRecordChangedParams &params, const void* context)
     {
+        // Cast the context to HistoryControl pointer and update the maxHistory
         HistoryControl *control = const_cast<HistoryControl *>(static_cast<const HistoryControl *>(context));
+        // Update the maximum history records
         control->maxHistory = params.m_maxRecords;
         control->storage.resize(control->maxHistory);
         control->lastUpdate = t_now;
     }
 
+    /// @brief Init state.
     class Init : public CommonHistoryControlState
     {
     };
 
+    /// @brief Common state for connectivity checks and recovery failures.
     class ConnectivityCheck : public CommonHistoryControlState
     {
         void entry() override
@@ -127,6 +144,7 @@ namespace historycontrol
         }
     };
 
+    /// @brief Connectivity check state while in a failure state.
     class ConnectivityCheckWhileInFailure : public ConnectivityCheck
     {
         void exit() override
@@ -135,6 +153,7 @@ namespace historycontrol
         }
     };
 
+    /// @brief State for handling recovery failures.
     class RecoveryFailure : public CommonHistoryControlState
     {
         void entry() override
@@ -144,10 +163,7 @@ namespace historycontrol
 
         void react(RecoveryStateChanged const &event) override
         {
-            recoveryType = event.m_recoveryType;
-            recoverySource = event.m_source;
-
-            if (recoveryType == RecoveryTypes::ConnectivityCheck)
+            if (event.m_recoveryType == RecoveryTypes::ConnectivityCheck)
                 transit<ConnectivityCheckWhileInFailure>();
             else
                 CommonHistoryControlState::react(event);
@@ -159,6 +175,8 @@ namespace historycontrol
         }
     };
 
+    /// @brief State for handling hardware failures.
+    /// @todo This state actually never gets entered. Should remove it all together
     class HWFailure : public CommonHistoryControlState
     {
         void entry() override
@@ -169,16 +187,18 @@ namespace historycontrol
         }
     };
 
+    /// @brief State for modem recovery.
     class ModemRecovery : public CommonHistoryControlState
     {
         void entry() override
         {
-            AddHistoryItem(recoverySource);
+            CreateHistoryItem(recoverySource);
             currStorageItem->modemRecoveries()++;
             lastUpdate = t_now;
         }
     };
 
+    /// @brief State for when the device is connected.
     class Connected : public CommonHistoryControlState
     {
         void entry() override
@@ -198,21 +218,23 @@ namespace historycontrol
         }
     };
 
+    /// @brief State for router recovery.
     class RouterRecovery : public CommonHistoryControlState
     {
         void entry() override
         {
-            AddHistoryItem(recoverySource);
+            CreateHistoryItem(recoverySource);
             currStorageItem->routerRecoveries()++;
             lastUpdate = t_now;
         }
     };
 
+    /// @brief State for periodic restarts.
     class PeriodicRestart : public CommonHistoryControlState
     {
         void entry() override
         {
-            AddHistoryItem(recoverySource);
+            CreateHistoryItem(recoverySource);
             if (AppConfig::getPeriodicallyRestartRouter())
                 currStorageItem->routerRecoveries()++;
             if (AppConfig::getPeriodicallyRestartModem())
@@ -225,14 +247,9 @@ namespace historycontrol
     {
         if (recoveryType == RecoveryTypes::NoRecovery)
         {
-            AddHistoryItem(recoverySource);
+            CreateHistoryItem(recoverySource);
             AddToHistoryStorage(RecoveryStatus::RecoverySuccess, false);
         }
-    }
-
-    void HistoryControl::AddHistoryItem(RecoverySource recoverySource)
-    {
-        CreateHistoryItem(recoverySource);
     }
 
     bool HistoryControl::CreateHistoryItem(RecoverySource recoverySource)
@@ -280,6 +297,8 @@ namespace historycontrol
     }
 }
 
+/// @brief Global instance of HistoryControl.
 historycontrol::HistoryControl historyControl;
 
+// Initial state of the HistoryControl FSM.
 FSM_INITIAL_STATE(historycontrol::HistoryControl, historycontrol::Init)
