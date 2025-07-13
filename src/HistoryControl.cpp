@@ -163,7 +163,11 @@ namespace historycontrol
 
         void react(RecoveryStateChanged const &event) override
         {
-            if (event.m_recoveryType == RecoveryTypes::ConnectivityCheck)
+            // Don't remove those two assignments, it is used in the base class
+            recoveryType = event.m_recoveryType;
+            recoverySource = event.m_source;
+
+            if (recoveryType == RecoveryTypes::ConnectivityCheck)
                 transit<ConnectivityCheckWhileInFailure>();
             else
                 CommonHistoryControlState::react(event);
