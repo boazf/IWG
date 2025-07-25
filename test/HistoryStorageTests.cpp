@@ -52,7 +52,7 @@ void AddHistory(HistoryStorage &historyStorage,
 /// This function initializes the HistoryStorage, adds history items, and verifies the contents
 /// of the storage after each addition.
 /// It checks the number of available records, the contents of each record, and the last recovery
-void HistoryStorageBasicTests() {
+void historyStorageBasicTests() {
     // Initialize the HistoryStorage
     HistoryStorage historyStorage;
     historyStorage.init(10); // Initialize with a maximum of 10 records
@@ -124,7 +124,7 @@ void VerifyHistoryItems(HistoryStorage &historyStorage, time_t now, int nItems)
 /// This function initializes the HistoryStorage, fills it with items, resizes it,
 /// and verifies the contents after resizing.
 /// This resize doesn't cause items to shuffle.
-void BasicResizeHistoryStorageTests()
+void historyStorageBasicResizeTests()
 {
     EEPROM.clear();
     HistoryStorage historyStorage;
@@ -146,7 +146,7 @@ void BasicResizeHistoryStorageTests()
 }
 
 /// @brief Test history storage initialization. 
-void InitHistoryStorageTests()
+void historyStorageInitTests()
 {
     time_t t0 = time(NULL);
     time_t now = t0;
@@ -219,7 +219,7 @@ void InitHistoryStorageTests()
 /// so that the size is reduced to a smaller size.
 /// It verifies that the number of items in the storage is reduced to the new size and
 /// that the items are correctly shuffled in the storage.
-void TestShrinkHistoryStorage()
+void historyStorageShrinkTests()
 {
     // Test various combinations of number of history items and resize values.
     for (int resize = 1; resize <=10; resize++)
@@ -251,7 +251,7 @@ void TestShrinkHistoryStorage()
 /// It verifies that the number of items in the storage remains the same as before resizing
 /// and that all previous items are still present in the storage.
 /// It also checks that new items can be added up to the new size.
-void EnlargeHistoryStorageTests()
+void historyStorageEnlargeTests()
 {
     // Test various combinations of number of history items and resize values.
     for (int resize = 11; resize < 20; resize++)
@@ -291,7 +291,7 @@ void EnlargeHistoryStorageTests()
 /// @brief Test the last recovery time in the history storage.
 /// This function initializes the HistoryStorage, adds history items with different recovery statuses,
 /// and verifies the last recovery time after each addition.
-void TestLastRecovery()
+void historyStorageLastRecoveryTests()
 {
     EEPROMEx.clear();
     HistoryStorage historyStorage;
@@ -329,7 +329,7 @@ void TestLastRecovery()
     TEST_ASSERT_EQUAL_INT32(t0 + 9, historyStorage.getLastRecovery());
 }
 
-void TestModemAndRouterRecoveryCounts()
+void historyStorageModemAndRouterRecoveryCountsTests()
 {
     EEPROMEx.clear();
     HistoryStorage historyStorage;

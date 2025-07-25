@@ -19,7 +19,7 @@ static const GetFillers mockGetFillers = [](const ViewFiller *&fillers) -> int {
     return NELEMS(mockFillers); // Number of fillers
 };
 
-void HtmlFillerViewReaderBasicTests()
+void htmlFillerViewReaderBasicTests()
 {
     ViewReader *mockViewReader = new MemViewReader(reinterpret_cast<const byte *>(mem.c_str()), mem.length(), CONTENT_TYPE::HTML);
     HtmlFillerViewReader reader(mockViewReader, mockGetFillers);
@@ -74,7 +74,7 @@ void HtmlFillerViewReaderTestLoop(const String &mem, const String &expectedConte
     }
 }
 
-void HtmlFillerViewReaderWithVariousBuffLen()
+void htmlFillerViewReaderWithVariousBuffLenTests()
 {
     ViewReader *mockViewReader = new MemViewReader(reinterpret_cast<const byte *>(mem.c_str()), mem.length(), CONTENT_TYPE::HTML);
     HtmlFillerViewReader reader(mockViewReader, mockGetFillers);
@@ -82,7 +82,7 @@ void HtmlFillerViewReaderWithVariousBuffLen()
     HtmlFillerViewReaderTestLoop(mem, expectedContent, reader);
 }
 
-void HtmlFillerViewReaderWithNonExistingFiller()
+void htmlFillerViewReaderWithNonExistingFillerTests()
 {
     const String mem = "This is a test string with %2 filler.";
     ViewReader *mockViewReader = new MemViewReader(reinterpret_cast<const byte *>(mem.c_str()), mem.length(), CONTENT_TYPE::HTML);
@@ -103,7 +103,7 @@ void HtmlFillerViewReaderWithNotEnoughSpaceForFiller(const String &mem, const St
     HtmlFillerViewReaderTestLoop(mem, expectedContent, reader);
 }
 
-void HtmlFillerViewReaderWithNotEnoughSpaceForFiller()
+void htmlFillerViewReaderWithNotEnoughSpaceForFillerTests()
 {
     HtmlFillerViewReaderWithNotEnoughSpaceForFiller(
         "This is a test string with %0 filler.",

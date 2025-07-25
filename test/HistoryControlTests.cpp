@@ -31,7 +31,7 @@ void SignalRecoveryStateChange(RecoveryTypes type, RecoverySource source)
     fakeRecoveryControl.GetRecoveryStateChanged().callObservers(RecoveryStateChangedParams(type, source));
 }
 
-void HistoryControlBasicTests()
+void historyControlBasicTests()
 {
     EEPROM.clear();
     fakeRecoveryControl.Init();
@@ -106,7 +106,7 @@ void VerifyRecoverySuccessHistory(HistoryControl &historyControl, int count, Rec
             message);
 }   
 
-void HistoryControlResizeTests()
+void historyControlResizeTests()
 {
     EEPROM.clear();
     AppConfig::init();
@@ -127,7 +127,7 @@ void HistoryControlResizeTests()
     VerifyRecoverySuccessHistory(historyControl, 4, RecoverySource::UserInitiated, now, "History Size: 4");
 }
 
-void HistoryControlRouterRecoveryTests()
+void historyControlRouterRecoveryTests()
 {
     EEPROM.clear();
     AppConfig::init();
@@ -173,7 +173,7 @@ void HistoryControlRouterRecoveryTests()
     TEST_ASSERT_EQUAL(now, historyControl.getLastUpdate());
 }
 
-void HistoryControlModemRecoveryTests()
+void historyControlModemRecoveryTests()
 {
     EEPROM.clear();
     AppConfig::init();
@@ -226,7 +226,7 @@ void DoPeriodicRestart(HistoryControl &historyControl, int n, bool modem, bool r
     TEST_ASSERT_EQUAL(now, historyControl.getLastUpdate());
 }
 
-void HistoryControlPeriodicRestartTests()
+void historyControlPeriodicRestartTests()
 {
     EEPROM.clear();
     AppConfig::init();
@@ -259,7 +259,7 @@ void DoConnectivityCheckWhileInRecoveryFailure(HistoryControl &historyControl, i
     TEST_ASSERT_EQUAL(t0, historyControl.getLastUpdate());
 }
 
-void HistoryControlConnectivityCheckWhileInFailureTests()
+void historyControlConnectivityCheckWhileInFailureTests()
 {
     EEPROM.clear();
     AppConfig::init();

@@ -1,12 +1,12 @@
 #ifndef HistoryStorageTests_h
 #define HistoryStorageTests_h
 
-void HistoryStorageBasicTests();
-void BasicResizeHistoryStorageTests();
-void InitHistoryStorageTests();
-void TestShrinkHistoryStorage();
-void EnlargeHistoryStorageTests();
-void TestLastRecovery();
-void TestModemAndRouterRecoveryCounts();
+void historyStorageBasicTests();
+void historyStorageBasicResizeTests();
+void historyStorageInitTests();
+void historyStorageShrinkTests();
+void historyStorageEnlargeTests();
+void historyStorageLastRecoveryTests();
+void historyStorageModemAndRouterRecoveryCountsTests();
 
 #endif // HistoryStorageTests_h

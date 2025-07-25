@@ -22,7 +22,7 @@ const std::map<TestEnum, std::string> StringableEnum<TestEnum>::strMap =
 };
 #undef X
 
-void test_stringable_enum()
+void stringableEnumTests()
 {
     StringableEnum<TestEnum> enumValue(TestEnum::Value1);
     TEST_ASSERT_EQUAL_STRING("Value1", enumValue.ToString().c_str());
@@ -34,7 +34,7 @@ void test_stringable_enum()
     TEST_ASSERT_EQUAL_STRING("Value3", enumValue.ToString().c_str());
 }
 
-void test_stringable_enum_invalid()
+void stringableEnumInvalidValueTests()
 {
     StringableEnum<TestEnum> enumValue(static_cast<TestEnum>(999)); // Invalid value
     TEST_ASSERT_EQUAL_STRING(StringableEnum<TestEnum>::unknown().c_str(), enumValue.ToString().c_str());

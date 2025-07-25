@@ -1,9 +1,9 @@
 #ifndef HtmlFillerViewReaderTests_h
 #define HtmlFillerViewReaderTests_h
 
-void HtmlFillerViewReaderBasicTests();
-void HtmlFillerViewReaderWithVariousBuffLen();
-void HtmlFillerViewReaderWithNonExistingFiller();
-void HtmlFillerViewReaderWithNotEnoughSpaceForFiller();
+void htmlFillerViewReaderBasicTests();
+void htmlFillerViewReaderWithVariousBuffLenTests();
+void htmlFillerViewReaderWithNonExistingFillerTests();
+void htmlFillerViewReaderWithNotEnoughSpaceForFillerTests();
 
 #endif// HtmlFillerViewReaderTests_h

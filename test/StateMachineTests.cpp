@@ -197,7 +197,7 @@ void testCounters(Context &exp, Context &ctx) {
     TEST_ASSERT_EQUAL_MESSAGE(exp.idleExitCount, ctx.idleExitCount, "idleExitCount");
 }
 
-void sm_test_basic_transitions() {
+void stateMachineBasicTransitionsTests() {
     Traceln("Starting basic transitions test");
     Context ctx, exp;
     SMState<Verb, State, Context> states[] = {
@@ -269,7 +269,7 @@ void sm_test_basic_transitions() {
     testCounters(exp, ctx);
 }
 
-void sm_test_invalid_verb_transition()
+void stateMachIneInvalidVerbTransitionTests()
 {
     Traceln("Starting invalid verb transition test");
     Context exp, ctx;
@@ -298,7 +298,7 @@ void sm_test_invalid_verb_transition()
     testCounters(exp, ctx);
 }
 
-void sm_test_invalid_state_transition()
+void stateMachineInvalidStateTransitionsTests()
 {
     Traceln("Starting invalid state transition test");
     Context exp, ctx;
@@ -327,7 +327,7 @@ void sm_test_invalid_state_transition()
     testCounters(exp, ctx);
 }
 
-void sm_test_no_entry_exit_actions()
+void stateMachineNoEntryExitActionsTests()
 {
     Traceln("Starting test with no entry/exit actions");
     Context exp, ctx;
@@ -351,7 +351,7 @@ void sm_test_no_entry_exit_actions()
     testCounters(exp, ctx);
 }
 
-void sm_test_invalid_states()
+void stateMachineUnvalidStatesTests()
 {
     Traceln("Starting test with invalid states");
     bool exceptionCaught = false;
@@ -391,7 +391,7 @@ void sm_test_invalid_states()
     TEST_ASSERT(exceptionCaught); // Expected exception for negative states
 }
 
-void sm_test_change_verb_at_exit()
+void stateMachineChangeVerbAtExitTests()
 {
     Traceln("Starting test with changing verb at exit");
     Context exp, ctx;

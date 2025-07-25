@@ -29,12 +29,12 @@ private:
     FakeRecoveryControl *m_instance = NULL;
 };
 
-void HistoryControlBasicTests();
-void HistoryControlResizeTests();
-void HistoryControlRouterRecoveryTests();
-void HistoryControlModemRecoveryTests();
-void HistoryControlPeriodicRestartTests();
-void HistoryControlConnectivityCheckWhileInFailureTests();
+void historyControlBasicTests();
+void historyControlResizeTests();
+void historyControlRouterRecoveryTests();
+void historyControlModemRecoveryTests();
+void historyControlPeriodicRestartTests();
+void historyControlConnectivityCheckWhileInFailureTests();
 
 #define recoveryControl fakeRecoveryControl
 extern FakeRecoveryControl fakeRecoveryControl;
