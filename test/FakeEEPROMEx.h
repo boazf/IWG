@@ -94,7 +94,7 @@ public:
     /// @return The size of the buffer in bytes that is used to simulate the EEPROM.
     uint16_t length()
     {
-        return sizeof(buffer);
+        return buffLen;
     }
 
     /// @brief Clears the buffer by setting all bytes to zero.
@@ -104,7 +104,18 @@ public:
         memset(buffer, -1, sizeof(buffer));
     }
 
+    void begin(int size = 4096)
+    {
+        // Initialize the buffer with the specified size.
+        // The default size is 4096 bytes, which is the maximum size of the buffer.
+        if (size > sizeof(buffer))
+        {
+            size = sizeof(buffer);
+        }
+        buffLen = size;
+    }
 private:
+    uint16_t buffLen = sizeof(buffer); ///< Length of the buffer.
     /// @brief Buffer to simulate EEPROM storage.
     uint8_t buffer[4096];
 };
