@@ -22,6 +22,9 @@
 #include <HtmlFillerView.h>
 #include <atomic>
 
+// This class represents the index view of the application.
+// It inherits from HtmlFillerView and provides the functionality to fill the HTML template with dynamic data.
+// The index view is used to display the main page of the application, which includes various controls and information.
 class IndexView : public HtmlFillerView
 {
 public:

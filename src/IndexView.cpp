@@ -70,10 +70,13 @@ bool IndexView::redirect(EthClient &client, const String &_id)
 {
     if (_id.equals("") || !sseController.IsValidId(_id))
     {
+        // If the ID is empty or not valid, generate a new ID and respond with a redirect to the index page with the new ID.
         HttpHeaders::Header additionalHeaders[] = {{"Location", String("/index/") + ++id}};
         HttpHeaders headers(client);
         headers.sendHeaderSection(302, true, additionalHeaders, NELEMS(additionalHeaders));
 
+        // Add the client to the SSE controller with a new ID. This is required so that the SSE controller 
+        // will recognise the redirect call as a valid call with a valid ID.
         sseController.AddClient(String(id));
 
         return true;

@@ -48,12 +48,19 @@ bool SSEController::Get(HttpClientContext &context, const String id)
         String id;
     } params = { this, id };
 
+    // Scan the list of clients and delete the client if there is already a client with the same ID.
+    // In case index page is invoked with no ID, a temporary clientInfo instance is created with the ID
+    // and added to the clients list. Then the request is replied with a redirect to the index page with the ID in the URL.
+    // So now it is time to delete this temporary clientInfo instance and replace it with a real clientInfo instance.
+    // The temporary clientInfo instance is required so that the SSE controller will recognise the redirected call as a valid 
+    // call with a valid ID.
     clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
     {
         const Params *params = static_cast<const Params *>(param);
         String id = params->id;
         if (clientInfo.id.equals(id))
         {
+            // If the client already exists, delete it.
             params->controller->DeleteClient(clientInfo, true);
             return false;
         }
@@ -63,17 +70,22 @@ bool SSEController::Get(HttpClientContext &context, const String id)
 #ifdef DEBUG_HTTP_SERVER
     Tracef("Adding SSE client: id=%s, IP=%s, port=%d, object=%lx\n", id.c_str(), client.remoteIP().toString().c_str(), client.remotePort(), (ulong)&client);
 #endif
+    // Add the client to the list of clients.
     clients.Insert(ClientInfo(id, client));
 
+    // Send response to the client to acknowledge the SSE request.
     HttpHeaders httpHeaders(client);
     httpHeaders.sendStreamHeaderSection();
+    // Set the keep-alive flag to true to keep the connection open for SSE.
     context.keepAlive = true;
 
+    // Notify the client about the current state.
     NotifyState(id);
 
     return true;
 }
 
+// SSE controller doesn't implement Post or Put methods, so they return false.
 bool SSEController::Post(HttpClientContext &context, const String id)
 {
     return false;
@@ -84,6 +96,9 @@ bool SSEController::Put(HttpClientContext &context, const String id)
     return false;
 }
 
+// This method is called when the index page is exited, so it deletes the client with the given ID. 
+// This call is triggered by the beforeunload event in the browser.
+// Not all browsers call the beforeunload event. So there is also a background task that periodically deletes unused clients.
 bool SSEController::Delete(HttpClientContext &context, const String id)
 {
     struct Params
@@ -92,12 +107,14 @@ bool SSEController::Delete(HttpClientContext &context, const String id)
         const String &id;
     } params = { this, id };
 
+    // Scan the list of clients and delete the client with the given ID.
     clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
     {
         const Params *params = static_cast<const Params *>(param);
         String id = params->id;
         if (clientInfo.id.equals(id))
         {
+            // If the client with the given ID is found, delete it.
             params->controller->DeleteClient(clientInfo, true);
             return false;
         }
@@ -105,6 +122,7 @@ bool SSEController::Delete(HttpClientContext &context, const String id)
         return true;
     }, &params);
 
+    // Send a response to the client to acknowledge the deletion.
     HttpHeaders::Header additionalHeaders[] = { {"Access-Control-Allow-Origin", "*" }, {"Cache-Control", "no-cache"} };
     HttpHeaders headers(context.getClient());
     headers.sendHeaderSection(200, true, additionalHeaders, NELEMS(additionalHeaders));
@@ -116,6 +134,7 @@ void SSEController::NotifyState(const String &id)
 {
     UpdateStateLastRecoveryTime();
 
+    // Prepare the event data to be sent to the clients.
     String event("data:{");
     event += "\"autoRecovery\": ";
     event += state.autoRecovery ? "true" : "false";
@@ -154,13 +173,16 @@ void SSEController::NotifyState(const String &id)
         String event;
     } params = { id, event };
 
+    // Scan the list of clients and send the event data to the requires client(s).
     clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
     {
         const Params *params = static_cast<const Params *>(param);
         String id = params->id;
+        // If an ID is provided, only send the event to the client with that ID.
         if (!id.equals("") && !id.equals(clientInfo.id))
             return true;
         EthClient client = clientInfo.client;
+        // If the client is not connected, skip it.
         if (client.connected())
         {
 #ifdef DEBUG_HTTP_SERVER
@@ -177,6 +199,7 @@ void SSEController::NotifyState(const String &id)
 #endif
             }
 #endif
+            // Send the event data to the client.`
             client.print(params->event);
             client.println();
 #ifdef USE_WIFI
@@ -184,9 +207,11 @@ void SSEController::NotifyState(const String &id)
 #endif
         }
 
+        // If an ID is provided, stop scanning after sending the event to the specified client.
         if (!id.equals(""))
             return false;
             
+        // Continue scanning for other clients if no ID is provided.
         return true;
     }, &params);
 
@@ -194,10 +219,14 @@ void SSEController::NotifyState(const String &id)
         state.recoveryType = RecoveryTypes::Router;
 }
 
+// This method is called periodically to delete unused clients.
+// It scans the list of clients and deletes those that are not connected.
 void SSEController::DeleteUnusedClients()
 {
     ClientsList clientsToDelete;
 
+    // Scan the list of clients and add the unused clients to the clientsToDelete list.
+    // It is not possible to delete clients while scanning the list, so we first collect the clients to delete in a separate list.
     clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
     {
         ClientsList *clientsToDelete = const_cast<ClientsList *>(static_cast<const ClientsList *>(param));
@@ -207,6 +236,7 @@ void SSEController::DeleteUnusedClients()
         return true;
     }, &clientsToDelete);
 
+    // Now delete the clients that were collected in the clientsToDelete list.
     clientsToDelete.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
     {
         SSEController *controller = const_cast<SSEController *>(static_cast<const SSEController *>(param));
@@ -218,15 +248,18 @@ void SSEController::DeleteUnusedClients()
 
 void SSEController::Init()
 {
+    // Initialize the state of the controller.
     state.autoRecovery = recoveryControl.GetAutoRecovery();
     state.recoveryType = recoveryControl.GetRecoveryState();
     state.modemState = GetModemPowerState();
     state.routerState = GetRouterPowerState();
     UpdateStateLastRecoveryTime();
+    // Register observers for various state changes.
     recoveryControl.GetRecoveryStateChanged().addObserver(RecoveryStateChanged, this);
     recoveryControl.GetAutoRecoveryStateChanged().addObserver(AutoRecoveryStateChanged, this);
     recoveryControl.GetModemPowerStateChanged().addObserver(ModemPowerStateChanged, this);
     recoveryControl.GetRouterPowerStateChanged().addObserver(RouterPowerStateChanged, this);
+    // Start a background task to periodically delete unused clients.
     xTaskCreate([](void *param)
     {
         SSEController *controller = static_cast<SSEController *>(param);
@@ -247,9 +280,11 @@ void SSEController::Init()
 void SSEController::UpdateStateLastRecoveryTime()
 {
     time_t lastRecovery = recoveryControl.GetLastRecovery();
+    // We should show the last recovery time only if we are not in a recovery state.
     state.showLastRecovery = lastRecovery != INT32_MAX && recoveryControl.GetRecoveryState() == RecoveryTypes::NoRecovery;
     if (state.showLastRecovery)
     {
+        // Calculate the time since the last recovery.
         time_t timeSinceLastRecovery = t_now - lastRecovery;
         state.seconds = timeSinceLastRecovery % 60;
         state.minutes = (timeSinceLastRecovery / 60) % 60;
@@ -263,6 +298,7 @@ void SSEController::RecoveryStateChanged(const RecoveryStateChangedParams &param
     SSEController *controller = const_cast<SSEController *>(static_cast<const SSEController *>(context));
     controller->state.recoveryType = params.m_recoveryType;
     controller->UpdateStateLastRecoveryTime();
+    // Notify all the clients about the recovery state change.
     controller->NotifyState("");
 }
 
@@ -277,6 +313,7 @@ void SSEController::AutoRecoveryStateChanged(const AutoRecoveryStateChangedParam
 #endif
     SSEController *controller = const_cast<SSEController *>(static_cast<const SSEController *>(context));
     controller->state.autoRecovery = params.m_autoRecovery;
+    // Notify all the clients about the auto-recovery state change.
     controller->NotifyState("");
 }
 
@@ -284,9 +321,17 @@ void SSEController::ModemPowerStateChanged(const PowerStateChangedParams &params
 {
     SSEController *controller = const_cast<SSEController *>(static_cast<const SSEController *>(context));
     controller->state.modemState = params.m_state;
+    // Notify all the clients about the modem power state change.
     controller->NotifyState("");
 }
 
+/// @brief Supposed to be called when the router power state changes. However, this function is not used in the current implementation.
+/// When the router power is turned off, the browser will not receive any updates. So what happens is a notification is sent
+/// to the browser that a router recovery is about to start. The browser will then simulate turning off the router power
+/// by turning the router switch to off, it will wait the specified configured time, and then it will turn the router switch back on.
+/// This is all done in the browser. So no need to send power change notifications, they will not be received by the browser anyhow.
+/// @param params The parameters containing the new power state of the router.
+/// @param context The context pointer.
 void SSEController::RouterPowerStateChanged(const PowerStateChangedParams &params, const void *context)
 {
     SSEController *controller = const_cast<SSEController *>(static_cast<const SSEController *>(context));
@@ -310,6 +355,8 @@ bool SSEController::DeleteClient(EthClient &client, bool stopClient)
         EthClient client = clientInfo.client;
         if (client == params->client)
         {
+            // Since we do not continue to scan the list after finding the client,
+            // we can safely delete the client here.
             params->controller->DeleteClient(clientInfo, params->stopClient);
             params->ret = true;
             return false;
@@ -324,6 +371,7 @@ bool SSEController::DeleteClient(EthClient &client, bool stopClient)
 void SSEController::DeleteClient(const ClientInfo &clientInfo, bool stopClient)
 {
     EthClient client = clientInfo.client;
+    // If the client is not connected then there is no need to stop it.
     if (client)
     {
 #ifdef DEBUG_HTTP_SERVER
@@ -343,6 +391,7 @@ void SSEController::DeleteClient(const ClientInfo &clientInfo, bool stopClient)
 #ifdef DEBUG_HTTP_SERVER
             Tracef("%d Stopping client\n", client.remotePort());
 #endif        
+            // Stop the client connection.
             client.stop();
         }
     }
@@ -350,6 +399,7 @@ void SSEController::DeleteClient(const ClientInfo &clientInfo, bool stopClient)
     else
         Tracef("Deleting client info id=%s\n", clientInfo.id);
 #endif
+    // Delete the client info from the list of clients.
     clients.Delete(clientInfo);
 }
 
@@ -361,10 +411,12 @@ bool SSEController::IsValidId(const String &id)
         bool isValid;
     } params = { id, false };
 
+    // Scan the list of clients and check if one of the clients has the given ID.
     clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
     {
         Params *params = const_cast<Params *>(static_cast<const Params *>(param));
         params->isValid = clientInfo.id.equals(params->id);
+        // If the ID is found, stop scanning the list. Otherwise, continue scanning.
         return !params->isValid;
     }, &params);
 
@@ -373,12 +425,16 @@ bool SSEController::IsValidId(const String &id)
 
 void SSEController::AddClient(const String &id)
 {
+    // If the ID is already valid, do not add it again.
     if (IsValidId(id))
         return;
 
+    // Add a new client with the given ID to the list of clients.
     clients.Insert(ClientInfo(id));
 }
 
+/// This method returns a pointer to the global SSEController instance.
 HttpController *SSEController::getInstance() { return &sseController; }
 
+/// Global instance of the SSEController.
 SSEController sseController;

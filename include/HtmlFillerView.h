@@ -34,7 +34,7 @@ public:
     }
 
     HtmlFillerView(const byte *mem, size_t size, CONTENT_TYPE contentType, GetFillers getFillers) :
-    View(new HtmlFillerViewReader(new MemViewReader(mem, size, contentType), getFillers))
+        View(new HtmlFillerViewReader(new MemViewReader(mem, size, contentType), getFillers))
     {
     }
 
