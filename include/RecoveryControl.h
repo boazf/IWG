@@ -31,37 +31,23 @@
 	X(Connected) \
 	X(Disconnected) \
 	X(Done) \
-	X(Timeout) \
-	X(NoTimeout) \
-	X(Exceeded) \
-	X(NotExceeded) \
 	X(DisconnectRouter) \
 	X(DisconnectModem) \
 	X(PeriodicRestart) \
-	X(CheckConnectivity) \
-	X(HWError)
+	X(CheckConnectivity)
 
 #define Recovery_States \
 	X(Init) \
 	X(CheckConnectivity) \
-	X(StartCheckConnectivity) \
 	X(WaitWhileConnected) \
 	X(DisconnectModem) \
-	X(WaitAfterModemRecovery) \
 	X(CheckConnectivityAfterModemRecovery) \
-	X(CheckModemRecoveryTimeout) \
-	X(CheckMaxCyclesExceeded) \
 	X(CheckConnectivityAfterRecoveryFailure) \
 	X(WaitWhileRecoveryFailure) \
 	X(DisconnectRouter) \
 	X(CheckConnectivityAfterRouterRecovery) \
-	X(WaitAfterRouterRecovery) \
-	X(CheckRouterRecoveryTimeout) \
 	X(PeriodicRestart) \
-	X(WaitAfterPeriodicRestart) \
-	X(CheckConnectivityAfterPeriodicRestart) \
-	X(CheckPeriodicRestartTimeout) \
-	X(HWError)
+	X(CheckConnectivityAfterPeriodicRestart)
 
 
 #define X(a) a,
@@ -214,20 +200,19 @@ private:
 	static void OnEnterCheckConnectivity(RecoveryControl *control);
 	static RecoveryMessages OnCheckConnectivity(RecoveryControl *control);
 	static RecoveryMessages OnWaitConnectionTestPeriod(RecoveryControl *control);
-	static RecoveryMessages OnStartCheckConnectivity(RecoveryControl *control);
+	static RecoveryMessages OnExitWaitConnectionTestPeriod(RecoveryMessages message, RecoveryControl *control);
 	static void OnEnterDisconnectRouter(RecoveryControl *control);
-	static void OnEnterDisconnectRouter(RecoveryControl *control, bool signalStateChanged);
-	static RecoveryMessages OnDisconnectRouter(RecoveryControl *control, bool shouldDelay);
-	static RecoveryMessages OnDisconnectRouter(RecoveryControl *control) { return OnDisconnectRouter(control, true); };
-	static RecoveryMessages OnWaitWhileRecovering(RecoveryControl *control);
-	static RecoveryMessages OnCheckRouterRecoveryTimeout(RecoveryControl *control);
-	static RecoveryMessages OnExitCheckRouterRecoveryTimeout(RecoveryMessages message, RecoveryControl *control);
+	void OnEnterDisconnectRouter(bool signalStateChanged);
+	RecoveryMessages OnDisconnectRouter(bool shouldDelay);
+	static RecoveryMessages OnDisconnectRouter(RecoveryControl *control) { return control->OnDisconnectRouter(true); };
+	static RecoveryMessages OnWaitWhileRecovering(RecoveryMessages message, RecoveryControl *control);
+	static RecoveryMessages OnExitCheckConnectivityAfterModemRecovery(RecoveryMessages message, RecoveryControl *control);
+	static RecoveryMessages OnExitCheckConnectivityAfterRouterRecovery(RecoveryMessages message, RecoveryControl *control);
+	static RecoveryMessages OnExitCheckConnectivityAfterPeriodicRestart(RecoveryMessages message, RecoveryControl *control);
 	static void OnEnterDisconnectModem(RecoveryControl *control);
-	static void OnEnterDisconnectModem(RecoveryControl *control, bool signalStateChanged);
-	static RecoveryMessages OnDisconnectModem(RecoveryControl *control, bool shouldDelay);
-	static RecoveryMessages OnDisconnectModem(RecoveryControl *control) { return OnDisconnectModem(control, true); }
-	static RecoveryMessages OnCheckModemRecoveryTimeout(RecoveryControl *control);
-	static RecoveryMessages OnCheckMaxCyclesExceeded(RecoveryControl *control);
+	void OnEnterDisconnectModem(bool signalStateChanged);
+	RecoveryMessages OnDisconnectModem(bool shouldDelay);
+	static RecoveryMessages OnDisconnectModem(RecoveryControl *control) { return control->OnDisconnectModem(true); }
 	static void OnEnterHWError(RecoveryControl *control);
 	static RecoveryMessages OnHWError(RecoveryControl *control);
 	static RecoveryMessages DecideRecoveryPath(RecoveryMessages message, RecoveryControl *control);
@@ -241,6 +226,7 @@ private:
 	static void RecoveryControlTask(void *param);
 	static bool isPeriodicRestartEnabled();
 	static time_t calcNextPeriodicRestart();
+	bool MaxCyclesExceeded();
 
 private:
 	RecoveryTypes m_currentRecoveryState;
