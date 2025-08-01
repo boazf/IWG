@@ -226,7 +226,7 @@ private:
 	static void RecoveryControlTask(void *param);
 	static bool isPeriodicRestartEnabled();
 	static time_t calcNextPeriodicRestart();
-	bool MaxCyclesExceeded();
+	RecoveryMessages MaxCyclesExceeded();
 
 private:
 	RecoveryTypes m_currentRecoveryState;

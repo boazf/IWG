@@ -18,13 +18,13 @@ stateDiagram-v2
     DisconnectRouter --> CheckConnectivityAfterRouterRecovery : Done
     CheckConnectivityAfterRouterRecovery --> CheckConnectivityAfterRouterRecovery : Done
     CheckConnectivityAfterRouterRecovery --> WaitWhileConnected : Connected
-    CheckConnectivityAfterRouterRecovery --> CheckConnectivityAfterRecoveryFailure : CheckConnectivity
+    CheckConnectivityAfterRouterRecovery --> CheckConnectivityAfterRecoveryFailure : Disconnected
     CheckConnectivityAfterRouterRecovery --> DisconnectModem : DisconnectModem
     CheckConnectivityAfterRouterRecovery --> DisconnectRouter : DisconnectRouter
     DisconnectModem --> CheckConnectivityAfterModemRecovery : Done
     CheckConnectivityAfterModemRecovery --> CheckConnectivityAfterModemRecovery : Done
     CheckConnectivityAfterModemRecovery --> WaitWhileConnected : Connected
-    CheckConnectivityAfterModemRecovery --> CheckConnectivityAfterRecoveryFailure : CheckConnectivity
+    CheckConnectivityAfterModemRecovery --> CheckConnectivityAfterRecoveryFailure : Disconnected
     CheckConnectivityAfterModemRecovery --> DisconnectRouter : DisconnectRouter
     CheckConnectivityAfterRecoveryFailure --> CheckConnectivityAfterRecoveryFailure : Done
     CheckConnectivityAfterRecoveryFailure --> WaitWhileConnected : Connected
@@ -37,7 +37,7 @@ stateDiagram-v2
     PeriodicRestart --> CheckConnectivityAfterPeriodicRestart : Done
     CheckConnectivityAfterPeriodicRestart --> CheckConnectivityAfterPeriodicRestart : Done
     CheckConnectivityAfterPeriodicRestart --> WaitWhileConnected : Connected
-    CheckConnectivityAfterPeriodicRestart --> CheckConnectivityAfterRecoveryFailure : CheckConnectivity
+    CheckConnectivityAfterPeriodicRestart --> CheckConnectivityAfterRecoveryFailure : Disconnected
     CheckConnectivityAfterPeriodicRestart --> DisconnectModem : DisconnectModem
     CheckConnectivityAfterPeriodicRestart --> DisconnectRouter : DisconnectRouter
 ```
