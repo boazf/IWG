@@ -144,7 +144,7 @@ void RecoveryControl::Init()
 			RecoveryStates::Init, 
 			OnEnterInit, 
 			OnInit, 
-			UpdateRecoveryState, 
+			OnExitInit, 
 			TRANSITIONS(initTrans)),
 		RecoveryState(
 			RecoveryStates::CheckConnectivity, 
@@ -446,7 +446,6 @@ RecoveryMessages RecoveryControl::OnInit(RecoveryControl *control)
 #ifdef DEBUG_RECOVERY_CONTROL
 		Traceln("Timeout: could not establish connectivity upon initialization, starting recovery cycles");
 #endif
-		control->cycles = 0;
 		return RecoveryMessages::Disconnected;
 	}
 
@@ -465,13 +464,18 @@ RecoveryMessages RecoveryControl::OnInit(RecoveryControl *control)
 
 		if (TryGetHostAddress(address, server))
 		{
-			control->cycles = 0;
 			return RecoveryMessages::Connected;
 		}
 		control->cycles++;
 	}
 
 	return RecoveryMessages::None;
+}
+
+RecoveryMessages RecoveryControl::OnExitInit(RecoveryMessages message, RecoveryControl *control)
+{
+	control->cycles = 0;
+	return UpdateRecoveryState(message, control);
 }
 
 RecoveryMessages RecoveryControl::OnCheckConnectivity(RecoveryControl *control)

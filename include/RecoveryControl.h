@@ -197,6 +197,7 @@ private:
 private:
 	static void OnEnterInit(RecoveryControl *control);
 	static RecoveryMessages OnInit(RecoveryControl *control);
+	static RecoveryMessages OnExitInit(RecoveryMessages message, RecoveryControl *control);
 	static void OnEnterCheckConnectivity(RecoveryControl *control);
 	static RecoveryMessages OnCheckConnectivity(RecoveryControl *control);
 	static RecoveryMessages OnWaitConnectionTestPeriod(RecoveryControl *control);
