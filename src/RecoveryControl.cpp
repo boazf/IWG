@@ -227,7 +227,7 @@ void RecoveryControl::Init()
         NULL,
         1 - xPortGetCoreID());
 
-	AppConfig::getAppConfigChanged().addObserver(AppConfigChanged, this);
+	AppConfig::getAppConfigChanged().addObserver(OnAppConfigChanged, this);
 }
 
 void RecoveryControl::Start()
@@ -252,39 +252,37 @@ RecoveryControl::~RecoveryControl()
 	delete m_pSM;
 }
 
-void RecoveryControl::AppConfigChanged(const AppConfigChangedParam &param, const void *context)
+void RecoveryControl::OnAppConfigChanged(const AppConfigChangedParam &param)
 {
 #ifdef DEBUG_RECOVERY_CONTROL
 	Traceln("Configuration changed");
 #endif
-	RecoveryControl *recoveryControl = const_cast<RecoveryControl *>(static_cast<const RecoveryControl *>(context));
 	bool autoRecovery = AppConfig::getAutoRecovery();
 
-	if (autoRecovery && !recoveryControl->autoRecovery)
-		recoveryControl->StartRecoveryCycles(RecoveryTypes::ConnectivityCheck);
+	if (autoRecovery && !this->autoRecovery)
+		StartRecoveryCycles(RecoveryTypes::ConnectivityCheck);
 
-	if (recoveryControl->autoRecovery != autoRecovery)
-		recoveryControl->m_autoRecoveryStateChanged.callObservers(AutoRecoveryStateChangedParams(autoRecovery));
+	if (this->autoRecovery != autoRecovery)
+		m_autoRecoveryStateChanged.callObservers(AutoRecoveryStateChangedParams(autoRecovery));
 
-	recoveryControl->autoRecovery = autoRecovery;
+	this->autoRecovery = autoRecovery;
 
 	int maxHistory = AppConfig::getMaxHistory();
-	if (maxHistory != recoveryControl->maxHistory)
+	if (maxHistory != this->maxHistory)
 	{
-		recoveryControl->m_maxHistoryRecordsChanged.callObservers(MaxHistoryRecordChangedParams(maxHistory));
-		recoveryControl->maxHistory = maxHistory;
+		m_maxHistoryRecordsChanged.callObservers(MaxHistoryRecordChangedParams(maxHistory));
+		this->maxHistory = maxHistory;
 	}
 
 	time_t nextPeriodicRestart = calcNextPeriodicRestart();
-	if (recoveryControl->nextPeriodicRestart != nextPeriodicRestart && nextPeriodicRestart != -1)
-	{
-		bool shouldWakeRecoveryThread = 
-			recoveryControl->nextPeriodicRestart == -1 ||
-			recoveryControl->nextPeriodicRestart > nextPeriodicRestart;
-		recoveryControl->nextPeriodicRestart = nextPeriodicRestart;
-		if (shouldWakeRecoveryThread)
-			xSemaphoreGive(recoveryControl->waitSem);
-	}
+	bool shouldWakeRecoveryThread = 
+		this->nextPeriodicRestart != nextPeriodicRestart && 
+		nextPeriodicRestart != -1 &&
+		(this->nextPeriodicRestart == -1 ||
+		this->nextPeriodicRestart > nextPeriodicRestart);
+	this->nextPeriodicRestart = nextPeriodicRestart;
+	if (shouldWakeRecoveryThread)
+		xSemaphoreGive(waitSem);
 }
 
 void RecoveryControl::PerformCycle()
@@ -328,13 +326,13 @@ public:
 
 #define MAX_PING_ATTEMPTS 5
 
-void RecoveryControl::OnEnterCheckConnectivity(RecoveryControl *control)
+void RecoveryControl::OnEnterCheckConnectivity()
 {
-	CheckConnectivityStateParam *stateParam = static_cast<CheckConnectivityStateParam *>(control->stateParam);
+	CheckConnectivityStateParam *stateParam = static_cast<CheckConnectivityStateParam *>(this->stateParam);
 	if (stateParam == NULL)
 	{
 		stateParam = new CheckConnectivityStateParam();
-		control->stateParam = stateParam;
+		this->stateParam = stateParam;
 	}
 
 	IPAddress address;
@@ -345,7 +343,7 @@ void RecoveryControl::OnEnterCheckConnectivity(RecoveryControl *control)
 		if (IsZeroIPAddress(address))
 		{
 			stateParam->stage = CheckConnectivityStages::CheckServer1;
-			control->lanConnected = true;
+			lanConnected = true;
 		}
 	}
 
@@ -399,11 +397,11 @@ void RecoveryControl::OnEnterCheckConnectivity(RecoveryControl *control)
 #endif
 }
 
-void RecoveryControl::OnEnterInit(RecoveryControl *control)
+void RecoveryControl::OnEnterInit()
 {
-	control->t0 = max<int>(AppConfig::getRReconnect(), AppConfig::getMReconnect()) * 1000 + millis();
-	control->nextPeriodicRestart = calcNextPeriodicRestart();
-	control->cycles = millis() / 1000;
+	t0 = max<int>(AppConfig::getRReconnect(), AppConfig::getMReconnect()) * 1000 + millis();
+	nextPeriodicRestart = calcNextPeriodicRestart();
+	cycles = millis() / 1000;
 }
 
 bool RecoveryControl::isPeriodicRestartEnabled()
@@ -439,9 +437,9 @@ time_t RecoveryControl::calcNextPeriodicRestart()
 	return nextPeriodicRestart;
 }
 
-RecoveryMessages RecoveryControl::OnInit(RecoveryControl *control)
+RecoveryMessages RecoveryControl::OnInit()
 {
-	if (millis() > control->t0)
+	if (millis() > t0)
 	{
 #ifdef DEBUG_RECOVERY_CONTROL
 		Traceln("Timeout: could not establish connectivity upon initialization, starting recovery cycles");
@@ -449,7 +447,7 @@ RecoveryMessages RecoveryControl::OnInit(RecoveryControl *control)
 		return RecoveryMessages::Disconnected;
 	}
 
-	if (millis() > 1000 * control->cycles)
+	if (millis() > 1000 * cycles)
 	{
 		String server;
 		if (AppConfig::getServer1().isEmpty() || AppConfig::getServer2().isEmpty())
@@ -458,7 +456,7 @@ RecoveryMessages RecoveryControl::OnInit(RecoveryControl *control)
 		}
 		else
 		{
-			server = (control->cycles % 2 == 0) ? AppConfig::getServer1() : AppConfig::getServer2();
+			server = (cycles % 2 == 0) ? AppConfig::getServer1() : AppConfig::getServer2();
 		}
 		IPAddress address;
 
@@ -466,21 +464,21 @@ RecoveryMessages RecoveryControl::OnInit(RecoveryControl *control)
 		{
 			return RecoveryMessages::Connected;
 		}
-		control->cycles++;
+		cycles++;
 	}
 
 	return RecoveryMessages::None;
 }
 
-RecoveryMessages RecoveryControl::OnExitInit(RecoveryMessages message, RecoveryControl *control)
+RecoveryMessages RecoveryControl::OnExitInit(RecoveryMessages message)
 {
-	control->cycles = 0;
-	return UpdateRecoveryState(message, control);
+	cycles = 0;
+	return UpdateRecoveryState(message);
 }
 
-RecoveryMessages RecoveryControl::OnCheckConnectivity(RecoveryControl *control)
+RecoveryMessages RecoveryControl::OnCheckConnectivity()
 {
-	CheckConnectivityStateParam *stateParam = static_cast<CheckConnectivityStateParam *>(control->stateParam);
+	CheckConnectivityStateParam *stateParam = static_cast<CheckConnectivityStateParam *>(this->stateParam);
 	RecoveryMessages status = RecoveryMessages::Disconnected;
 
 	if (stateParam->stage != CheckConnectivityStages::ChecksCompleted)
@@ -529,8 +527,8 @@ RecoveryMessages RecoveryControl::OnCheckConnectivity(RecoveryControl *control)
 	switch (stateParam->stage)
 	{
 	case CheckConnectivityStages::CheckLAN:
-		control->lanConnected = status == RecoveryMessages::Connected;
-		if (control->lanConnected)
+		lanConnected = status == RecoveryMessages::Connected;
+		if (lanConnected)
 		{
 			stateParam->stage = CheckConnectivityStages::CheckServer1;
 			status = RecoveryMessages::Done;
@@ -562,57 +560,57 @@ RecoveryMessages RecoveryControl::OnCheckConnectivity(RecoveryControl *control)
 	if (stateParam->stage == CheckConnectivityStages::ChecksCompleted)
 	{
 		delete stateParam;
-		control->stateParam = NULL;
+		this->stateParam = NULL;
 	}
 
     return status; 
 }
 
-RecoveryMessages RecoveryControl::UpdateRecoveryState(RecoveryMessages message, RecoveryControl *control)
+RecoveryMessages RecoveryControl::UpdateRecoveryState(RecoveryMessages message)
 {
 	if (message == RecoveryMessages::Done)
 		return message;
 
 	if (message == RecoveryMessages::Connected)
 	{
-		if (control->lastRecovery == INT32_MAX)
-			control->lastRecovery = t_now;
-		control->RaiseRecoveryStateChanged(RecoveryTypes::NoRecovery, control->m_recoverySource);
+		if (lastRecovery == INT32_MAX)
+			lastRecovery = t_now;
+		RaiseRecoveryStateChanged(RecoveryTypes::NoRecovery, m_recoverySource);
 	}
 	else
 	{
-		control->lastRecovery = INT32_MAX;
+		lastRecovery = INT32_MAX;
 	}
 	
 	return message;
 }
 
-RecoveryMessages RecoveryControl::DecideRecoveryPath(RecoveryMessages message, RecoveryControl *control)
+RecoveryMessages RecoveryControl::DecideRecoveryPath(RecoveryMessages message)
 {
 	if (message != RecoveryMessages::Done)
 	{
 		if (message != RecoveryMessages::Connected)
 		{
-			control->m_recoverySource = RecoverySource::Auto;
-            if (!AppConfig::getAutoRecovery() && !control->updateConnState)
+			m_recoverySource = RecoverySource::Auto;
+            if (!AppConfig::getAutoRecovery() && !updateConnState)
             {
-                control->lastRecovery = INT32_MAX;
-                control->RaiseRecoveryStateChanged(RecoveryTypes::Disconnected, control->m_recoverySource);
+                lastRecovery = INT32_MAX;
+                RaiseRecoveryStateChanged(RecoveryTypes::Disconnected, m_recoverySource);
                 return message;
             }
 
 			if (Config::singleDevice ||
-				!control->lanConnected || 
-				control->lastRecovery == INT32_MAX || 
-				t_now - control->lastRecovery > Config::skipRouterTime)
+				!lanConnected || 
+				lastRecovery == INT32_MAX || 
+				t_now - lastRecovery > Config::skipRouterTime)
 				message = RecoveryMessages::DisconnectRouter;
 			else
-				message = control->lastRecoveryType == RecoveryTypes::Router ? RecoveryMessages::DisconnectModem : RecoveryMessages::DisconnectRouter;
+				message = lastRecoveryType == RecoveryTypes::Router ? RecoveryMessages::DisconnectModem : RecoveryMessages::DisconnectRouter;
 		}
-		if (control->updateConnState)
+		if (updateConnState)
 		{
-			UpdateRecoveryState(message, control);
-			control->updateConnState = false;
+			UpdateRecoveryState(message);
+			updateConnState = false;
 		}
 	}
 
@@ -628,24 +626,24 @@ void RecoveryControl::RaiseRecoveryStateChanged(RecoveryTypes recoveryType, Reco
 	m_recoveryStateChanged.callObservers(params);
 }
 
-RecoveryMessages RecoveryControl::OnWaitConnectionTestPeriod(RecoveryControl *control)
+RecoveryMessages RecoveryControl::OnWaitConnectionTestPeriod()
 {
 	RecoveryMessages requestedRecovery = RecoveryMessages::None;
 	{
-		Lock lock(control->csLock);
-		xSemaphoreTake(control->waitSem, 0);
-		if (control->requestedRecovery != RecoveryMessages::Done)
+		Lock lock(csLock);
+		xSemaphoreTake(waitSem, 0);
+		if (this->requestedRecovery != RecoveryMessages::Done)
 		{
-			requestedRecovery = control->requestedRecovery;
-			control->requestedRecovery = RecoveryMessages::Done;
-			control->m_recoverySource = RecoverySource::UserInitiated;
+			requestedRecovery = this->requestedRecovery;
+			this->requestedRecovery = RecoveryMessages::Done;
+			m_recoverySource = RecoverySource::UserInitiated;
 
 			return requestedRecovery;
 		}
 	}
 
 	time_t tWait = isPeriodicRestartEnabled() ? 
-					min<time_t>(AppConfig::getConnectionTestPeriod(), control->nextPeriodicRestart - t_now) :
+					min<time_t>(AppConfig::getConnectionTestPeriod(), nextPeriodicRestart - t_now) :
 							    AppConfig::getConnectionTestPeriod();
 
 #ifdef DEBUG_RECOVERY_CONTROL
@@ -658,10 +656,10 @@ RecoveryMessages RecoveryControl::OnWaitConnectionTestPeriod(RecoveryControl *co
 	}
 #endif
 
-	bool isSemObtained = xSemaphoreTake(control->waitSem, (tWait * 1000) / portTICK_PERIOD_MS) == pdTRUE;
+	bool isSemObtained = xSemaphoreTake(waitSem, (tWait * 1000) / portTICK_PERIOD_MS) == pdTRUE;
 	{
-		Lock lock(control->csLock);
-		requestedRecovery = control->requestedRecovery;
+		Lock lock(csLock);
+		requestedRecovery = this->requestedRecovery;
 		if (isSemObtained && requestedRecovery == RecoveryMessages::Done)
 		{
 			// Periodic restart time had changed, we need to recalculate wait time.
@@ -673,41 +671,41 @@ RecoveryMessages RecoveryControl::OnWaitConnectionTestPeriod(RecoveryControl *co
 			// than needed, but this will complicate the code.
 			return RecoveryMessages::CheckConnectivity;
 		}
-		requestedRecovery = control->requestedRecovery;
-		control->requestedRecovery = RecoveryMessages::Done;
+		requestedRecovery = this->requestedRecovery;
+		this->requestedRecovery = RecoveryMessages::Done;
 	}
 	
 	if (requestedRecovery == RecoveryMessages::Done && 
 		isPeriodicRestartEnabled() && 
-		t_now >= control->nextPeriodicRestart)
+		t_now >= nextPeriodicRestart)
 	{
-		control->nextPeriodicRestart = calcNextPeriodicRestart();
+		nextPeriodicRestart = calcNextPeriodicRestart();
 		requestedRecovery = RecoveryMessages::PeriodicRestart;
-		control->m_recoverySource = RecoverySource::Periodic;
+		m_recoverySource = RecoverySource::Periodic;
 	}
 	else
 	{
-		control->m_recoverySource = 
-				requestedRecovery != RecoveryMessages::Done ? RecoverySource::UserInitiated : RecoverySource::Auto;
+		m_recoverySource = 
+			requestedRecovery != RecoveryMessages::Done ? RecoverySource::UserInitiated : RecoverySource::Auto;
 	}
 
 	return requestedRecovery;
 }
 
-RecoveryMessages RecoveryControl::OnExitWaitConnectionTestPeriod(RecoveryMessages message, RecoveryControl *control)
+RecoveryMessages RecoveryControl::OnExitWaitConnectionTestPeriod(RecoveryMessages message)
 {
 	if (message == RecoveryMessages::CheckConnectivity)
 	{
-		control->RaiseRecoveryStateChanged(RecoveryTypes::ConnectivityCheck, control->m_recoverySource);
-		control->updateConnState = true;
+		RaiseRecoveryStateChanged(RecoveryTypes::ConnectivityCheck, m_recoverySource);
+		updateConnState = true;
 	}
 
 	return message;
 }
 
-void RecoveryControl::OnEnterDisconnectRouter(RecoveryControl *control)
+void RecoveryControl::OnEnterDisconnectRouter()
 {
-	control->OnEnterDisconnectRouter(true);
+	OnEnterDisconnectRouter(true);
 }
 
 void RecoveryControl::OnEnterDisconnectRouter(bool signalStateChanged)
@@ -749,7 +747,7 @@ RecoveryMessages RecoveryControl::OnDisconnectRouter(bool shouldDelay)
 	return RecoveryMessages::Done;
 }
 
-RecoveryMessages RecoveryControl::OnWaitWhileRecovering(RecoveryMessages message, RecoveryControl *control)
+RecoveryMessages RecoveryControl::OnWaitWhileRecovering(RecoveryMessages message)
 {
 	delay(5000);
 	while (!gwConnTest.IsConnected())
@@ -758,42 +756,42 @@ RecoveryMessages RecoveryControl::OnWaitWhileRecovering(RecoveryMessages message
 }
 
 
-RecoveryMessages RecoveryControl::OnExitCheckConnectivityAfterModemRecovery(RecoveryMessages message, RecoveryControl *control)
+RecoveryMessages RecoveryControl::OnExitCheckConnectivityAfterModemRecovery(RecoveryMessages message)
 {
-	message = UpdateRecoveryState(message, control);
+	message = UpdateRecoveryState(message);
 
 	if (message == RecoveryMessages::Disconnected)
 	{
-		if (t_now - control->recoveryStart > static_cast<time_t>(AppConfig::getMReconnect()))
-			return control->MaxCyclesExceeded();
+		if (t_now - recoveryStart > static_cast<time_t>(AppConfig::getMReconnect()))
+			return MaxCyclesExceeded();
 
-		return OnWaitWhileRecovering(RecoveryMessages::Done, control);
+		return OnWaitWhileRecovering(RecoveryMessages::Done);
 	}
 
 	return message;
 }
 
-RecoveryMessages RecoveryControl::OnExitCheckConnectivityAfterRouterRecovery(RecoveryMessages message, RecoveryControl *control)
+RecoveryMessages RecoveryControl::OnExitCheckConnectivityAfterRouterRecovery(RecoveryMessages message)
 {
-	message = UpdateRecoveryState(message, control);
+	message = UpdateRecoveryState(message);
 
 	if (message == RecoveryMessages::Disconnected)
 	{
-		if (t_now - control->recoveryStart > static_cast<time_t>(AppConfig::getRReconnect()))
+		if (t_now - recoveryStart > static_cast<time_t>(AppConfig::getRReconnect()))
 			if (Config::singleDevice) // If single device , check max cycles
-				return control->MaxCyclesExceeded();
+				return MaxCyclesExceeded();
 			else
 				return RecoveryMessages::DisconnectModem;
 
-		return OnWaitWhileRecovering(RecoveryMessages::Done, control);
+		return OnWaitWhileRecovering(RecoveryMessages::Done);
 	}
 
 	return message;
 }
 
-RecoveryMessages RecoveryControl::OnExitCheckConnectivityAfterPeriodicRestart(RecoveryMessages message, RecoveryControl *control)
+RecoveryMessages RecoveryControl::OnExitCheckConnectivityAfterPeriodicRestart(RecoveryMessages message)
 {
-	message = UpdateRecoveryState(message, control);
+	message = UpdateRecoveryState(message);
 
 	if (message == RecoveryMessages::Disconnected)
 	{
@@ -803,21 +801,21 @@ RecoveryMessages RecoveryControl::OnExitCheckConnectivityAfterPeriodicRestart(Re
 		if (AppConfig::getPeriodicallyRestartModem())
 			tWait = max<time_t>(tWait, AppConfig::getMReconnect());
 
-		if (t_now - control->recoveryStart > tWait)
-			if (Config::singleDevice || control->lastRecoveryType == RecoveryTypes::Modem) // If single device or last recovery type was modem, check max cycles
-				return control->MaxCyclesExceeded();
+		if (t_now - recoveryStart > tWait)
+			if (Config::singleDevice || lastRecoveryType == RecoveryTypes::Modem) // If single device or last recovery type was modem, check max cycles
+				return MaxCyclesExceeded();
 			else
 				return RecoveryMessages::DisconnectModem;
 
-		return OnWaitWhileRecovering(RecoveryMessages::Done, control);
+		return OnWaitWhileRecovering(RecoveryMessages::Done);
 	}
 
 	return message;
 }
 
-void RecoveryControl::OnEnterDisconnectModem(RecoveryControl *control)
+void RecoveryControl::OnEnterDisconnectModem()
 {
-	control->OnEnterDisconnectModem(true);
+	OnEnterDisconnectModem(true);
 }
 
 void RecoveryControl::OnEnterDisconnectModem(bool signalStateChanged)
@@ -861,27 +859,27 @@ RecoveryMessages RecoveryControl::MaxCyclesExceeded()
 	return RecoveryMessages::Disconnected;
 }
 
-void RecoveryControl::OnEnterPeriodicRestart(RecoveryControl *control)
+void RecoveryControl::OnEnterPeriodicRestart()
 {
-	control->RaiseRecoveryStateChanged(RecoveryTypes::Periodic, RecoverySource::Periodic);
+	RaiseRecoveryStateChanged(RecoveryTypes::Periodic, RecoverySource::Periodic);
 
 	if (AppConfig::getPeriodicallyRestartRouter())
-		control->OnEnterDisconnectRouter(false);
+		OnEnterDisconnectRouter(false);
 
 	if (AppConfig::getPeriodicallyRestartModem())
-		control->OnEnterDisconnectModem(false);
+		OnEnterDisconnectModem(false);
 }
 
-RecoveryMessages RecoveryControl::OnPeriodicRestart(RecoveryControl *control)
+RecoveryMessages RecoveryControl::OnPeriodicRestart()
 {
 	if (GetRouterPowerState() == PowerState::POWER_OFF)
 	{
-		control->OnDisconnectRouter(false);
+		OnDisconnectRouter(false);
 	}
 	
 	if (GetModemPowerState() == PowerState::POWER_OFF)
 	{
-		control->OnDisconnectModem(false);
+		OnDisconnectModem(false);
 	}
 
 	if (GetRouterPowerState() == PowerState::POWER_ON &&

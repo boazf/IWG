@@ -133,6 +133,17 @@ public:
 	int m_maxRecords;
 };
 
+#define ON_ENTRY(fnName) static void fnName(RecoveryControl *control) { control->fnName(); }; void fnName()
+#define ON_STATE(fnName) static RecoveryMessages fnName(RecoveryControl *control) { return control->fnName(); }; RecoveryMessages fnName()
+#define ON_EXIT(fnName) static RecoveryMessages fnName(RecoveryMessages message, RecoveryControl *control) { return control->fnName(message); }; RecoveryMessages fnName(RecoveryMessages message)
+#define ON_APP_CONFIG_CHANGED(fnName) \
+	static void fnName(const AppConfigChangedParam &param, const void *context) \
+	{ \
+		RecoveryControl *control = const_cast<RecoveryControl *>(static_cast<const RecoveryControl *>(context)); \
+		control->fnName(param); \
+	}; \
+	void fnName(const AppConfigChangedParam &param)
+
 class RecoveryControl
 {
 public:
@@ -195,35 +206,31 @@ private:
 	Observers<MaxHistoryRecordChangedParams> m_maxHistoryRecordsChanged;
 
 private:
-	static void OnEnterInit(RecoveryControl *control);
-	static RecoveryMessages OnInit(RecoveryControl *control);
-	static RecoveryMessages OnExitInit(RecoveryMessages message, RecoveryControl *control);
-	static void OnEnterCheckConnectivity(RecoveryControl *control);
-	static RecoveryMessages OnCheckConnectivity(RecoveryControl *control);
-	static RecoveryMessages OnWaitConnectionTestPeriod(RecoveryControl *control);
-	static RecoveryMessages OnExitWaitConnectionTestPeriod(RecoveryMessages message, RecoveryControl *control);
-	static void OnEnterDisconnectRouter(RecoveryControl *control);
+	ON_ENTRY(OnEnterInit);
+	ON_STATE(OnInit);
+	ON_EXIT(OnExitInit);
+	ON_ENTRY(OnEnterCheckConnectivity);
+	ON_STATE(OnCheckConnectivity);
+	ON_STATE(OnWaitConnectionTestPeriod);
+	ON_EXIT(OnExitWaitConnectionTestPeriod);
+	ON_ENTRY(OnEnterDisconnectRouter);
 	void OnEnterDisconnectRouter(bool signalStateChanged);
 	RecoveryMessages OnDisconnectRouter(bool shouldDelay);
 	static RecoveryMessages OnDisconnectRouter(RecoveryControl *control) { return control->OnDisconnectRouter(true); };
-	static RecoveryMessages OnWaitWhileRecovering(RecoveryMessages message, RecoveryControl *control);
-	static RecoveryMessages OnExitCheckConnectivityAfterModemRecovery(RecoveryMessages message, RecoveryControl *control);
-	static RecoveryMessages OnExitCheckConnectivityAfterRouterRecovery(RecoveryMessages message, RecoveryControl *control);
-	static RecoveryMessages OnExitCheckConnectivityAfterPeriodicRestart(RecoveryMessages message, RecoveryControl *control);
-	static void OnEnterDisconnectModem(RecoveryControl *control);
+	ON_EXIT(OnWaitWhileRecovering);
+	ON_EXIT(OnExitCheckConnectivityAfterModemRecovery);
+	ON_EXIT(OnExitCheckConnectivityAfterRouterRecovery);
+	ON_EXIT(OnExitCheckConnectivityAfterPeriodicRestart);
+	ON_ENTRY(OnEnterDisconnectModem);
 	void OnEnterDisconnectModem(bool signalStateChanged);
 	RecoveryMessages OnDisconnectModem(bool shouldDelay);
 	static RecoveryMessages OnDisconnectModem(RecoveryControl *control) { return control->OnDisconnectModem(true); }
-	static void OnEnterHWError(RecoveryControl *control);
-	static RecoveryMessages OnHWError(RecoveryControl *control);
-	static RecoveryMessages DecideRecoveryPath(RecoveryMessages message, RecoveryControl *control);
-	static RecoveryMessages UpdateRecoveryState(RecoveryMessages message, RecoveryControl *control);
-	static void OnEnterPeriodicRestart(RecoveryControl *control);
-	static RecoveryMessages OnPeriodicRestart(RecoveryControl *control);
-	static RecoveryMessages OnCheckPeriodicRestartTimeout(RecoveryControl *control);
-	static RecoveryMessages DecideUponPeriodicRestartTimeout(RecoveryMessages message, RecoveryControl *control);
+	ON_EXIT(DecideRecoveryPath);
+	ON_EXIT(UpdateRecoveryState);
+	ON_ENTRY(OnEnterPeriodicRestart);
+	ON_STATE(OnPeriodicRestart);
 	void RaiseRecoveryStateChanged(RecoveryTypes recoveryType, RecoverySource recoverySource);
-	static void AppConfigChanged(const AppConfigChangedParam &param, const void *context);
+	ON_APP_CONFIG_CHANGED(OnAppConfigChanged);
 	static void RecoveryControlTask(void *param);
 	static bool isPeriodicRestartEnabled();
 	static time_t calcNextPeriodicRestart();
