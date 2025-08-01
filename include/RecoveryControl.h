@@ -136,13 +136,14 @@ public:
 #define ON_ENTRY(fnName) static void fnName(RecoveryControl *control) { control->fnName(); }; void fnName()
 #define ON_STATE(fnName) static RecoveryMessages fnName(RecoveryControl *control) { return control->fnName(); }; RecoveryMessages fnName()
 #define ON_EXIT(fnName) static RecoveryMessages fnName(RecoveryMessages message, RecoveryControl *control) { return control->fnName(message); }; RecoveryMessages fnName(RecoveryMessages message)
-#define ON_APP_CONFIG_CHANGED(fnName) \
-	static void fnName(const AppConfigChangedParam &param, const void *context) \
+#define ON_EVENT(classT, eventDataT, fnName) \
+	static void fnName(const eventDataT &param, const void *context) \
 	{ \
-		RecoveryControl *control = const_cast<RecoveryControl *>(static_cast<const RecoveryControl *>(context)); \
+		classT *control = const_cast<classT *>(static_cast<const classT *>(context)); \
 		control->fnName(param); \
 	}; \
-	void fnName(const AppConfigChangedParam &param)
+	void fnName(const eventDataT &param)
+#define ON_APP_CONFIG_CHANGED(fnName) ON_EVENT(RecoveryControl, AppConfigChangedParam, fnName)
 
 class RecoveryControl
 {
@@ -154,29 +155,29 @@ public:
 	void PerformCycle();
 
 public:
-	Observers<RecoveryStateChangedParams> &GetRecoveryStateChanged()
+	int addRecoveryStateChangedObserver(Observers<RecoveryStateChangedParams>::Handler handler, const void *context)
 	{
-		return m_recoveryStateChanged;
+		return m_recoveryStateChanged.addObserver(handler, context);
 	}
 
-	Observers<PowerStateChangedParams> &GetModemPowerStateChanged()
+	int addModemPowerStateChangedObserver(Observers<PowerStateChangedParams>::Handler handler, const void *context)
 	{
-		return m_modemPowerStateChanged;
+		return m_modemPowerStateChanged.addObserver(handler, context);
 	}
 
-	Observers<PowerStateChangedParams> &GetRouterPowerStateChanged()
+	int addRouterPowerStateChangedObserver(Observers<PowerStateChangedParams>::Handler handler, const void *context)
 	{
-		return m_routerPowerStateChanged;
+		return m_routerPowerStateChanged.addObserver(handler, context);
 	}
 
-	Observers<AutoRecoveryStateChangedParams> &GetAutoRecoveryStateChanged()
+	int addAutoRecoveryStateChangedObserver(Observers<AutoRecoveryStateChangedParams>::Handler handler, const void *context)
 	{
-		return m_autoRecoveryStateChanged;
+		return m_autoRecoveryStateChanged.addObserver(handler, context);
 	}
 
-	Observers<MaxHistoryRecordChangedParams> &GetMaxHistoryRecordsChanged()
+	int addMaxHistoryRecordChangedObserver(Observers<MaxHistoryRecordChangedParams>::Handler handler, const void *context)
 	{
-		return m_maxHistoryRecordsChanged;
+		return m_maxHistoryRecordsChanged.addObserver(handler, context);
 	}
 
 	RecoveryTypes GetRecoveryState()

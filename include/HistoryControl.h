@@ -24,8 +24,13 @@
 
 namespace historycontrol
 {
+    #undef ON_RECOVERY_STATE_CHANGED
+    #undef ON_MAX_HISTORY_CHANGED
+    #define ON_RECOVERY_STATE_CHANGED(fnName) ON_EVENT(HistoryControl, RecoveryStateChangedParams, fnName)
+    #define ON_MAX_HISTORY_CHANGED(fnName) ON_EVENT(HistoryControl, MaxHistoryRecordChangedParams, fnName)
+
     /// @brief HistoryControl class.
-    /// This class is responsible for managing the history of recovery events.
+    /// This class is responsible for managing the history of recovery events.    
     class HistoryControl : public tinyfsm::Fsm<HistoryControl>
     {
     public:
@@ -106,11 +111,11 @@ namespace historycontrol
         /// @brief Observer for RecoveryStateChanged events.
         /// @param params The parameters of the recovery state change event.
         /// @param context The context pointer to the HistoryControl instance.
-        static void onRecoveryStateChanged(const RecoveryStateChangedParams &params, const void* context);
+        ON_RECOVERY_STATE_CHANGED(onRecoveryStateChanged);
         /// @brief Observer for MaxHistoryRecordChanged events.
         /// @param params The parameters of the max history record change event.
         /// @param context The context pointer to the HistoryControl instance.
-        static void onMaxHistoryChanged(const MaxHistoryRecordChangedParams &params, const void* context);
+        ON_MAX_HISTORY_CHANGED(onMaxHistoryChanged);
     };
 }
 

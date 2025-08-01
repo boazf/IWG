@@ -25,6 +25,10 @@
 
 namespace manualcontrol
 {
+    #undef ON_RECOVERY_STATE_CHANGED
+    #define ON_RECOVERY_STATE_CHANGED(fnName) ON_EVENT(ManualControl, RecoveryStateChangedParams, fnName)
+    #undef ON_BUTTONS_STATE_CHANGED
+    #define ON_BUTTONS_STATE_CHANGED(fnName) ON_EVENT(ManualControl, ButtonStateChangedParam, fnName)
     struct ButtonsStateChanged : tinyfsm::Event {};
 
     class ManualControl : public tinyfsm::Fsm<ManualControl>
@@ -43,7 +47,7 @@ namespace manualcontrol
         void init()
         {
             tinyfsm::FsmList<ManualControl>::start();
-            recoveryControl.GetRecoveryStateChanged().addObserver(onRecoveryStateChanged, this);
+            recoveryControl.addRecoveryStateChangedObserver(onRecoveryStateChanged, this);
             buttons.stateChanged.addObserver(onButtonsStateChanged, this);
         }
 
@@ -55,14 +59,14 @@ namespace manualcontrol
         }
 
     private:
-        static void onRecoveryStateChanged(const RecoveryStateChangedParams &state, const void *context)
+        ON_RECOVERY_STATE_CHANGED(onRecoveryStateChanged)
         {
-            const_cast<ManualControl *>(static_cast<const ManualControl *>(context))->send_event(RecoveryStateChanged(state.m_recoveryType, state.m_source));
+            send_event(RecoveryStateChanged(param.m_recoveryType, param.m_source));
         }
 
-        static void onButtonsStateChanged(const ButtonStateChangedParam &param, const void *context)
+        ON_BUTTONS_STATE_CHANGED(onButtonsStateChanged)
         {
-            const_cast<ManualControl *>(static_cast<const ManualControl *>(context))->send_event(ButtonsStateChanged());
+            send_event(ButtonsStateChanged());
         }
     };
 }

@@ -33,11 +33,11 @@ namespace historycontrol
     void HistoryControl::init()
     {
         // Add recovery state change observer
-        recoveryControl.GetRecoveryStateChanged().addObserver(onRecoveryStateChanged, this);
+        recoveryControl.addRecoveryStateChangedObserver(onRecoveryStateChanged, this);
         // Get the maximum history records from the application configuration
         maxHistory = AppConfig::getMaxHistory();
         // Add observer for maximum history record changes
-        recoveryControl.GetMaxHistoryRecordsChanged().addObserver(onMaxHistoryChanged, this);
+        recoveryControl.addMaxHistoryRecordChangedObserver(onMaxHistoryChanged, this);
         // Read the history records from storage (EEPROM)
         storage.init(maxHistory);
         // Set the last update time to the current time
@@ -112,22 +112,18 @@ namespace historycontrol
         }
     };
 
-    void HistoryControl::onRecoveryStateChanged(const RecoveryStateChangedParams &params, const void* context)
+    void HistoryControl::onRecoveryStateChanged(const RecoveryStateChangedParams &params)
     {
-        // Cast the context to HistoryControl pointer and call the send_event method`
-        HistoryControl *control = const_cast<HistoryControl *>(static_cast<const HistoryControl *>(context));
         // Trigger the FSM transition by sending the RecoveryStateChanged event
-        control->send_event(RecoveryStateChanged(params.m_recoveryType, params.m_source));
+        send_event(RecoveryStateChanged(params.m_recoveryType, params.m_source));
     }
 
-    void HistoryControl::onMaxHistoryChanged(const MaxHistoryRecordChangedParams &params, const void* context)
+    void HistoryControl::onMaxHistoryChanged(const MaxHistoryRecordChangedParams &params)
     {
-        // Cast the context to HistoryControl pointer and update the maxHistory
-        HistoryControl *control = const_cast<HistoryControl *>(static_cast<const HistoryControl *>(context));
         // Update the maximum history records
-        control->maxHistory = params.m_maxRecords;
-        control->storage.resize(control->maxHistory);
-        control->lastUpdate = t_now;
+        maxHistory = params.m_maxRecords;
+        storage.resize(maxHistory);
+        lastUpdate = t_now;
     }
 
     /// @brief Init state.

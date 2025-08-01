@@ -77,6 +77,15 @@ public:
     EthClient client;
 };
 
+#undef ON_RECOVERY_STATE_CHANGED
+#undef ON_AUTO_RECOVERY_STATE_CHANGED
+#undef ON_MODEM_POWER_STATE_CHANGED
+#undef ON_ROUTER_POWER_STATE_CHANGED
+#define ON_RECOVERY_STATE_CHANGED(fnName) ON_EVENT(SSEController, RecoveryStateChangedParams, fnName)
+#define ON_AUTO_RECOVERY_STATE_CHANGED(fnName) ON_EVENT(SSEController, AutoRecoveryStateChangedParams, fnName)
+#define ON_MODEM_POWER_STATE_CHANGED(fnName) ON_EVENT(SSEController, PowerStateChangedParams, fnName)
+#define ON_ROUTER_POWER_STATE_CHANGED(fnName) ON_EVENT(SSEController, PowerStateChangedParams, fnName)
+
 /// @brief This class is used to manage Server-Sent Events (SSE) connections and notifications.
 /// It allows clients to subscribe to events and receive updates in real-time.
 class SSEController : public HttpController
@@ -136,19 +145,19 @@ private:
     /// @brief Handles recovery state changes.
     /// @param params The parameters for the recovery state change.
     /// @param context The context for the HTTP client.
-    static void RecoveryStateChanged(const RecoveryStateChangedParams &params, const void *context);
+    ON_RECOVERY_STATE_CHANGED(OnRecoveryStateChanged);
     /// @brief Handles auto-recovery state changes.
     /// @param params The parameters for the auto-recovery state change.
     /// @param context The context for the HTTP client.
-    static void AutoRecoveryStateChanged(const AutoRecoveryStateChangedParams &params, const void *context);
+    ON_AUTO_RECOVERY_STATE_CHANGED(OnAutoRecoveryStateChanged);
     /// @brief Handles modem power state changes.
     /// @param params The parameters for the modem power state change.
     /// @param context The context for the HTTP client.
-    static void ModemPowerStateChanged(const PowerStateChangedParams &params, const void *context);
+    ON_MODEM_POWER_STATE_CHANGED(OnModemPowerStateChanged);
     /// @brief Handles router power state changes.
     /// @param params The parameters for the router power state change.
     /// @param context The context for the HTTP client.
-    static void RouterPowerStateChanged(const PowerStateChangedParams &params, const void *context);
+    ON_ROUTER_POWER_STATE_CHANGED(OnRouterPowerStateChanged);
     /// @brief Notifies the state of a client.
     /// @param id The unique identifier for the client. If empty, the state will be notified to all clients.
     /// @note This method is used to send updates to the clients about the current state of the controller.

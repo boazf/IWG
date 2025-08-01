@@ -255,10 +255,10 @@ void SSEController::Init()
     state.routerState = GetRouterPowerState();
     UpdateStateLastRecoveryTime();
     // Register observers for various state changes.
-    recoveryControl.GetRecoveryStateChanged().addObserver(RecoveryStateChanged, this);
-    recoveryControl.GetAutoRecoveryStateChanged().addObserver(AutoRecoveryStateChanged, this);
-    recoveryControl.GetModemPowerStateChanged().addObserver(ModemPowerStateChanged, this);
-    recoveryControl.GetRouterPowerStateChanged().addObserver(RouterPowerStateChanged, this);
+    recoveryControl.addRecoveryStateChangedObserver(OnRecoveryStateChanged, this);
+    recoveryControl.addAutoRecoveryStateChangedObserver(OnAutoRecoveryStateChanged, this);
+    recoveryControl.addModemPowerStateChangedObserver(OnModemPowerStateChanged, this);
+    recoveryControl.addRouterPowerStateChangedObserver(OnRouterPowerStateChanged, this);
     // Start a background task to periodically delete unused clients.
     xTaskCreate([](void *param)
     {
@@ -293,16 +293,15 @@ void SSEController::UpdateStateLastRecoveryTime()
     }
 }
 
-void SSEController::RecoveryStateChanged(const RecoveryStateChangedParams &params, const void *context)
+void SSEController::OnRecoveryStateChanged(const RecoveryStateChangedParams &params)
 {
-    SSEController *controller = const_cast<SSEController *>(static_cast<const SSEController *>(context));
-    controller->state.recoveryType = params.m_recoveryType;
-    controller->UpdateStateLastRecoveryTime();
+    state.recoveryType = params.m_recoveryType;
+    UpdateStateLastRecoveryTime();
     // Notify all the clients about the recovery state change.
-    controller->NotifyState("");
+    NotifyState("");
 }
 
-void SSEController::AutoRecoveryStateChanged(const AutoRecoveryStateChangedParams &params, const void *context)
+void SSEController::OnAutoRecoveryStateChanged(const AutoRecoveryStateChangedParams &params)
 {
 #ifdef DEBUG_HTTP_SERVER
     TRACE_BLOCK
@@ -311,18 +310,16 @@ void SSEController::AutoRecoveryStateChanged(const AutoRecoveryStateChangedParam
         Traceln(params.m_autoRecovery);
     }
 #endif
-    SSEController *controller = const_cast<SSEController *>(static_cast<const SSEController *>(context));
-    controller->state.autoRecovery = params.m_autoRecovery;
+    state.autoRecovery = params.m_autoRecovery;
     // Notify all the clients about the auto-recovery state change.
-    controller->NotifyState("");
+    NotifyState("");
 }
 
-void SSEController::ModemPowerStateChanged(const PowerStateChangedParams &params, const void *context)
+void SSEController::OnModemPowerStateChanged(const PowerStateChangedParams &params)
 {
-    SSEController *controller = const_cast<SSEController *>(static_cast<const SSEController *>(context));
-    controller->state.modemState = params.m_state;
+    state.modemState = params.m_state;
     // Notify all the clients about the modem power state change.
-    controller->NotifyState("");
+    NotifyState("");
 }
 
 /// @brief Supposed to be called when the router power state changes. However, this function is not used in the current implementation.
@@ -332,11 +329,10 @@ void SSEController::ModemPowerStateChanged(const PowerStateChangedParams &params
 /// This is all done in the browser. So no need to send power change notifications, they will not be received by the browser anyhow.
 /// @param params The parameters containing the new power state of the router.
 /// @param context The context pointer.
-void SSEController::RouterPowerStateChanged(const PowerStateChangedParams &params, const void *context)
+void SSEController::OnRouterPowerStateChanged(const PowerStateChangedParams &params)
 {
-    SSEController *controller = const_cast<SSEController *>(static_cast<const SSEController *>(context));
-    controller->state.routerState = params.m_state;
-    controller->NotifyState("");
+    state.routerState = params.m_state;
+    NotifyState("");
 }
 
 bool SSEController::DeleteClient(EthClient &client, bool stopClient)
