@@ -22,26 +22,39 @@
 #include <LinkedList.h>
 #include <atomic>
 
+/// @brief Observer pattern implementation
+/// @tparam EventData Type of the event data
 template <typename EventData>
 class Observers
 {
 public: 
-	Observers() :
-		m_token(0)
-	{
-	}
+    /// @brief Constructs a new Observers object.
+    /// Initializes the token to 0.
+    Observers() :
+        m_token(0)
+    {
+    }
 
+    /// @brief Destroys the Observers object.
+    /// Clears all observers from the list.
     ~Observers()
     {
         m_observers.ClearAll();
     }
 
+    /// @brief Handler function type for observers.
+    /// @param data The event data to pass to the observer.
+    /// @param context Optional context pointer for additional data.
+    /// This function type is used to define the signature of observer functions.
 	typedef void(*Handler)(const EventData &data, const void *context);
 
 private:
+    /// @brief Data structure to hold observer information.
+    /// This structure contains the token, handler function, and context pointer for each observer.
     class ObserverData
     {
     public:
+        /// @brief Default constructor for ObserverData.
         ObserverData() :
             m_token(0),
             m_handler((Handler)0),
@@ -49,6 +62,10 @@ private:
         {
         }
 
+        /// @brief Parameterized constructor for ObserverData.
+        /// @param token Unique identifier for the observer.
+        /// @param handler Function pointer to the observer's handler.
+        /// @param context Optional context pointer for additional data.
         ObserverData(int token, Handler handler, const void *context = NULL) :
             m_token(token),
             m_handler(handler),
@@ -57,11 +74,17 @@ private:
         {
         }
 
+        /// @brief Copy constructor for ObserverData.
+        /// @param other The ObserverData object to copy from.
+        /// This constructor initializes the observer data from another ObserverData object.
         ObserverData(const ObserverData &other)
         {
             *this = other;
         }
 
+        /// @brief Assignment operator for ObserverData.
+        /// @param other The ObserverData object to copy from.
+        /// @return A reference to this ObserverData object.
         ObserverData &operator=(const ObserverData &other)
         {
             this->m_token = other.m_token;
@@ -71,30 +94,44 @@ private:
             return *this;
         }
 
+        /// @brief Equality operator for ObserverData.
+        /// @param o The ObserverData object to compare with.
+        /// @return True if the tokens are equal, false otherwise.
+        /// This operator checks if two ObserverData objects are equal based on their tokens.
         bool operator==(const ObserverData &o) const
         {
             return m_token == o.m_token;
         }
 
-        int m_token;
-        Handler m_handler;
-        const void *m_context;
+        int m_token; ///< Unique identifier for the observer.
+        Handler m_handler; ///< Function pointer to the observer's handler.
+        const void *m_context; ///< Optional context pointer for additional data.
     };
 
 public:
+	/// @brief Adds an observer to the list.
+	/// @param h The handler function for the observer.
+	/// @param context Optional context pointer for additional data.
+	/// @return A unique token identifying the observer.
 	int addObserver(Handler h, const void *context = NULL)
 	{
 		m_observers.Insert(ObserverData(++m_token, h, context));
         return m_token;
 	}
 
+	/// @brief Removes an observer from the list.
+	/// @param token The unique token identifying the observer returned by addObserver.
+	/// @return True if the observer was successfully removed, false otherwise.
 	bool removeObserver(int token)
 	{
         return m_observers.Delete(ObserverData(token, NULL, NULL));
 	}
 
+    /// @brief Calls all observers with the given event data.
+    /// @param data The event data to pass to the observers.
 	void callObservers(const EventData &data)
 	{
+        // Scan observers and call their handlers with the event data and context.
         m_observers.ScanNodes([](const ObserverData &observer, const void *data)->bool
         {
             observer.m_handler(*(static_cast<const EventData *>(data)), observer.m_context);
@@ -103,8 +140,8 @@ public:
 	}
 
 private:
-	std::atomic<int> m_token;
-	LinkedList<ObserverData> m_observers;
+	std::atomic<int> m_token; ///< Unique token for the next observer to be added.
+	LinkedList<ObserverData> m_observers; ///< List of all registered observers.
 };
 
 #endif // Observers_h
