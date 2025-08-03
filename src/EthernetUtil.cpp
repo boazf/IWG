@@ -510,7 +510,7 @@ bool WaitForDNS()
     if (millis() - t0 > tWait)
       break;
     // Expect several sequential successful queries
-    int i = 0;
+    int i = 1; // We had already one successful query
     do
     {
       if (!TryGetHostAddress(addrSrv, AppConfig::getServer1()) &&
