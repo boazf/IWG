@@ -22,11 +22,21 @@
 #include <time.h>
 #include <Observers.h>
 
+/// @brief Initialize the system time.
+/// This function sets the system time based on the configured time server and timezone.
+/// It also registers an observer for application configuration changes related to time settings.
+/// If not using Wi-Fi, it creates a task to periodically update the time.
 void InitTime();
+/// @brief Check if the given time is valid.
+/// @param t The time to check.
+/// @return True if the time is valid, false otherwise.
 bool isValidTime(time_t t);
 
+/// @brief Current time in seconds since epoch.
+/// This macro provides the current time in seconds since the Unix epoch (January 1, 1970).
 #define t_now (([]()->time_t{time_t now; time(&now); return now; })())
 
+/// @brief Parameter for time change events.
 class TimeChangedParam
 {
 public:
@@ -38,6 +48,8 @@ public:
     time_t currTime;
 };
 
+/// @brief Observer for time change events.
+/// This observer class allows other components to listen for changes in the system time.
 extern Observers<TimeChangedParam> timeChanged;
 
 #endif // TimeUtil_h
