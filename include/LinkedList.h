@@ -21,13 +21,19 @@
 
 #include <Lock.h>
 
+/// @brief A thread-safe doubly linked list.
+/// @tparam T The type of elements stored in the list.
 template<typename T>
 class LinkedList
 {
 private:
+    /// @brief A node in the linked list.
+    /// @tparam T The type of value stored in the node.
     class ListNode
     {
     public:
+        /// @brief Constructs a new ListNode with the given value.
+        /// @param inValue The value to store in the node.
         ListNode(T inValue) :
             value(inValue),
             next(NULL),
@@ -46,18 +52,22 @@ private:
     };
 
 public:
+    /// @brief Constructs a new LinkedList.
     LinkedList() :
         head(NULL),
         tail(NULL)
     {
     }
 
+    /// @brief Destroys the LinkedList and clears all nodes.
     ~LinkedList()
     {
         ClearAll();
     }
 
-    void *Insert(T value)
+    /// @brief Inserts a new value into the list.
+    /// @param value The value to insert.
+    void Insert(T value)
     {
         Lock lock(cs);
 
@@ -73,11 +83,12 @@ public:
             newNode->prev = tail;
             tail = newNode;
         }
-        
-        return newNode;
     }
 
 private:
+    /// @brief Finds a node in the list.
+    /// @param val The value to search for.
+    /// @return A pointer to the node containing the value, or NULL if not found.
     ListNode *Find(T val)
     {
         Lock lock(cs);
@@ -92,6 +103,10 @@ private:
         return NULL;
     }
 
+    /// @brief Deletes a node from the list.
+    /// @param node The node to delete.
+    /// @return A pointer to the next node after deletion, or NULL if the list is now empty.
+    /// If the node is NULL, does nothing and returns NULL.
     ListNode *Delete(ListNode *node)
     {
         Lock lock(cs);
@@ -103,13 +118,16 @@ private:
 
         if (node->prev == NULL)
         {
+            // Node is the head
             if (node->next == NULL)
             {
+                // Node is the only element
                 head = NULL;
                 tail = NULL;
             }
             else
             {
+                // Node is the head but not the only element
                 head = node->next;
                 head->prev = NULL;
                 ret = head;
@@ -117,28 +135,37 @@ private:
         }
         else
         {
+            // Node is not the head
             if (node->next == NULL)
             {
+                // Node is the tail
                 tail = node->prev;
                 tail->next = NULL;
             }
             else
             {
+                // Node is in the middle
                 node->next->prev = node->prev;
                 node->prev->next = node->next;
                 ret = node->next;
             }
         }
 
+        // Clean up the node
         node->next = NULL;
         node->prev = NULL;
         delete node;
 
+        // Return the next node or NULL if the list is now empty
         return ret;
     }
 
 
 public:
+    /// @brief Deletes a node with the specified value from the list.
+    /// @param val The value to delete.
+    /// @return True if the node was found and deleted, false otherwise.
+    /// If the node is not found, does nothing and returns false.
     bool Delete(T val)
     {
         Lock lock(cs);
@@ -148,12 +175,15 @@ public:
         return n != NULL;
     }
 
+    /// @brief Checks if the list is empty.
+    /// @return True if the list is empty, false otherwise.
     bool IsEmpty()
     {
         Lock lock(cs);
         return head == NULL;
     }
 
+    /// @brief Clears all nodes in the list.
     void ClearAll()
     {
         Lock lock(cs);
@@ -168,6 +198,11 @@ public:
         tail = NULL;
     }
 
+    /// @brief Scans through all nodes in the list and applies an action to each value.
+    /// @param action A function pointer that takes a value and a parameter, returning true to continue scanning or false to stop.
+    /// @param param A parameter passed to the action function.
+    /// The action function should return true to continue scanning or false to stop.
+    /// @note The action function should not delete nodes or modify the list structure.
     void ScanNodes(bool (*action)(const T &value, const void *param), const void *param)
     {
         Lock lock(cs);
