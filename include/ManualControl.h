@@ -31,6 +31,10 @@ namespace manualcontrol
     #define ON_BUTTONS_STATE_CHANGED(fnName) ON_EVENT(ManualControl, ButtonStateChangedParam, fnName)
     struct ButtonsStateChanged : tinyfsm::Event {};
 
+    /// @brief Class for manual control state machine.
+    /// This class defines the states and transitions for manual control of the system.
+    /// It handles recovery states, button presses, and other manual control actions.
+    /// The state machine is implemented using the tinyfsm library.
     class ManualControl : public tinyfsm::Fsm<ManualControl>
     {
     public:
@@ -44,6 +48,9 @@ namespace manualcontrol
         virtual void exit(void)  { };  /* entry actions in some states */
 
     public:
+        // @brief Initializes the manual control state machine.
+        /// This method sets up the initial state and registers observers for recovery state changes and button state changes.
+        /// It should be called once at the start of the application to set up the manual control.
         void init()
         {
             tinyfsm::FsmList<ManualControl>::start();
@@ -59,11 +66,18 @@ namespace manualcontrol
         }
 
     private:
+        /// @brief This observer function is called when the recovery state changes.
+        /// It sends a RecoveryStateChanged event to the state machine.
+        /// @param param The parameters of the recovery state change, including the recovery type and source.
         ON_RECOVERY_STATE_CHANGED(onRecoveryStateChanged)
         {
             send_event(RecoveryStateChanged(param.m_recoveryType, param.m_source));
         }
 
+        /// @brief This observer function is called when the button state changes.
+        /// It sends a ButtonsStateChanged event to the state machine.
+        /// @param param The parameters of the button state change.
+        /// It is used to notify the state machine about button presses and releases.
         ON_BUTTONS_STATE_CHANGED(onButtonsStateChanged)
         {
             send_event(ButtonsStateChanged());
@@ -71,6 +85,7 @@ namespace manualcontrol
     };
 }
 
+// A global instance of the ManualControl state machine.
 extern manualcontrol::ManualControl manualControl;
 
 #endif // ManualControl_h
