@@ -19,14 +19,17 @@
 #include <Indicators.h>
 #include <Trace.h>
 
+// Define the LED frequency and resolution for PWM
 #define LED_FREQ 5000
 #define LED_RESOLUTION 5
 
+// Define the duty cycles for different LED states
 #define LED_ON_DUTY 32
 #define LED_OFF_DUTY 0
 #define LED_IDLE_DUTY 1
 
-#define BLINK_FREQ 2 // Hz
+// Define the blink frequency in Hz
+#define BLINK_FREQ 2 // Hz (1 second / 2 = 0.5 seconds on, 0.5 seconds off)
 
 Indicator::IndicatorsList Indicator::blinkingIndicators;
 TaskHandle_t Indicator::blinkerTaskHandle = NULL;
@@ -34,9 +37,14 @@ TaskHandle_t Indicator::blinkerTaskHandle = NULL;
 Indicator::Indicator(uint8_t _channel, uint8_t pin) : 
     channel(_channel)
 {
+    // Initialize the LED control using PWM`
     ledcSetup(channel, LED_FREQ, LED_RESOLUTION);
+    // Attach the pin to the PWM channel`
     ledcAttachPin(pin, channel);
+    // Set the initial state to LED_OFF
     set(ledState::LED_OFF);
+    // If the blinker task is not already created, create it
+    // This code is not thread safe, but the indicators are initialized in a sequential manner during application startup.
     if (blinkerTaskHandle == NULL)
     {
         xTaskCreate([](void *param)
@@ -73,19 +81,24 @@ void Indicator::setInternal(ledState state)
             ledcWrite(channel, LED_OFF_DUTY);
             break;
         case ledState::LED_BLINK:
+            // The LED_BLINK state is handled by the blinker task, so we do not set it here.
             break;
     }
 }
 
 void Indicator::set(ledState state)
 {
+    // If the current state is LED_BLINK, remove it from the blinking list
+    // before changing the state to avoid inconsistencies.
     if (currState == ledState::LED_BLINK)
     {
         blinkingIndicators.Delete(this);
     }
 
+    // Set the current state to the new state
     currState = state;
     
+    // Call the internal function to set the LED state`
     switch(state)
     {
         case ledState::LED_ON:
@@ -100,11 +113,13 @@ void Indicator::set(ledState state)
     }
 }
 
+// Define the pin numbers for the indicators
 #define MODEM_RECOVERY_INDICATOR 4
 #define ROUTER_RECOVERY_INDICATOR 2
 #define ULOCK_INDICATOR 21
 #define OPERATIONAL_INDICATOR 22
 
+// Define the PWM channels for the indicators
 #define MODEM_RECOVERY_INDICATOR_LED_CH 0
 #define ROUTER_RECOVERY_INDICATOR_LED_CH 1
 #define UNLOCK_INDICATOR_LED_CH 2
