@@ -23,7 +23,6 @@
 #include <SDUtil.h>
 #include <EthernetUtil.h>
 #include <HTTPServer.h>
-#include <NTPClient.h>
 #include <HttpContollersUtil.h>
 #include <ControllerUtil.h>
 #include <SSEController.h>

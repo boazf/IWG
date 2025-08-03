@@ -17,13 +17,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <Arduino.h>
-#include <TimeUtil.h>
-#include <NTPClient.h>
-#include <Config.h>
-#include <Common.h>
 #ifndef USE_WIFI
+#include <EthernetUtil.h>
+#include <NTPClient.h>
 #include <sys/time.h>
 #endif
+#include <TimeUtil.h>
+#include <Config.h>
+#include <Common.h>
 #include <AppConfig.h>
 #ifdef DEBUG_TIME
 #include <Trace.h>
@@ -35,6 +36,8 @@ Observers<TimeChangedParam> timeChanged;
 
 static void setTime(bool ignoreFailure)
 {
+  time_t now = 0;
+
 #ifdef USE_WIFI
   configTime(Config::timeZone * 60 + (DST ? (Config::DST * 60) : 0), 0, Config::timeServer);
   tm tr1;
@@ -43,10 +46,19 @@ static void setTime(bool ignoreFailure)
   if (!getLocalTime(&tr1, MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC * 1000))
 #else
   unsigned long t0 = millis();
-  time_t utc = 0;
-  while(millis() - t0 < MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC * 1000 && !isValidTime(utc = NTPClient::getUTC()))
+  // while(millis() - t0 < MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC * 1000 && !isValidTime(utc = NTPClient::getUTC()))
+  //   delay(100);
+  EthUDP ntpUDP;
+  NTPClient ntpClient(ntpUDP, Config::timeServer, Config::timeZone * 60 + (DST ? (Config::DST * 60) : 0), Config::timeUpdatePeriodMin * 60 * 1000);
+  ntpClient.begin();
+  do
+  {
+    ntpClient.update();
     delay(100);
-  if (!isValidTime(utc))
+  } while(millis() - t0 < MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC * 1000 && !isValidTime(now = ntpClient.getEpochTime()));
+  ntpClient.end();
+  struct tm timeInfo;
+  if (!isValidTime(now))
 #endif
   {
 #ifdef DEBUG_TIME
@@ -60,7 +72,6 @@ static void setTime(bool ignoreFailure)
 #ifndef USE_WIFI
   else
   {
-    time_t now = utc + Config::timeZone * 60 + (DST ? (Config::DST * 60) : 0);
     timeval tv = {now, 0};
     settimeofday(&tv, NULL);
   }
@@ -69,7 +80,7 @@ static void setTime(bool ignoreFailure)
 #ifdef DEBUG_TIME
   char buff[128];
   tm tr;
-  time_t now = t_now;
+  now = t_now;
 
   localtime_r(&now, &tr);
   strftime(buff, sizeof(buff), "DateTime: %a %d/%m/%Y %T%n", &tr);
@@ -104,6 +115,9 @@ void timeUpdateTask(void *param)
     TickType_t tWait = (tr.tm_year < 100 ? TIME_INIT_UPDATE_PERIOD_SEC : (Config::timeUpdatePeriodMin * 60)) * 1000 / portTICK_PERIOD_MS;
     vTaskDelay(tWait);
     setTime(false);
+#ifdef DEBUG_TIME
+    Tracef("Time task stack high watermark: %d\n", uxTaskGetStackHighWaterMark(NULL));    
+#endif    
   }
 }
 #endif
@@ -121,7 +135,7 @@ void InitTime()
   setTime(true);
   AppConfig::getAppConfigChanged().addObserver(appConfigChanged, NULL);
 #ifndef USE_WIFI
-  xTaskCreate(timeUpdateTask, "TimeUpdate", 8*1024, NULL, tskIDLE_PRIORITY, NULL);
+  xTaskCreate(timeUpdateTask, "TimeUpdate", 2*1024, NULL, tskIDLE_PRIORITY, NULL);
 #endif
 }
 
@@ -133,5 +147,3 @@ bool isValidTime(time_t t)
 
   return stm.tm_year >= 2016 - 1900;
 }
-
-
