@@ -14,6 +14,16 @@ public:
         m_instance = new FakeRecoveryControl();
     }
 
+    int addRecoveryStateChangedObserver(Observers<RecoveryStateChangedParams>::Handler handler, const void *context)
+    {
+        return m_instance->m_recoveryStateChanged.addObserver(handler, context);
+    }
+
+    int addMaxHistoryRecordChangedObserver(Observers<MaxHistoryRecordChangedParams>::Handler handler, const void *context)
+    {
+        return m_instance->m_maxHistoryRecordsChanged.addObserver(handler, context);
+    }
+
     Observers<RecoveryStateChangedParams> &GetRecoveryStateChanged()
     {
         return m_instance->m_recoveryStateChanged;
