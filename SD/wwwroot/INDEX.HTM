@@ -285,7 +285,7 @@
 
         if (recoveryType == recoveryTypes.PERIODIC && mPeriodic)
         {
-            tWait = Math.max(mDisco, rDisco);
+            tWait = Math.max(mDisco, tWait);
             $("#modem")[0].checked = false;
             setTimeout(async function () {
                 $("#modem")[0].checked = true;
