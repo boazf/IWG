@@ -4,7 +4,8 @@
 #include "StringableEnumTests.h"
 #include "HtmlFillerViewReaderTests.h"
 #include "HistoryStorageTests.h"
-#include <HistoryControlTests.h>
+#include "HistoryControlTests.h"
+#include "LinkedListTests.h"
 #include "FakeLock.h"
 #include <FakeEEPROMEx.h>
 #include <Trace.h>
@@ -45,6 +46,10 @@ int main(void) {
 	RUN_TEST(historyControlModemRecoveryTests);
 	RUN_TEST(historyControlPeriodicRestartTests);
 	RUN_TEST(historyControlConnectivityCheckWhileInFailureTests);
+	RUN_TEST(linkedListInsertTests);
+	RUN_TEST(linkedListDeleteTests);
+	RUN_TEST(linkedListClearAllTests);
+	RUN_TEST(linkedListScanNodesTests);
   return UNITY_END();
 }
 
