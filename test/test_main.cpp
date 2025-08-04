@@ -6,6 +6,7 @@
 #include "HistoryStorageTests.h"
 #include "HistoryControlTests.h"
 #include "LinkedListTests.h"
+#include "ObserversTests.h"
 #include "FakeLock.h"
 #include <FakeEEPROMEx.h>
 #include <Trace.h>
@@ -50,6 +51,7 @@ int main(void) {
 	RUN_TEST(linkedListDeleteTests);
 	RUN_TEST(linkedListClearAllTests);
 	RUN_TEST(linkedListScanNodesTests);
+	RUN_TEST(observersBasicTests);
   return UNITY_END();
 }
 
