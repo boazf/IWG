@@ -27,7 +27,6 @@ namespace manualcontrol
     class ConnectivityCheck; 
     class Disconnected;
     class RecoveryFailure;
-    class HWFailure;
     class ModemRecovery;
     class Connected;
     class RouterRecovery;
@@ -77,10 +76,6 @@ namespace manualcontrol
             case RecoveryTypes::Disconnected:
             case RecoveryTypes::Failed:
                 transit<RecoveryFailure>();
-                break;
-
-            case RecoveryTypes::HWFailure:
-                transit<HWFailure>();
                 break;
 
             case RecoveryTypes::Modem:
@@ -205,19 +200,6 @@ namespace manualcontrol
         {
             CommonManualControlState::entry();
             mri.set(ledState::LED_BLINK);
-        }
-    };
-
-    class HWFailure : public CommonManualControlState
-    {
-    public:
-        HWFailure() : CommonManualControlState(true) {}
-        
-        void entry() override
-        {
-            CommonManualControlState::entry();
-            mri.set(ledState::LED_BLINK);
-            rri.set(ledState::LED_BLINK);
         }
     };
 

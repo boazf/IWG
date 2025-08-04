@@ -70,7 +70,6 @@ enum class RecoveryTypes
 	Modem, 				// Recover internet connection by disconnecting the modem power and then reconnecting it
 	ConnectivityCheck, 	// Check connectivity, if it fails, then try to recovery cycles
 	Failed, 			// Recovery cycles failed, attempted maximum recovery cycles
-	HWFailure,
 	Disconnected, 		// Disconnected from the internet, no recovery needed because auto-recovery is disabled
 	Periodic 			// Periodic restart of the router and/or modem
 };

@@ -77,9 +77,8 @@
         MODEM: 3,
         TEST_CONNECTION: 4,
         FAILED: 5,
-        HW_FAILURE: 6,
-        DISCONNECTED: 7,
-        PERIODIC : 8
+        DISCONNECTED: 6,
+        PERIODIC : 7
     };
 
     const powerStates = {
@@ -160,7 +159,6 @@
                 break;
             case recoveryTypes.MODEM:
             case recoveryTypes.TEST_CONNECTION:
-            case recoveryTypes.HW_FAILURE:
                 $("#glassPane").css("visibility", "visible");
                 break;
             case recoveryTypes.NONE:
@@ -212,8 +210,6 @@
                 break;
             case recoveryTypes.FAILED:
                 return "Disconnected - Recovery failed!";
-            case recoveryTypes.HW_FAILURE:
-                return "Hardware Failure!"
             case recoveryTypes.DISCONNECTED:
                 return "Disconnected.";
             case recoveryTypes.PERIODIC:
@@ -232,7 +228,6 @@
             case recoveryTypes.ROUTER_SINGLE_DEVICE:
             case recoveryTypes.MODEM:
             case recoveryTypes.FAILED:
-            case recoveryTypes.HW_FAILURE:
             case recoveryTypes.DISCONNECTED:
             case recoveryTypes.PERIODIC:
                 $("#connection").removeClass("alert-success");
@@ -257,7 +252,6 @@
             case recoveryTypes.ROUTER_SINGLE_DEVICE:
             case recoveryTypes.MODEM:
             case recoveryTypes.FAILED:
-            case recoveryTypes.HW_FAILURE:
             case recoveryTypes.DISCONNECTED:
             case recoveryTypes.PERIODIC:
                 statusGlyphicon = 'glyphicon-remove';

@@ -58,7 +58,6 @@ namespace historycontrol
 
     class ConnectivityCheck; 
     class RecoveryFailure;
-    class HWFailure;
     class ModemRecovery;
     class Connected;
     class RouterRecovery;
@@ -86,10 +85,6 @@ namespace historycontrol
 
             case RecoveryTypes::Failed:
                 transit<RecoveryFailure>();
-                break;
-
-            case RecoveryTypes::HWFailure:
-                transit<HWFailure>();
                 break;
 
             case RecoveryTypes::Modem:
@@ -172,18 +167,6 @@ namespace historycontrol
         void exit() override
         {
             AddToHistory();
-        }
-    };
-
-    /// @brief State for handling hardware failures.
-    /// @todo This state actually never gets entered. Should remove it all together
-    class HWFailure : public CommonHistoryControlState
-    {
-        void entry() override
-        {
-            delete currStorageItem;
-            currStorageItem = NULL;
-            lastUpdate = t_now;
         }
     };
 
