@@ -96,6 +96,7 @@ int SettingsView::parseInt(const String &val)
 time_t SettingsView::parseTime(const String &val)
 {
     int h, m;
+    // Parse the time in the format "HH%3AMM" (where %3A is URL-encoded ':').
     if (sscanf(val.c_str(), "%d%%3A%d", &h, &m) != 2)
         return -1;
 
@@ -114,10 +115,13 @@ void SettingsView::SetConfigValue(const String &pair, SettingsValuesSetMap &sett
     if (pair.equals(""))
         return;
 
+    // Parse the key-value pair from the form data.
     int eqIndex = pair.indexOf('=');
     String var = pair.substring(0, eqIndex);
     String val = pair.substring(eqIndex + 1);
 
+    // Find the corresponding settings key in the settingsMap.
+    // If the key is not found, log an error and return.
     SettingsMap::const_iterator i = settingsMap.find(var.c_str());
     if (i == settingsMap.end())
     {
@@ -127,6 +131,9 @@ void SettingsView::SetConfigValue(const String &pair, SettingsValuesSetMap &sett
         return;
     }
 
+    // Set the configuration value based on the settings key.
+    // If the setting was already set by the user, skip setting it again.
+    // This is to avoid overwriting a value that was already set in the form.
     switch (i->second)
     {
     case settingsKeys::enableAutoRecovery:
@@ -205,22 +212,34 @@ bool SettingsView::Post(HttpClientContext &context, const String id)
 
     EthClient client = context.getClient();
 
+    // Read the form data from the message body.
+    // The form data is expected to be in the format "key1=value1&key2=value2&...".
+    // We read until we reach the end of the message body.
     while(client.available())
     {
         char c = client.read();
         if (c != '&')
         {
+            // If the character is not an '&', append it to the current pair.
             pair += c;
             continue;
         }
 
+        // If we reach an '&', it means we have a complete key-value pair.
+        // Set the configuration value for the current pair.
         SetConfigValue(pair, settingsValuesSetMap);
         pair = "";
     }
 
+    // If there is a remaining pair after reading the message body, set its value.
     SetConfigValue(pair, settingsValuesSetMap);
+    // Commit the changes to the AppConfig.
+    // This will save the configuration values to EEPROM.
+    // It is important to call this after all settings have been set for efficiency.
     AppConfig::commit();
 
+    // Send a response to the client indicating that the settings have been saved.
+    // We send a 302 Found status code to redirect the client to the index page.
     HttpHeaders::Header additionalHeaders[] = { {"Access-Control-Allow-Origin", "*" }, {"Location", "/index"} };
     HttpHeaders headers(client);
     headers.sendHeaderSection(302, true, additionalHeaders, NELEMS(additionalHeaders));

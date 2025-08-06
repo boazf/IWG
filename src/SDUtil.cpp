@@ -37,6 +37,15 @@ int SDExClass::count = 0;
 
 #undef SD
 
+/// @brief Begin the SD card session.
+/// @param ssPin The chip select pin for the SD card.
+/// @param spi The SPI bus to use.
+/// @param frequency The SPI clock frequency.
+/// @param mountpoint The mount point for the SD card.
+/// @param max_files The maximum number of files to open simultaneously.
+/// @return True if the SD card was successfully initialized, false otherwise.
+/// @note This method uses a lock to ensure thread safety when accessing the SD card.
+/// @note The SD card is initialized only on the first call to this method, subsequent calls will return true without re-initializing.
 bool SDExClass::begin(uint8_t ssPin, SPIClass &spi, uint32_t frequency, const char * mountpoint, uint8_t max_files)
 {
   Lock lock(csSpi);
@@ -46,6 +55,9 @@ bool SDExClass::begin(uint8_t ssPin, SPIClass &spi, uint32_t frequency, const ch
   return true;
 }
 
+/// @brief End the SD card session.
+/// @note This method decrements the count of SD card sessions and calls SD.end() only when the count reaches zero.
+/// @note It uses a lock to ensure thread safety when accessing the SD card.
 void SDExClass::end()
 {
   Lock lock(csSpi);
@@ -141,6 +153,7 @@ bool SDExClass::rmdir(const String &path)
   return rmdir(path.c_str());
 }
 
+// Global instance of the SDExClass to manage the SD card state and operations.
 SDExClass SDEx;
 
 void InitSD()

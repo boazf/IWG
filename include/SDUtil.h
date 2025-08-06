@@ -25,15 +25,19 @@
 #include <FileEx.h>
 #include <Lock.h>
 
+// Class to automatically manage the SD card's state.
 class AutoSD
 {
 public:
+  // Constructor initializes the SD card.
   AutoSD();
+  // Destructor ends the SD card session.
   ~AutoSD();
 };
 
 #define SD SDEx
 
+// Class to serialize SD card SPI operations, so it'll operate correctly in multi-threaded environments.
 class SDExClass
 {
 public:
@@ -57,9 +61,11 @@ public:
     bool rmdir(const String &path);
 
 private:
+    // Count of SD.begin()/SD.end() calls to manage the SD card state.
     static int count;
 };
 
+// Global instance of the SDExClass to manage the SD card state and operations.
 extern SDExClass SDEx;
 
 void InitSD();
