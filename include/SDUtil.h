@@ -55,7 +55,6 @@ public:
     bool mkdir(const String &path);
     bool rmdir(const char *path);
     bool rmdir(const String &path);
-    static void WaitForIdle(int timeout = portMAX_DELAY);
 
 private:
     static int count;

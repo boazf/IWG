@@ -23,6 +23,7 @@
 #include <AutoPtr.h>
 #include <DirectFileView.h>
 #include <SSEController.h>
+#include <PwrCntl.h>
 
 HttpClientContext::HttpClientContext(EthClient &client) :
     keepAlive(false), // default to false
@@ -201,8 +202,25 @@ EthServer HTTPServer::server(80);
 WiFiServer HTTPServer::server(80, MAX_CLIENTS);
 #endif
 
+bool HTTPServer::stopServer = false;
+
 void HTTPServer::Init()
 {
+    hardResetEvent.addObserver([](const HardResetEventParam &param, const void *context)
+    {
+        switch (param.stage)
+        {
+            case HardResetStage::prepare:
+                // Stop accepting new connections when preparing for hard reset
+                stopServer = true;
+                break;
+            case HardResetStage::failure:
+                // Allow the server to continue accepting new connections after a hard reset failure
+                stopServer = false;
+                break;
+        }
+    }, NULL);
+
     server.begin();
 #ifdef DEBUG_HTTP_SERVER
     Traceln("HTTP Server has started");
@@ -218,7 +236,16 @@ void HTTPServer::ServeClient()
     // If no client is connected, return
     if (!client.connected())
         return;
-#ifdef DEBUG_HTTP_SERVER
+    if (stopServer)
+    {
+        // If the server is stopped, we send a 403 Forbidden response
+        // This indicates that the server is not accepting new connections at this time.
+        HttpHeaders headers(client);
+        headers.sendHeaderSection(403);
+        client.stop();
+        return;
+    }
+    #ifdef DEBUG_HTTP_SERVER
     // Log the new client connection details
 #ifndef USE_WIFI
     Tracef("New client: IP=%s, port=%d, socket: %d\n", client.remoteIP().toString().c_str(), client.remotePort(), client.getSocketNumber());

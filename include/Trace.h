@@ -29,7 +29,6 @@ extern CriticalSection csTraceLock;
 
 void InitSerialTrace();
 void InitFileTrace();
-void TraceStop(int timeout = portMAX_DELAY);
 size_t Trace(const char *message);
 inline size_t Traceln() { LOCK_TRACE; return Trace("\r\n"); }
 inline size_t Traceln(const char *message) { LOCK_TRACE; return Trace(message) + Traceln(); };

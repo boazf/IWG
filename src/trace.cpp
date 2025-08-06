@@ -22,19 +22,12 @@
 #include <SDUtil.h>
 #include <TimeUtil.h>
 #include <LinkedList.h>
+#include <PwrCntl.h>
 
 static char logFileName[80];
 
 #define LOG_DIR "/logs"
 #define MAX_LOG_FILE_SIZE (4 * 1024 * 1024)
-
-static bool traceStop = false;
-
-void TraceStop(int timeout)
-{
-    traceStop = true;
-    SDExClass::WaitForIdle(timeout);
-}
 
 static time_t GetFileTimeFromFileName(SdFile file)
 {
@@ -162,6 +155,28 @@ static void FileLoggerTask(void *parameter)
 
 void InitFileTrace()
 {
+    hardResetEvent.addObserver([](const HardResetEventParam &param, const void *context)
+    {
+        switch (param.stage)
+        {
+            case HardResetStage::prepare:
+                // Stop any further logging.
+                csTraceLock.Enter();
+                break;
+            case HardResetStage::shutdown:
+                {   
+                    // Wait for the log task to write all pending messages to the log file.
+                    unsigned long t0 = millis();
+                    while (!messages.IsEmpty() && millis() - t0 < param.timeout);
+                }
+                break;
+            case HardResetStage::failure:
+                // Allow logging to continue after the hard reset failure.
+                csTraceLock.Leave();
+                break;
+        }
+    }, NULL);
+
     AutoSD autoSD;
 
     if (!SD.exists(LOG_DIR))
@@ -199,9 +214,6 @@ void InitFileTrace()
 
 size_t Trace(const char *message) 
 { 
-    if (traceStop)
-        return 0;
-
     LOCK_TRACE;
     
     size_t ret = Serial.print(message);

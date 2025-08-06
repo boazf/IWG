@@ -35,20 +35,6 @@ AutoSD::~AutoSD()
 
 int SDExClass::count = 0;
 
-void SDExClass::WaitForIdle(int timeout)
-{
-  delay(1);
-  unsigned long t0 = millis();
-  do
-  {
-    csSpi.Enter();
-    if (count == 0)
-      return;
-    csSpi.Leave();
-    delay(1);
-  } while(timeout == portMAX_DELAY || millis() - t0 < timeout);
-}
-
 #undef SD
 
 bool SDExClass::begin(uint8_t ssPin, SPIClass &spi, uint32_t frequency, const char * mountpoint, uint8_t max_files)

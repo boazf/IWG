@@ -86,6 +86,9 @@ private:
 private:
     /// @brief The server instance that listens for incoming connections.
     static EthServer server;
+    /// @brief Indicates whether the server should stop accepting new connections.
+    /// This is used to gracefully shut down the server when needed.
+    static bool stopServer;
     /// @brief THis class handles creation of HttpControllers
     class HttpControllerCreatorData{
     public:    

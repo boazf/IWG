@@ -147,6 +147,7 @@ const std::map<int, String> HttpHeaders::codeDescriptions =
     {302, "Found"}, 
     {304, "Not modified"}, 
     {400, "Bad Request"},
+    {403, "Forbidden"},
     {404, "Not Found"},
     {500, "Internal Server Error"}
 };

@@ -38,9 +38,9 @@ public:
             return updateVersion(context);
         else
             if (id.equals("reboot"))
-                HardReset();
+                HardReset(3000, 15000);
                 
-        return false;
+        return true;
     }
 
     bool Post(HttpClientContext &context, const String id)

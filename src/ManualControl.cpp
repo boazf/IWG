@@ -322,7 +322,8 @@ namespace manualcontrol
                 uli.set(ledState::LED_OFF);
                 rri.set(ledState::LED_OFF);
                 mri.set(ledState::LED_OFF);
-                HardReset(3000);
+                HardReset(3000, 15000);
+                returnToPrevState();
             }
         }
 
