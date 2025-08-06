@@ -24,6 +24,7 @@
 #include <Trace.h>
 #endif
 
+// Get request is unimplemented.
 bool RecoveryController::Get(HttpClientContext &context, const String id)
 {
 #ifdef DEBUG_HTTP_SERVER
@@ -32,6 +33,7 @@ bool RecoveryController::Get(HttpClientContext &context, const String id)
     return false;
 }
 
+// Put request is unimplemented.
 bool RecoveryController::Put(HttpClientContext &context, const String id)
 {
 #ifdef DEBUG_HTTP_SERVER
@@ -40,6 +42,7 @@ bool RecoveryController::Put(HttpClientContext &context, const String id)
     return false;
 }
 
+// Delete request is unimplemented.
 bool RecoveryController::Delete(HttpClientContext &context, const String id)
 {
 #ifdef DEBUG_HTTP_SERVER
@@ -48,6 +51,8 @@ bool RecoveryController::Delete(HttpClientContext &context, const String id)
     return false;
 }
 
+// Post request handles recovery operations based on the recovery type specified in the request body.
+// It reads the request body, extracts the recovery type, and starts the recovery process.
 bool RecoveryController::Post(HttpClientContext &context, const String id)
 {
 #ifdef DEBUG_HTTP_SERVER
@@ -56,6 +61,11 @@ bool RecoveryController::Post(HttpClientContext &context, const String id)
     String content;
     EthClient client = context.getClient();
 
+    // Read the request body from the client connection.
+    // This assumes that the request body is sent as a JSON object containing the recovery type.
+    while (client.connected() && !client.available()) {
+        delay(10); // Wait for data to be available
+    }
     while (client.available())
     {
         content += (char)client.read();
@@ -69,6 +79,7 @@ bool RecoveryController::Post(HttpClientContext &context, const String id)
     }
 #endif
 
+    // Parse the recovery type from the request body.
     RecoveryTypes recoveryType;
     sscanf(content.c_str(), "{\"recoveryType\":%d}", reinterpret_cast<int*>(&recoveryType));
 
@@ -80,8 +91,11 @@ bool RecoveryController::Post(HttpClientContext &context, const String id)
     }
 #endif
 
+    // Start the recovery process based on the recovery type.
+    // The recoveryControl instance is responsible for managing the recovery state machine and performing recovery actions.
     recoveryControl.StartRecoveryCycles(recoveryType);
 
+    // Send a 200 OK response to the client with appropriate headers.
     HttpHeaders::Header additionalHeaders[] = { {"Access-Control-Allow-Origin", "*" }, {"Cache-Control", "no-cache"} };
     HttpHeaders headers(client);
     headers.sendHeaderSection(200, true, additionalHeaders, NELEMS(additionalHeaders));
@@ -89,6 +103,7 @@ bool RecoveryController::Post(HttpClientContext &context, const String id)
     return true;
 }
 
+// This method returns a singleton instance of the RecoveryController.
 HttpController *RecoveryController::getInstance() { return &recoveryController; }
 
 RecoveryController recoveryController;

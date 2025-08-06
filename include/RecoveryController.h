@@ -21,6 +21,8 @@
 
 #include <HttpController.h>
 
+/// @brief This class implements a recovery controller for handling HTTP requests related to device recovery.
+/// This controller is a singleton, meaning only one instance of it will exist in the system.
 class RecoveryController : public HttpController
 {
 public:
