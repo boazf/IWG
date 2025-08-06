@@ -20,28 +20,36 @@
 #include <Relays.h>
 #include <Config.h>
 
-#define MODEM_RELAY 7
-#define ROUTER_RELAY 8
+// Default GPIO pin numbers for the modem and router relays.
+#define MODEM_RELAY 26
+#define ROUTER_RELAY 25
 
+// Static variables to hold the relay GPIO pin numbers and their current power states.
 static byte modemRelay = MODEM_RELAY;
 static byte routerRelay = ROUTER_RELAY;
 static PowerState modemPowerState;
 static PowerState routerPowerState;
 
-int PowerStateToLineState(PowerState state)
+/// @brief Convert the power state to a line state for the relay.
+/// @param state The power state to convert.
+/// @return The corresponding line state (HIGH or LOW).
+static int PowerStateToLineState(PowerState state)
 {
     return state == PowerState::POWER_ON ? HIGH : LOW;
 }
 
 void InitRelays()
 {
+    // Initialize the modem and router relay GPIO pins based on the configuration.
     if (Config::modemRelay != 0)
         modemRelay = Config::modemRelay;
     if (Config::routerRelay != 0)
         routerRelay = Config::routerRelay;
 
+    // Set the relay pins as outputs and power them on.
     pinMode(modemRelay, OUTPUT);
     pinMode(routerRelay, OUTPUT);
+    // Set the initial power states to ON.
     SetModemPowerState(PowerState::POWER_ON);
     SetRouterPowerState(PowerState::POWER_ON);
 }

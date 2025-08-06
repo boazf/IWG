@@ -25,14 +25,24 @@ enum class PowerState
     POWER_ON,
 };
 
+/// @brief Initialize the relays based on configuration.
+/// Sets the modem and router relays to their configured pins and powers them on.
 void InitRelays();
 
+/// @brief Retrieve the current power state of the router.
+/// @return The current power state of the router.
 PowerState GetRouterPowerState();
 
+/// @brief Retrieve the current power state of the modem.
+/// @return The current power state of the modem.
 PowerState GetModemPowerState();
 
+/// @brief Set the power state of the router.
+/// @param state The desired power state to set for the router.
 void SetRouterPowerState(PowerState state);
 
+/// @brief Set the power state of the modem.
+/// @param state The desired power state to set for the modem.
 void SetModemPowerState(PowerState state);
 
 #endif // Relays_h
