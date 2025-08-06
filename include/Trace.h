@@ -27,8 +27,12 @@ extern CriticalSection csTraceLock;
 #define LOCK_TRACE Lock lock(csTraceLock)
 #define TRACE_BLOCK CRITICAL_BLOCK(csTraceLock)
 
+/// @brief Initialize tracing to serial port.
 void InitSerialTrace();
+/// @brief Initialize tracing to file.
 void InitFileTrace();
+
+// Function to log messages to serial port and log file.
 size_t Trace(const char *message);
 inline size_t Traceln() { LOCK_TRACE; return Trace("\r\n"); }
 inline size_t Traceln(const char *message) { LOCK_TRACE; return Trace(message) + Traceln(); };
