@@ -21,7 +21,7 @@
 #include <AutoPtr.h>
 #include <SDUtil.h>
 #include <TimeUtil.h>
-#include <LinkedList.h>
+#include <queue>
 #include <PwrCntl.h>
 
 static char logFileName[80];
@@ -69,7 +69,7 @@ void InitSerialTrace()
 }
 
 static SemaphoreHandle_t logSem = xSemaphoreCreateCounting(INT32_MAX , 0);
-static LinkedList<String> messages;
+static std::queue<String> messages;
 
 static void CreateNewLogFileName()
 {
@@ -92,16 +92,10 @@ static void TraceTimeStamp(SdFile logFile)
 
 static void Log(SdFile logFile, bool &shouldTraceTimeStamp)
 {
-    String messageStr;
-
-    messages.ScanNodes([](const String &messageStr, const void *param)->bool
-    {
-        const_cast<String *>(static_cast<const String *>(param))->concat(messageStr);
-        return false;
-    }, &messageStr);
+    String messageStr = messages.front();
 
     const char *message = messageStr.c_str();
-    char *newLine = strchr(message, '\n');
+    const char *newLine = strchr(message, '\n');
     while (newLine != NULL)
     {
         if (shouldTraceTimeStamp)
@@ -119,7 +113,7 @@ static void Log(SdFile logFile, bool &shouldTraceTimeStamp)
         logFile.write(reinterpret_cast<const uint8_t *>(message), strlen(message));
     }
     logFile.flush();
-    messages.Delete(messageStr);
+    messages.pop();
 }
 
 static void FileLoggerTask(void *parameter)
@@ -167,7 +161,7 @@ void InitFileTrace()
                 {   
                     // Wait for the log task to write all pending messages to the log file.
                     unsigned long t0 = millis();
-                    while (!messages.IsEmpty() && millis() - t0 < param.timeout);
+                    while (!messages.empty() && millis() - t0 < param.timeout);
                 }
                 break;
             case HardResetStage::failure:
@@ -218,7 +212,7 @@ size_t Trace(const char *message)
     
     size_t ret = Serial.print(message);
 
-    messages.Insert(message);
+    messages.push(message);
     xSemaphoreGive(logSem);
 
     return ret;
