@@ -67,6 +67,13 @@ static void hardResetTask(void *param)
       stm.tm_sec = stm.tm_min = stm.tm_hour = 0;
       // Set the time of the hard reset to be at midnight of the day of the hard reset
       time_t tHardReset = mktime(&stm) + Config::hardResetTime;
+      while (tHardReset < t_now)
+      {
+        // If the hard reset time is in the past, add Config::hardResetPeriodDays to it until it is in the future.
+        // This is only required if the hard reset disable switch is turned on and hard reset was attempted but failed.
+        tHardReset += Config::hardResetPeriodDays * 24 * 60 * 60;
+      }
+
 #ifdef DEBUG_POWER
       localtime_r(&tHardReset, &stm);
     	char buff[128];
@@ -96,8 +103,6 @@ static void hardResetTask(void *param)
 ///       If the hard reset period is not in the allowed range, it will not create the task.
 void InitHardReset(const TimeChangedParam &now, const void *param)
 {
-  static TaskHandle_t hHardResetTask = NULL;
-  
   if (hHardResetTask == NULL)
   {
     if (Config::hardResetPeriodDays < MIN_HARD_RESET_PERIOD || 
@@ -134,13 +139,14 @@ static xSemaphoreHandle wdSem = NULL;
 #define WATCHDOG_LOAD_TIME_MS 5000 // Time to wait for the watchdog to load
 #define WATCHDOG_TRIGGER_HALF_CYCLE_TIME_MS 500 // Half cycle time for the watchdog trigger in milliseconds
 
-void InitPowerControl()
+void InitPowerControl(bool addObserver)
 {
   // Initialize the watchdog load pin.
   pinMode(WATCHDOG_LOADED_PIN, INPUT);
 
   // Set observer for time changes
-  timeChanged.addObserver(InitHardReset, NULL);
+  if (addObserver)
+    timeChanged.addObserver(InitHardReset, NULL);
 
   // Initialize watchdog task.
   wdSem = xSemaphoreCreateBinary();  
@@ -186,7 +192,9 @@ void HardReset(int timeout, int returnTimeout)
   // If we are here, the watchdog disable switch is turned on, hence hard reset was not done.
   // Call the observers to indicate that the hard reset failed.
   // This will allow components to reverse shutdown operations.
+  Traceln("Hard reset failed, probably the hard reset disable switch is turned on.");
   hardResetEvent.callObservers(HardResetEventParam(HardResetStage::failure, 0));
+  InitPowerControl(false); // Reinitialize power control to reset the watchdog task.
 }
 
 Observers<HardResetEventParam> hardResetEvent;

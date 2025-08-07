@@ -22,9 +22,10 @@
 #include <Observers.h>
 
 /// @brief Initialize power control.
+/// @param addObserver If true, adds an observer for hard reset events.
 /// This function initializes the power control system by setting up the watchdog timer and creating a task to trigger the watchdog.
 /// It also waits for the watchdog timer to load before proceeding.
-void InitPowerControl();
+void InitPowerControl(bool addObserver = true);
 /// @brief Perform a hard reset.
 /// @param timeout Before performing the hard reset, components that registered for hard reset event will be called 
 ///        to perform a graceful shutdown. The time for this shutdown should be limited by this timeout.
