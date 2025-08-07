@@ -28,15 +28,20 @@ bool View::Get(HttpClientContext &context, const String id)
 {
     EthClient client = context.getClient();
 
+    // Check if redirect is needed.
+    // If the redirect is successful, it will send the redirect response and return true.
+    // Otherwise, it will return false, and we will proceed to read the view.
     if (redirect(client, id))
         return true;
 
+    // Open the view and pass it a buffer to read the view data.
     byte buff[256];
     if (!viewReader->open(buff, sizeof(buff)))
     {
         return false;
     }
 
+    // Check if the view was modified since the last request.
     if (!context.getLastModified().isEmpty())
     {
         String lastModifiedTime;
@@ -44,6 +49,7 @@ bool View::Get(HttpClientContext &context, const String id)
         viewReader->getLastModifiedTime(lastModifiedTime);
         if (context.getLastModified().equals(lastModifiedTime))
         {
+            // If the last modified time matches, we can return a 304 Not Modified response.
 #ifdef DEBUG_HTTP_SERVER
             TRACE_BLOCK
 	        {
@@ -60,9 +66,11 @@ bool View::Get(HttpClientContext &context, const String id)
         }
     }
 
+    // If we reach here, it means we need to send the view data.
     CONTENT_TYPE type = viewReader->getContentType();
     if (type == CONTENT_TYPE::UNKNOWN)
     {
+        // If the content type is unknown, we must fail the request.
 #ifdef DEBUG_HTTP_SERVER
         Traceln("Unknown extention");
 #endif
@@ -70,8 +78,13 @@ bool View::Get(HttpClientContext &context, const String id)
         return false;
     }
 
+    // Prepare the headers to send.
     long size = viewReader->getViewSize();
 
+    // Prepare two additional headers, one for the content type and one for the last modified time.
+    // If the content type is HTML, we will not send the last modified time header.
+    // This is because HTML files are often dynamically generated and may not have a last modified time.
+    // For other content types, we will send the last modified time header if it is available.
     HttpHeaders::Header additionalHeaders[] = { {type}, {} };
     if (type != CONTENT_TYPE::HTML)
     {
@@ -82,9 +95,11 @@ bool View::Get(HttpClientContext &context, const String id)
         }
     }
 
+    // Send the headers to the client.
     HttpHeaders headers(client);
     headers.sendHeaderSection(200, true, additionalHeaders, NELEMS(additionalHeaders), size);
 
+    // Pump the response body to the client.
     long bytesSent = 0;
     while (bytesSent < size)
     {
@@ -103,11 +118,15 @@ bool View::Get(HttpClientContext &context, const String id)
     }
 #endif
 
+    // Close the view reader to release resources.
     viewReader->close();
 
     return true;
 }
 
+// The Post, Put, and Delete methods are not implemented in the View class.
+// They are left as stubs to indicate that these methods are not supported for views.
+// If you need to implement these methods, you can override them in a derived class.
 bool View::Post(HttpClientContext &context, const String id)
 {
     return false;

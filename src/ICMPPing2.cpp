@@ -17,7 +17,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // This creates an ICMPPing class that uses W5100Ex class instead of W5100 class.
-// This is needed to provide thread safe functionality for the ICMPPing class.
+// This is needed to provide the extended functionality of W5100Ex class that is
+// required for the implementation of ICMPPing class.
 #ifndef USE_WIFI
 #include <Common.h>
 #include <w5100ex.h>
