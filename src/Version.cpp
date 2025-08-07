@@ -24,19 +24,11 @@
 
 const String Version::unknownVersion = "Unknown";
 
-#ifdef USE_WIFI
-#define API_KEY "85563019-0120-4fc4-bd4b-5baff9c556a9"
-#else
-#define API_KEY "d54ef031-6f61-4f00-bcdc-c803c3fa8ce8"
-#endif
-
 // The current version of the application.
 // This version is reported as the currently install version 
 // and also used for OTA updates.
 // This version should be updated with each release.
-#define APP_VERSION "1.0.27"
-
-const char *Version::apiKey = API_KEY;
+#define APP_VERSION "1.0.28"
 
 String Version::getCurrentVersion()
 {
@@ -144,7 +136,7 @@ String Version::getChipId()
 
 String Version::getBaseParams()
 {
-    return String("k=") + apiKey + "&v=" + getCurrentVersion() + "&s=" + getChipId();
+    return String("k=") + Config::otaApiKey + "&v=" + getCurrentVersion() + "&s=" + getChipId();
 }
 
 String Version::getUpdateURL()

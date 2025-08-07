@@ -86,9 +86,6 @@ private:
 private:
     /// @brief A string representing unknown version. this string is used when the version cannot be determined.
     static const String unknownVersion;
-    /// @brief The API key for the OTA update.
-    /// @note This key is used to authenticate the OTA update requests.
-    static const char *apiKey;
 };
 
 #endif // VERSION_H

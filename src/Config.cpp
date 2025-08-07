@@ -95,6 +95,8 @@ long Config::hardResetPeriodDays = 3; // 3 days
 long Config::hardResetTime = 3 * 60 * 60; // 3AM
 /// @brief The OTA server to use for over-the-air updates.
 const char *Config::otaServer = "otadrive.com";
+/// @brief The OTA API key to use for over-the-air updates.
+const char *Config::otaApiKey = "";
 #ifdef USE_WIFI
 /// @brief The SSID of the WiFi network to connect to.
 const char *Config::ssid /* = "Your SSID" */;
@@ -280,6 +282,7 @@ void Config::Init()
   #ifndef USE_WIFI
     { String("RouterInitTimeSec"), ParseLong, &routerInitTimeSec },
     { String("TimeUpdatePeriodMin"), ParseLong, &timeUpdatePeriodMin },
+    { String("OTAWiredApiKey"), ParseString, &otaApiKey },
   #endif
     { String("IP"), ParseIPAddress, ip },
     { String("Gateway"), ParseIPAddress, gateway },
@@ -296,6 +299,7 @@ void Config::Init()
     { String("SSID"), ParseString, &ssid },
     { String("Password"), ParseString, &password },
     { String("HostName"), ParseString, &hostName },
+    { String("OTAWiFiApiKey"), ParseString, &otaApiKey },
   #endif
   };
 

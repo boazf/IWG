@@ -87,6 +87,12 @@ public:
     static long hardResetTime;
     /// @brief The OTA server to use for over-the-air updates.
     static const char *otaServer;
+    /// @brief The OTA API key to use for over-the-air updates.
+    /// This key is used to authenticate the device with the OTA server.
+    /// It should be kept secret and not shared with anyone.
+    /// If this value is not specified in the configuration file, the default value will be used.
+    /// The default value is an empty string, which means that no authentication is required.
+    static const char *otaApiKey;
 #ifdef USE_WIFI
     /// @brief The SSID of the WiFi network to connect to.
     static const char *ssid;
