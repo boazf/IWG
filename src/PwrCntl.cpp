@@ -40,6 +40,8 @@ static void hardResetTask(void *param)
 {
 #ifdef USE_WIFI
   // Wait for valid time
+  // When using WiFi, there is no background task to update the time,
+  // we must wait for the time to be set before proceeding.
   while (!isValidTime(t_now))
   {
     delay(30000);
@@ -95,13 +97,10 @@ static void hardResetTask(void *param)
 
 #define MIN_HARD_RESET_PERIOD 1
 #define MAX_HARD_RESET_PERIOD 45
-
 /// @brief Initializes the hard reset task.
-/// @param now The current time.
-/// @param param Unused parameter.
 /// @note This function checks the hard reset period from the configuration and creates the hard reset task if needed.
 ///       If the hard reset period is not in the allowed range, it will not create the task.
-void InitHardReset(const TimeChangedParam &now, const void *param)
+static void InitHardReset()
 {
   if (hHardResetTask == NULL)
   {
@@ -130,6 +129,15 @@ void InitHardReset(const TimeChangedParam &now, const void *param)
   else if (waitSem != NULL)
     // If the task is already created, give the semaphore to re-evaluate the time to wait.
     xSemaphoreGive(waitSem);
+}
+
+/// @brief Initializes the hard reset task.
+/// @param now The current time (unused).
+/// @param param Unused parameter.
+/// @note This function is called by the timeChanged observer to initialize the hard reset task.
+static void InitHardReset(const TimeChangedParam &now, const void *param)
+{
+  InitHardReset();
 }
 
 /// @brief Semaphore to signal the watchdog task to stop triggering the watchdog.
@@ -194,7 +202,10 @@ void HardReset(int timeout, int returnTimeout)
   // This will allow components to reverse shutdown operations.
   Traceln("Hard reset failed, probably the hard reset disable switch is turned on.");
   hardResetEvent.callObservers(HardResetEventParam(HardResetStage::failure, 0));
+  // Reinitialize the watchdog task to start triggering the watchdog again.
   InitPowerControl(false); // Reinitialize power control to reset the watchdog task.
+  // This will reinitialize the hard reset task in case it was ended.
+  InitHardReset();
 }
 
 Observers<HardResetEventParam> hardResetEvent;
