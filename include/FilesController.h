@@ -38,7 +38,14 @@ public:
     static HttpController *getInstance();
 
 private:
+    /// @brief Normalize the file path.
+    /// @param path The file path to normalize.
+    /// This method replaces spaces in the file path with "%20" to ensure proper URL encoding.
     static void normalizePath(String &path);
+    /// @brief Parse the upload headers from the HTTP request.
+    /// @param header The header line to parse.
+    /// @param boundary The boundary string to extract from the header.
+    /// @param fileName The file name to extract from the header.
     static void parseUploadHeaders(const String &header, String &boundary, String &fileName);
 };
 
