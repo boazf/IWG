@@ -27,13 +27,19 @@
 #endif
 
 #ifdef USE_WIFI
+// Type aliases for using the same types in Ethernet and WiFi
 #define Eth WiFi
 #define EthClient WiFiClient
 #define EthServer WiFiServer
 #else
+
+/// @brief Provides the same functionality as EthernetClass only it takes the SPI critical section 
+/// before invoking the implementation in EthernetClass and gives the critical section before returning.
 class EthernetClassEx
 {
 public:
+    /// @brief Constructor for EthernetClassEx
+    /// @param _ethernet The EthernetClass instance to wrap.
     EthernetClassEx(EthernetClass _ethernet) { ethernet = _ethernet; }
 	static int begin(uint8_t *mac, unsigned long timeout = 60000, unsigned long responseTimeout = 4000);
 	static int maintain();
@@ -67,6 +73,8 @@ private:
 
 extern EthernetClassEx EthernetEx;
 
+/// @brief EthernetClientEx provides the same functionality as EthernetClient with thread safety by 
+/// overriding its methods and use the SPI critical section to serialize the access to SPI.
 class EthernetClientEx : public EthernetClient
 {
 public:
@@ -90,6 +98,8 @@ public:
 	uint16_t localPort() override;
 };
 
+/// @brief EthernetServerEx provides that same functionality as EthernetServer with thread safety by
+/// overriding its methods and use the SPI critical section to serialize the access to SPI.
 class EthernetServerEx : private EthernetServer
 {
 public:
@@ -102,6 +112,8 @@ public:
 	virtual operator bool() override;
 };
 
+/// @brief EthernetUDPEx provides the same functionality as EthernetUDP with thread safety by
+/// overriding its methods and use the SPI critical section to serialize the access to SPI.
 class EthernetUDPEx : public EthernetUDP
 {
 public:
@@ -122,6 +134,7 @@ public:
 	void flush() override;
 };
 
+// Type aliases for using the same types in Ethernet and WiFi
 #define Eth EthernetEx
 #define EthClient EthernetClientEx
 #define EthServer EthernetServerEx
@@ -148,13 +161,16 @@ bool WaitForDNS();
 /// @brief Initialize Ethernet.
 /// @return True if Ethernet is initialized successfully, false otherwise.
 bool InitEthernet();
+
 /// @brief Do ethernet maintenance.
 /// This function should be called periodically to maintain the Ethernet connection.
 void MaintainEthernet();
+
 /// @brief Check if the IP address is a zero address.
 /// @param address The IP address to check.
 /// @return True if the address is a zero address.
 bool IsZeroIPAddress(const IPAddress &address);
+
 /// @brief Try to get the host address from the server name.
 /// @param address The IPAddress object to store the resolved address.
 /// @param server The server name to resolve.

@@ -37,6 +37,7 @@
 
 #ifndef USE_WIFI
 
+// EthernetClassEX wrappers
 int EthernetClassEx::begin(uint8_t *mac, unsigned long timeout, unsigned long responseTimeout)
 {
   Lock lock(csSpi);
@@ -164,8 +165,10 @@ void EthernetClassEx::setRetransmissionCount(uint8_t num)
   ethernet.setRetransmissionCount(num);
 }
 
+// A global EthernetEx instance that wraps the global Ethernet object
 EthernetClassEx EthernetEx(Ethernet);
 
+// EthernetClientEx wrappers
 size_t EthernetClientEx::write(uint8_t byte)
 {
   Lock lock(csSpi);
@@ -292,6 +295,7 @@ EthernetServerEx::operator bool()
   return EthernetServer::operator bool();
 }
 
+// EthernetUDPEx wrappers
 uint8_t EthernetUDPEx::begin(uint16_t port)
 {
   Lock lock(csSpi);
@@ -377,20 +381,23 @@ uint8_t EthernetUDPEx::beginMulticast(IPAddress addr, uint16_t word)
   return EthernetUDP::beginMulticast(addr, word);
 }
 
-#define RESET_P	17				// Tie the W5500 reset pin to ESP32 GPIO17 pin.
-#define CS_P 16
+#define RESET_P	17	// Tie the W5500 reset pin to ESP32 GPIO17 pin.
+#define CS_P 16     // Tie the W5500 CS pin to ESP32 GPIO16 pin.
 
+/// @brief Reset the Wiz W5500 Ethernet Board.
 static void WizReset() {
 #ifdef DEBUG_ETHERNET
     LOCK_TRACE;
     Trace("Resetting Wiz W5500 Ethernet Board...  ");
 #endif
     pinMode(RESET_P, OUTPUT);
+    // Reset the Wiz W5500 Ethernet Board. Reset is active LOW. Generate a 50 mSec reset pulse.
     digitalWrite(RESET_P, HIGH);
     delay(250);
     digitalWrite(RESET_P, LOW);
     delay(50);
     digitalWrite(RESET_P, HIGH);
+    // Wait for the Wiz W5500 Ethernet Board to come out of reset.
     delay(350);
 #ifdef DEBUG_ETHERNET
     Traceln("Done.");
@@ -415,6 +422,7 @@ bool InitEthernet()
 
   if (!IsZeroIPAddress(Config::ip) && !IsZeroIPAddress(Config::gateway) && !IsZeroIPAddress(Config::mask))
   {
+    // Use manual configuration
 #ifdef USE_WIFI
     WiFi.config(Config::ip, Config::gateway, Config::mask, Config::gateway);
 #else
@@ -424,18 +432,24 @@ bool InitEthernet()
 #ifndef USE_WIFI
   else
   {
+    // Use DHCP
     Eth.begin(Config::mac);
   }
 #else // USE_WIFI
   WiFi.setAutoReconnect(true);
   uint8_t *mac = IsZeroIPAddress(Config::mac) ? NULL : Config::mac;
+  // Sets a custom hostname to be used as DHCP client name (DHCP option 12).
   WiFi.setHostname(Config::hostName);
+  // Start WiFi connection
   WiFi.begin(Config::ssid, Config::password, 0, mac);
+  // Wait for connection
   unsigned long t0 = millis();
   while(true)
   {
+    // 
     if (WiFi.waitForConnectResult() != WL_CONNECTED && millis() - t0 < 60000)
     {
+      // No connection yet. Retry after a delay.
       delay(500);
 #ifdef DEBUG_ETHERNET
       Trace('.');
@@ -443,10 +457,15 @@ bool InitEthernet()
     }
     else
     {
+      // Connection apparently successful, or 60 seconds have passed.
+      // The 60 seconds timeout is to call WiFi.reconnect() if the gateway is not reachable.
+      // We basically cannot continue without valid network connectivity. So we wait here
+      // until the connection is established.
       delay(2000);
 #ifdef DEBUG_ETHERNET
       Tracef("\nPinging gateway: %s\n", Eth.gatewayIP().toString().c_str());
 #endif
+      // Check if the gateway is reachable
       if (!GWConnTest::ping(20, 100))
       {
 #ifdef DEBUG_ETHERNET
@@ -455,6 +474,7 @@ bool InitEthernet()
       }
       else
         break;
+      // Gateway is not reachable. Try to reconnect, wait a bit and then try again.
       WiFi.reconnect();
       delay(2000);
       t0 = millis();
@@ -476,6 +496,7 @@ bool InitEthernet()
 #endif
 
 #ifdef USE_WIFI
+  // Start mDNS
 #ifdef DEBUG_ETHERNET
   bool mdnsSuccess = 
 #endif
@@ -500,23 +521,28 @@ bool WaitForDNS()
   bool success = false;
   IPAddress addrSrv;
   unsigned long t0 = millis();
+  // Get timeout value from configuration
   unsigned long tWait = Config::dnsAvailTimeSec * 1000;
   do
   {
+    // Try to get the host address from one of the servers in the configuration
     while(!TryGetHostAddress(addrSrv, AppConfig::getServer1()) &&
           !TryGetHostAddress(addrSrv, AppConfig::getServer2()) &&
           millis() - t0 < tWait)
       delay(1000);
+    // Check if we timed out
     if (millis() - t0 > tWait)
       break;
     // Expect several sequential successful queries
     int i = 1; // We had already one successful query
     do
     {
+      // If we failed to retrieve both server addresses, start all over again.
       if (!TryGetHostAddress(addrSrv, AppConfig::getServer1()) &&
           !TryGetHostAddress(addrSrv, AppConfig::getServer2()))
         break;
       delay(500);
+      // See if we reached the expected number of successful queries
       success = ++i == EXPECT_SEQ_SUCCESS;
     } while (!success);
   } while (!success);
@@ -548,21 +574,20 @@ static std::map<wl_status_t, std::string> statusNames =
 void MaintainEthernet()
 {
 #ifndef USE_WIFI
+  // Call Ethernet maintain function. This will handle DHCP renewals and other tasks.
 #ifdef DEBUG_ETHERNET
   int res = 
 #endif
   Eth.maintain();
 #ifdef DEBUG_ETHERNET
+  // Print the result of the maintain function
   switch (res) {
     case 1:
       //renewed fail
-#ifdef DEBUG_ETHERNET
       Traceln("Error: renewed fail");
-#endif
       break;
 
     case 2:
-#ifdef DEBUG_ETHERNET
       TRACE_BLOCK
       {    
         //renewed success
@@ -571,18 +596,14 @@ void MaintainEthernet()
         Trace("My IP address: ");
         Traceln(Eth.localIP());
       }
-#endif
       break;
 
     case 3:
       //rebind fail
-#ifdef DEBUG_ETHERNET
       Traceln("Error: rebind fail");
-#endif
       break;
 
     case 4:
-#ifdef DEBUG_ETHERNET
       TRACE_BLOCK
       {
         //rebind success
@@ -591,7 +612,6 @@ void MaintainEthernet()
         Trace("My IP address: ");
         Traceln(Eth.localIP());
       }
-#endif
       break;
 
     default:
@@ -610,11 +630,14 @@ void MaintainEthernet()
 #ifdef DEBUG_ETHERNET
   static time_t tLastUpdate;
 #endif
+  // Check WiFi connection status
   wl_status_t status = (wl_status_t)WiFi.status();
   if (status != WL_CONNECTED)
   {
+    // Connection lost
     if (connected)
     {
+      // If this is the first time that we identified the disconnection try to reconnect
 #ifdef DEBUG_ETHERNET
       Traceln("Network disconnected, trying to reconnect");
       tLastUpdate = 0;
@@ -625,10 +648,12 @@ void MaintainEthernet()
 #ifdef DEBUG_ETHERNET
     if (tLastUpdate != t_now)
     {
+      // Print the current WiFi status every second
       tLastUpdate = t_now;
       Tracef("WiFi status: %s\n", statusNames[status].c_str());
     }
 #endif
+    // Once in every 60 seconds we call reconnect again, as long as we are not connected
     if (t_now - tReconnect > 60)
     {
 #ifdef DEBUG_ETHERNET
@@ -639,14 +664,18 @@ void MaintainEthernet()
   }
   else
   {
+    // Connection exists
     if (connected)
+      // Connection also existed previously, nothing to do.
       return;
 #ifdef DEBUG_ETHERNET
     Tracef("WiFi status: %s\n", statusNames[status].c_str());
 #endif
     delay(2000);
+    // Check if the gateway is reachable
     if (!GWConnTest::ping(5, 1000))
     {
+      // Gateway is not reachable. Try to reconnect, wait a bit and then try again.
 #ifdef DEBUG_ETHERNET
       Traceln("Failed to ping gateway after network reconnect!\nReconnecting");
 #endif
@@ -654,6 +683,7 @@ void MaintainEthernet()
     }
     else
     {
+      // Connection is established
 #ifdef DEBUG_ETHERNET
       Traceln("Connected!");
       Tracef("RSSI: %ddb, BSSID:%s\n", WiFi.RSSI(), WiFi.BSSIDstr().c_str());
@@ -666,12 +696,16 @@ void MaintainEthernet()
 
 bool TryGetHostAddress(IPAddress &address, String server)
 {
+  // Cannot resolve empty server name
 	if (server.equals(""))
 		return false;
+
   int error;
 #ifdef USE_WIFI
+  // Try to resolve the server name using mDNS
 	error = WiFi.hostByName(server.c_str(), address);
 #else
+  // Try to resolve the server name using DNS
 	DNSClient dns;
   {
     Lock lock(csSpi);
@@ -683,6 +717,7 @@ bool TryGetHostAddress(IPAddress &address, String server)
 #endif
   if (error != 1)
   {
+    // Failed to resolve server name
 #ifdef DEBUG_ETHERNET
     Tracef("Failed to get host address for %s, error: %d\n", server.c_str(), error);
 #endif
