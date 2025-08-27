@@ -253,7 +253,6 @@ namespace manualcontrol
             // Create a timer to wait for the unlock button to be pressed for 1 second.
             // If the unlock button is pressed for 1 second, the system will be unlocked and the modem and router recovery buttons will be enabled.
             // If the unlock button is released before 1 second, the system will return to the previous state.
-            esp_timer_handle_t hTimer;
             esp_timer_create_args_t args = {onTimer, this, ESP_TIMER_TASK, "UnlockTimer"};
             esp_timer_create(&args, &hTimer);
             esp_timer_start_once(hTimer, 1000000);
