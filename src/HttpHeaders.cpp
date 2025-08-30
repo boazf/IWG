@@ -23,16 +23,20 @@
 
 void HttpHeaders::sendHeaderSection(int code, bool includeDefaultHeaders, Header headers[], size_t nHeaders, int length)
 {
+    // Send the HTTP status line
     client.printf("HTTP/1.1 %d %s\n", code, codeDescriptions.at(code).c_str());
+    // Send the default headers
     if (includeDefaultHeaders)
     {
         sendHeader("Connection", "close");
         sendHeader("Server", "Arduino");
         sendHeader("Content-Length", String(length));
     }
+    // Send custom headers
     if (headers)
         for (size_t i = 0; i < nHeaders; i++)
             sendHeader(headers[i]);
+    // End of headers
     client.println();
     #ifdef USE_WIFI
         client.flush();
@@ -48,9 +52,11 @@ void HttpHeaders::sendStreamHeaderSection()
 
 void HttpHeaders::sendHeader(const String &name, const String &value)
 {
+    // Do not send empty header names
     if (name.isEmpty())
         return;
 
+    // Send the header
     client.printf("%s: %s\n", name.c_str(), value.c_str());
 }
 
@@ -65,6 +71,7 @@ bool HttpHeaders::parseRequestHeaderSection(HTTP_REQ_TYPE &requestType, String &
     parsedLine = "";
     requestLine = "";
 
+    // Create a map of header names to their indexes in the collectedHeaders array
     typedef std::map<String, int> HeaderNameIndexes;
     HeaderNameIndexes headerNamesIndexes;
     if (collectedHeaders != NULL)
@@ -77,6 +84,7 @@ bool HttpHeaders::parseRequestHeaderSection(HTTP_REQ_TYPE &requestType, String &
     {
         if (!client)
         {
+            // Client got disconnected
 #ifdef DEBUG_HTTP_SERVER
             Tracef("%d Received incomplete request!\n", client.remotePort());
 #endif
@@ -84,6 +92,7 @@ bool HttpHeaders::parseRequestHeaderSection(HTTP_REQ_TYPE &requestType, String &
         }
         if (!client.available()) 
         {
+            // Wait for data to become available, break if timeout
             if (millis() - t0 >= receiveTimeout)
             {
 #ifdef DEBUG_HTTP_SERVER
@@ -95,52 +104,70 @@ bool HttpHeaders::parseRequestHeaderSection(HTTP_REQ_TYPE &requestType, String &
             continue;
         }
 
+        // Read the next character
         char c = client.read();
 
+        // Ignore carriage return characters
         if (c == '\r')
             continue;
 
         if (c != '\n')
         {
+            // Append the character to the parsed line
             parsedLine += c;
             continue;
         }
 
+        // We have here the entire line from the request
         if (parsedLine.isEmpty())
             return true;
 
         if (requestType == HTTP_REQ_TYPE::HTTP_UNKNOWN)
         {
+            // The request type is found in the request status line.
+            // If requestType is unknown, it means we are dealing with the request status line.
             requestLine = parsedLine;
+            // Extract the request method
             int space = parsedLine.indexOf(' ');
             if (space == -1)
                 return false;
-            
+
+            // Find the HTTP request type
             HttpReqTypesMap::const_iterator httpReqType = httpReqTypesMap.find(parsedLine.substring(0, space));
             if (httpReqType == httpReqTypesMap.end())
+                // Unknown HTTP request type
                 return false;
-            
+
+            // Store the request type
             requestType = httpReqType->second;
+            // Extract the resource
             int secondSpace = parsedLine.indexOf(' ', space + 1);
             if (secondSpace == -1)
+                // Resource not found
                 return false;
             resource = parsedLine.substring(space + 1, secondSpace);
         }
         else
         {
+            // Parse headers
             int delimiter = parsedLine.indexOf(": ");
             if (delimiter == -1)
+                // Invalid header format
                 return false;
 
+            // Extract the header name
             String headerName = parsedLine.substring(0, delimiter);
+            // If the header is in the collectedHeaders array, store its value
             HeaderNameIndexes::const_iterator headerIndex = headerNamesIndexes.find(headerName);
             if (headerIndex != headerNamesIndexes.end())
                 collectedHeaders[headerIndex->second].value = parsedLine.substring(delimiter + 2);
         }
+        // Clear the parsed line for the next iteration
         parsedLine = "";
     } while(true);
 }
 
+/// @brief HTTP status code descriptions
 const std::map<int, String> HttpHeaders::codeDescriptions = 
 { 
     {200, "OK"}, 
@@ -152,6 +179,7 @@ const std::map<int, String> HttpHeaders::codeDescriptions =
     {500, "Internal Server Error"}
 };
 
+/// @brief Content type header value
 const std::map<CONTENT_TYPE, String> HttpHeaders::contentTypeValues =
 {
     {CONTENT_TYPE::JAVASCRIPT, "application/javascript"},
@@ -168,6 +196,7 @@ const std::map<CONTENT_TYPE, String> HttpHeaders::contentTypeValues =
     {CONTENT_TYPE::STREAM, "text/event-stream"}
 };
 
+/// @brief HTTP request types
 const HttpHeaders::HttpReqTypesMap HttpHeaders::httpReqTypesMap = 
 {
     {"GET", HTTP_REQ_TYPE::HTTP_GET}, 
