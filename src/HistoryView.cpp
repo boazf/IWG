@@ -26,9 +26,11 @@
 #ifdef DEBUG_HTTP_SERVER
 #include <Trace.h>
 #endif
+#include <restrictions.hpp>
 
 using namespace historycontrol;
 
+/// @brief Map of recovery statuses to their string representations
 typedef std::map<RecoveryStatus, String> RecoveryStatusesMap;
 #define X(a) {RecoveryStatus::a, #a},
 static const RecoveryStatusesMap recoveryStatusesMap = 
@@ -37,6 +39,7 @@ static const RecoveryStatusesMap recoveryStatusesMap =
 };
 #undef X
 
+/// @brief Map of recovery sources to their string representations
 typedef std::map<RecoverySource, String> RecoverySourcesMap;
 #define X(a) {RecoverySource::a, #a},
 static const RecoverySourcesMap recoverySourcesMap = 
@@ -47,35 +50,58 @@ static const RecoverySourcesMap recoverySourcesMap =
 
 typedef bool(*fillFile)(SdFile &file);
 
+/// @brief Check and print a buffer to the file
+/// @param f The file to print to
+/// @param b The buffer to print
+/// @param l The length of the buffer
+/// @note l is the return value of a call to sprintf(), b is the buffer passed to 
+/// sprintf(). So we check that the return value of sprintf() is not more than the
+/// size of the buffer. Otherwise, we have a buffer overflow. We also check that
+/// the file was written successfully.
 #define CHECK_PRINT(f, b, l) if ((l) > NELEMS(b) || f.print(b) != (l)) return false
+/// @brief Check and print a string literal to the file.
+/// @note We call the CHECK_PRINT macro with the length of the string literal.
+/// This should eliminate the length check because the length check always
+/// calculates to false. So in this case, we only check that the file was 
+/// written successfully.
+#define CHECK_PRINT_STRL(f, s) \
+    REQUIRE_STRING_LITERAL(s); \
+    CHECK_PRINT(f, s, NELEMS(s) - 1)
 
+/// @brief Fill the alerts section of the history view
+/// @param file The SD file to write to
+/// @return True if successful, false otherwise
+/// @note This function writes the HTML for the alerts section of the history view.
 static bool fillAlerts(SdFile &file)
 {
     if (historyControl.Available() == 0)
     {
-        char noHistory[] = "<div class=\"alert alert-success\">There is no history yet.</div>\n";
-        CHECK_PRINT(file, noHistory, NELEMS(noHistory) - 1);
+        // No history available
+        CHECK_PRINT_STRL(file, "<div class=\"alert alert-success\">There is no history yet.</div>\n");
+        char s[] = "xxx";
+        CHECK_PRINT_STRL(file, s);
         return true;
     }
 
+    // Iterate over the available history items
     for(int i = 0; i < historyControl.Available(); i++)
     {
         HistoryStorageItem hItem = historyControl.GetHistoryItem(i);
-        {
-            char str[] = "<div class=\"col-lg-3 col-md-4 col-sm-6 col-xs-12\">\n";
-            CHECK_PRINT(file, str, NELEMS(str) - 1);
-        }
+        CHECK_PRINT_STRL(file, "<div class=\"col-lg-3 col-md-4 col-sm-6 col-xs-12\">\n");
         char buff[128];
+        // Start the history alert item div element
         int len = snprintf(buff, NELEMS(buff), "<div id=\"historyItem%d\" class=\"alert\">\n", i);
         CHECK_PRINT(file, buff, len);
+        // Write the recovery source alert header element
         len = snprintf(buff, NELEMS(buff), "<h4 id=\"recoverySource%d\" class=\"alert-heading\"></h4>\n<hr />\n<p><span class=\"attribute-name\">\n", i);
         CHECK_PRINT(file, buff, len);
         if (hItem.endTime() != INT32_MAX)
         {
-            char str[] = "Start ";
-            CHECK_PRINT(file, str, NELEMS(str) - 1);
+            // If there is end time for the recovery, then write the start time first.
+            CHECK_PRINT_STRL(file, "Start ");
         }
         {
+            // Write the recovery time.
             tm tr;
             time_t startTime = hItem.startTime();
             localtime_r(&startTime, &tr);
@@ -86,41 +112,37 @@ static bool fillAlerts(SdFile &file)
         }
         if (hItem.endTime() == INT32_MAX)
         {
-            char str[] = "style=\"visibility:hidden\"";
-            CHECK_PRINT(file, str, NELEMS(str) - 1);
+            // If there in no end time for the recovery then hide the end time element.
+            CHECK_PRINT_STRL(file, "style=\"visibility:hidden\"");
         }
-        {
-            char str[] = "><span class=\"attribute-name\">End Time:</span><br /><span class=\"indented\">";
-            CHECK_PRINT(file, str, NELEMS(str) - 1);
-        }
-        {
-            tm tr;
-            time_t startTime = hItem.endTime();
-            localtime_r(&startTime, &tr);
-            char timeBuff[64];
-            len = strftime(timeBuff, sizeof(buff), "%d/%m/%Y %T", &tr);
-            CHECK_PRINT(file, timeBuff, len);
-        }
-        {
-            char str[] = "</span></p>\n<p ";
-            CHECK_PRINT(file, str, NELEMS(str) - 1);
-        }
+        // Write the end time span element.
+        CHECK_PRINT_STRL(file, "><span class=\"attribute-name\">End Time:</span><br /><span class=\"indented\">");
+        // Write the end time
+        tm tr;
+        time_t startTime = hItem.endTime();
+        localtime_r(&startTime, &tr);
+        char timeBuff[64];
+        len = strftime(timeBuff, sizeof(buff), "%d/%m/%Y %T", &tr);
+        CHECK_PRINT(file, timeBuff, len);
+        // Close the end time span and paragraph elements and start the modem/router recovery counters paragraph element
+        CHECK_PRINT_STRL(file, "</span></p>\n<p ");
         if (hItem.modemRecoveries() == 0 && hItem.routerRecoveries() == 0)
         {
-            char str[] = "style=\"visibility:hidden\"";
-            CHECK_PRINT(file, str, NELEMS(str) - 1);
+            // If both modem and router recovery counters are zero, hide the recoveries counters element
+            CHECK_PRINT_STRL(file, "style=\"visibility:hidden\"");
         }
-        {
-            char str[] = "><span class=\"attribute-name\">Recoveries:</span><br />";
-            CHECK_PRINT(file, str, NELEMS(str) - 1);
-        }
+        // Write the recoveries counters element header
+        CHECK_PRINT_STRL(file, "><span class=\"attribute-name\">Recoveries:</span><br />");
+        // Write the router recovery counter span element
         len = snprintf(buff, NELEMS(buff), "<span class=\"indented\">%s: %d</span>", Config::deviceName, hItem.routerRecoveries());
         CHECK_PRINT(file, buff, len);
         if (!Config::singleDevice)
         {
+            // Write the modem recovery counter span element
             len = snprintf(buff, NELEMS(buff), "<span class=\"indented\">Modem: %d</span>", hItem.modemRecoveries());
             CHECK_PRINT(file, buff, len);
         }
+        // Close the recoveries counters paragraph element and write the recovery status element
         len = snprintf(buff, NELEMS(buff), "</p>\n<hr />\n<h4 id=\"recoveryStatus%d\"></h4>\n</div>\n</div>\n", i);
         CHECK_PRINT(file, buff, len);
     }
@@ -130,45 +152,46 @@ static bool fillAlerts(SdFile &file)
 
 #define recoveryStatusEnumName "recoveryStatus"
 #define recoverySourceEnumName "recoverySource"
-#define enumClose "\t};\n"
 
+/// @brief Fills the JS enum definition in the specified file.
+/// @tparam T The type of the map containing the enum values.
+/// @param file The file to write the enum definition to.
+/// @param map The map containing the enum values.
+/// @param varName The name of the enum variable.
+/// @return True if the operation was successful, false otherwise.
 template <typename T>
 static bool fillEnum(SdFile &file, T map, const char *varName)
 {
     char buff[128];
 
+    // Write the enum definition header
     size_t len = snprintf(buff, NELEMS(buff), "\tconst %s = {\n", varName);
     CHECK_PRINT(file, buff, len);
+    // Write the enum values
     for (typename T::const_iterator i = map.begin(); i != map.end(); i++)
     {
         len = snprintf(buff, NELEMS(buff), "\t\t%s: %d,\n", i->second.c_str(), static_cast<int>(i->first));
         CHECK_PRINT(file, buff, len);
     };
-    CHECK_PRINT(file, enumClose, NELEMS(enumClose) - 1);
+    // Write the enum definition footer
+    CHECK_PRINT_STRL(file, "\t};\n");
 
     return true;
 }
 
+/// @brief Fill the enums section of the history view
+/// @param file The file to write the enums section to
+/// @return True if the operation was successful, false otherwise
 static bool fillEnums(SdFile &file)
 {
     return fillEnum<RecoveryStatusesMap>(file, recoveryStatusesMap, recoveryStatusEnumName) && 
            fillEnum<RecoverySourcesMap>(file, recoverySourcesMap, recoverySourceEnumName);
 }
 
-static bool fillJS(SdFile &file)
-{
-    char buff[128];
-    for (int i = 0; i < historyControl.Available(); i++)
-    {
-        HistoryStorageItem hItem = historyControl.GetHistoryItem(i);
-        int len = snprintf(buff, NELEMS(buff), "\t\tsetRecoverySource(%d, %s.%s);\n", i, recoverySourceEnumName, recoverySourcesMap.at(hItem.recoverySource()).c_str());
-        CHECK_PRINT(file, buff, len);
-        len = snprintf(buff, NELEMS(buff), "\t\tsetRecoveryStatus(%d, %s.%s);\n", i, recoveryStatusEnumName, recoveryStatusesMap.at(hItem.recoveryStatus()).c_str());
-        CHECK_PRINT(file, buff, len);
-    }
-    return true;
-}
-
+/// @brief Fill the recovery source enum value in the specified file.
+/// @param file The file to write the enum value to.
+/// @param source The recovery source enum value to write.
+/// @return True if the operation was successful, false otherwise.
 static bool fillRecoverySourceEnum(SdFile file, RecoverySource source)
 {
     char buff[128];
@@ -180,6 +203,10 @@ static bool fillRecoverySourceEnum(SdFile file, RecoverySource source)
     return true;
 }
 
+/// @brief Fill the recovery status enum value in the specified file.
+/// @param file The file to write the enum value to.
+/// @param status The recovery status enum value to write.
+/// @return True if the operation was successful, false otherwise.
 static bool fillRecoveryStatusEnum(SdFile file, RecoveryStatus status)
 {
     char buff[128];
@@ -188,6 +215,32 @@ static bool fillRecoveryStatusEnum(SdFile file, RecoveryStatus status)
 
     CHECK_PRINT(file, buff, len);
 
+    return true;
+}
+
+/// @brief Fills the JavaScript section of the history view
+/// @param file The file to write the JavaScript section to
+/// @return True if the operation was successful, false otherwise
+/// @note This function writes JavaScript code that initializes the recovery source and status for each history item.
+static bool fillJS(SdFile &file)
+{
+    char buff[128];
+    // Iterate through history items
+    for (int i = 0; i < historyControl.Available(); i++)
+    {
+        HistoryStorageItem hItem = historyControl.GetHistoryItem(i);
+        // Write a call to setRecoverySource for the given history item
+        int len = snprintf(buff, NELEMS(buff), "\t\tsetRecoverySource(%d, ", i);
+        CHECK_PRINT(file, buff, len);
+        fillRecoverySourceEnum(file, hItem.recoverySource());
+        char closeCall[] = ");\n";
+        CHECK_PRINT_STRL(file, closeCall);
+        // Write a call to setRecoveryStatus for the given history item
+        len = snprintf(buff, NELEMS(buff), "\t\tsetRecoveryStatus(%d, ", i);
+        CHECK_PRINT(file, buff, len);
+        fillRecoveryStatusEnum(file, hItem.recoveryStatus());
+        CHECK_PRINT_STRL(file, closeCall);
+    }
     return true;
 }
 
@@ -200,11 +253,15 @@ CriticalSection HistoryViewReader::cs;
 
 bool HistoryViewReader::open(byte *buff, int buffSize)
 {
+    // Initialize the SD card
     AutoSD autoSD;
+    // Avoid multiple view accesses
     Lock lock(cs);
 
+    // Check if the temporary history file directory exists
     if (!SD.exists(TEMP_HISTORY_FILE_DIR))
     {
+        // Create the temporary history file directory
         if (!SD.mkdir(TEMP_HISTORY_FILE_DIR))
         {
 #ifdef DEBUG_HTTP_SERVER
@@ -214,39 +271,43 @@ bool HistoryViewReader::open(byte *buff, int buffSize)
         }
     }
 
+    // Open the history file for reading
     SdFile historyFile = SD.open(TEMP_HISTORY_FILE_PATH, FILE_READ);
 
-    if (!historyFile || 
-        historyFile.getLastWrite() > t_now || // Handle case where current time wasn't set well
-        historyFile.getLastWrite() < historyControl.getLastUpdate())
-    {
-        if (historyFile)
-            historyFile.close();
-
-        historyFile = SD.open(TEMP_HISTORY_FILE_PATH, FILE_WRITE);
-        if (!historyFile)
-        {
-#ifdef DEBUG_HTTP_SERVER
-            Tracef("Failed to create %s\n", TEMP_HISTORY_FILE_PATH);
-#endif
-            return false;
-        }
-
-        if (!FileViewReader::open(buff, buffSize))
-        {
-            historyFile.close();
-            SD.remove(TEMP_HISTORY_FILE_PATH);
-            return false;
-        }
-    }
-    else
+    if (historyFile && 
+        historyFile.getLastWrite() < t_now && // Handle case where current time wasn't set well
+        historyFile.getLastWrite() > historyControl.getLastUpdate())
     {
 #ifdef DEBUG_HTTP_SERVER
         Tracef("Reusing %s\n", TEMP_HISTORY_FILE_PATH);
 #endif
+        // Use the existing history file
         return FileViewReader::open(buff, buffSize, historyFile);
     }
 
+    // If the history file is outdated, or doesn't exist, create a new one
+    if (historyFile)
+        historyFile.close();
+
+    historyFile = SD.open(TEMP_HISTORY_FILE_PATH, FILE_WRITE);
+    if (!historyFile)
+    {
+#ifdef DEBUG_HTTP_SERVER
+        Tracef("Failed to create %s\n", TEMP_HISTORY_FILE_PATH);
+#endif
+        return false;
+    }
+
+    // Open the base view reader, this will open the history.htm file
+    if (!FileViewReader::open(buff, buffSize))
+    {
+        // If we couldn't open the base view reader, delete the temporary history file
+        historyFile.close();
+        SD.remove(TEMP_HISTORY_FILE_PATH);
+        return false;
+    }
+
+    // Filler functions array. The filler index corresponds to the filler indicator index in history.htm file
     fillFile fillers[] = 
     { 
         /* 1 */ fillAlerts, 
@@ -261,27 +322,35 @@ bool HistoryViewReader::open(byte *buff, int buffSize)
     };
 
     int offset = 0;
+    // Read the file contents using the base view reader
     for (int nBytes = read(offset) + offset; nBytes; nBytes = read(offset) + offset)
     {
-        bool eof = nBytes == offset;
+        bool eof = nBytes == offset; // Check if we reached the end of the file
         const char *pBuff = reinterpret_cast<const char *>(buff);
         offset = 0;
+        // Find the next filler delimiter and fill
         for (const char *delim = STRNCHR(pBuff, fillerChar, nBytes); 
              delim != NULL; 
              delim = STRNCHR(pBuff, fillerChar, nBytes))
         {
             size_t delimIndex = delim - pBuff;
+            // Write everything up to the delimiter
             historyFile.write(pBuff, delimIndex);
+            // Get the filler index
             size_t fillerIndex = delimIndex + 1;
             for(; isdigit(pBuff[fillerIndex]) && fillerIndex < nBytes; fillerIndex++);
 
             if (!eof && nBytes == fillerIndex)
             {
+                // The filler indicator may span over to the next buffer,
+                // So move the beginning of the filler indicator to the start of the buffer
                 offset = fillerIndex - delimIndex;
                 memcpy(buff, delim, offset);
                 nBytes = 0;
+                // Break the loop to read the next buffer
                 break;
             }
+            // Skip the filler indicator.
             nBytes -= fillerIndex;
             pBuff += fillerIndex;
             if (fillerIndex == delimIndex + 1)
@@ -290,19 +359,26 @@ bool HistoryViewReader::open(byte *buff, int buffSize)
                 historyFile.write(fillerChar);
                 continue;
             }
+            // Get the filler index
             int n = atoi(delim + 1);
+            // Call the appropriate filler function
             if (!fillers[n - 1](historyFile))
             {
+                // If the filler function failed, close the history file and remove the temporary file
                 historyFile.close();
                 SD.remove(TEMP_HISTORY_FILE_PATH);
                 return false;
             }
         }
+        // Write any remaining bytes to the history file
         historyFile.write(pBuff, nBytes);
     }
 
+    // Close the history file and the base view reader
     historyFile.close();
+    // Close the base view reader
     close();
 
+    // Reopen the base view reader with the history file object
     return FileViewReader::open(buff, buffSize, SD.open(TEMP_HISTORY_FILE_PATH, FILE_READ));
 }

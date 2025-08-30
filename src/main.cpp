@@ -33,16 +33,22 @@
 #include <PwrCntl.h>
 #include <Buttons.h>
 
+/// @brief Sets indicators to reflect initialization progress.
+/// @param last If true, indicates the last step of initialization.
 void initProgress(bool last = false)
 {
+  // Set the initial state of the indicators
   static int state = 0;
+  // Array of indicator objects
   static Indicator indicators[] = { opi, rri, uli, mri };
 
   if (state > 0)
+    // Turn on the LED to indicate initialization stage done
     indicators[state - 1].set(ledState::LED_ON);
 
   if (!last && state < NELEMS(indicators))
   {
+    // Blink the next LED to indicate current initialization stage in progress
     indicators[state++].set(ledState::LED_BLINK);
   }
 }
