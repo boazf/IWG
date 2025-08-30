@@ -24,7 +24,9 @@
 
 bool FileViewReader::open(byte *buff, int buffSize)
 {
+    // Ensure SD card is mounted
     AutoSD autoSD;
+    // Open the file on the SD card for reading
     String fileName;
     fileName = "/wwwroot" + viewFilePath;
     SdFile file = SD.open(fileName, FILE_READ);
@@ -37,16 +39,21 @@ bool FileViewReader::open(byte *buff, int buffSize)
     }
 #endif
 
+    // Open the reader by giving it the file object
     return open(buff, buffSize, file);
 }
 
 bool FileViewReader::open(byte *buff, int buffSize, SdFile file)
 {
+    // Open base class
     if (!ViewReader::open(buff, buffSize))
         return false;
+    // Save the file object
     this->file = file;
+    // Check the file object if it is a valid open file object
     if (file)
     {
+        // Start an SD card session
         SD.begin();
         return true;
     }
@@ -58,7 +65,9 @@ void FileViewReader::close()
 {
     if (file)
     {
+        // Close the file
         file.close();
+        // End the SD card session
         SD.end();
     }
 }
@@ -86,6 +95,7 @@ bool FileViewReader::getLastModifiedTime(String &lastModifiedTimeStr)
     return true;
 }
 
+/// @brief Map file extensions to their content types
 typedef std::map<String, CONTENT_TYPE> FileTypesMap;
 static FileTypesMap fileTypesMap = 
 {
@@ -104,16 +114,22 @@ static FileTypesMap fileTypesMap =
 
 CONTENT_TYPE FileViewReader::getContentType()
 {
+    // Locate the file extension in the file path
     int dot = viewFilePath.lastIndexOf('.');
 
     if (dot == -1)
         return CONTENT_TYPE::UNKNOWN;
 
+    // Get the file extension
     String ext = viewFilePath.substring(dot + 1);
+    // Convert to uppercase
     ext.toUpperCase();
+    // Look up the content type
     FileTypesMap::const_iterator fileType = fileTypesMap.find(ext);
     if (fileType == fileTypesMap.end())
+        // Unknown file extension
         return CONTENT_TYPE::UNKNOWN;
 
+    // Return the content type
     return fileType->second;
 }

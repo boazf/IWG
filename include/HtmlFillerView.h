@@ -24,15 +24,23 @@
 #include <FileViewReader.h>
 #include <MemViewReader.h>
 
-class 
-HtmlFillerView : public View
+/// @brief HTML filler view
+class HtmlFillerView : public View
 {
 public:
+    /// @brief Constructor for HTML filler view that is read from file
+    /// @param viewFilePath The path to the view file
+    /// @param getFillers The function to get the fillers
     HtmlFillerView(const char *viewFilePath, GetFillers getFillers) :
         View(new HtmlFillerViewReader(new FileViewReader(viewFilePath), getFillers))
     {
     }
 
+    /// @brief Constructor for HTML filler view that is read from memory
+    /// @param mem The memory buffer containing the view data
+    /// @param size The size of the memory buffer
+    /// @param contentType The content type of the view
+    /// @param getFillers The function to get the fillers
     HtmlFillerView(const byte *mem, size_t size, CONTENT_TYPE contentType, GetFillers getFillers) :
         View(new HtmlFillerViewReader(new MemViewReader(mem, size, contentType), getFillers))
     {
