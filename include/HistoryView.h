@@ -22,19 +22,25 @@
 #include <FileView.h>
 #include <Lock.h>
 
+/// @brief History view file reader
 class HistoryViewReader : public FileViewReader
 {
 public:
     HistoryViewReader(const char *viewFile) :
         FileViewReader(viewFile)
     {}
-    
+
+    /// @brief Opens the history view file for reading.
+    /// @param buff The buffer to read the file contents into.
+    /// @param buffSize The size of the buffer.
+    /// @return True if the operation was successful, false otherwise.
     virtual bool open(byte *buff, int buffSize);
 
 private:
     static CriticalSection cs;
 };
 
+/// @brief History view
 class HistoryView : public View
 {
 public:
