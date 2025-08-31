@@ -68,7 +68,11 @@ typedef bool(*fillFile)(SdFile &file);
     REQUIRE_STRING_LITERAL(s); \
     CHECK_PRINT(f, s, NELEMS(s) - 1)
 
-
+/// @brief Format a time value as a string.
+/// @param time The time value to format.
+/// @param buff The buffer to write the formatted string to.
+/// @param buffSize The size of the buffer.
+/// @return The length of the formatted string, or 0 on failure.
 int formatTime(time_t time, char *buff, size_t buffSize)
 {
     tm tr;
