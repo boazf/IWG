@@ -68,6 +68,14 @@ typedef bool(*fillFile)(SdFile &file);
     REQUIRE_STRING_LITERAL(s); \
     CHECK_PRINT(f, s, NELEMS(s) - 1)
 
+
+int formatTime(time_t time, char *buff, size_t buffSize)
+{
+    tm tr;
+    localtime_r(&time, &tr);
+    return static_cast<int>(strftime(buff, buffSize, "%d/%m/%Y %T", &tr));
+}
+
 /// @brief Fill the alerts section of the history view
 /// @param file The SD file to write to
 /// @return True if successful, false otherwise
@@ -100,14 +108,13 @@ static bool fillAlerts(SdFile &file)
         }
 
         // Write the recovery time.
-        tm tr;
-        time_t startTime = hItem.startTime();
-        localtime_r(&startTime, &tr);
         char timeBuff[64];
-        strftime(timeBuff, sizeof(buff), "%d/%m/%Y %T", &tr);
+        len = formatTime(hItem.startTime(), timeBuff, NELEMS(timeBuff));
+        if (len == 0)
+            return false;
         len = snprintf(buff, NELEMS(buff), "Time:</span><br /><span class=\"indented\">%s</span></p>\n<p ", timeBuff);
         CHECK_PRINT(file, buff, len);
-        
+
         if (hItem.endTime() == INT32_MAX)
         {
             // If there in no end time for the recovery then hide the end time element.
@@ -116,11 +123,9 @@ static bool fillAlerts(SdFile &file)
         // Write the end time span element.
         CHECK_PRINT_STRL(file, "><span class=\"attribute-name\">End Time:</span><br /><span class=\"indented\">");
         // Write the end time
-        tm tr;
-        time_t startTime = hItem.endTime();
-        localtime_r(&startTime, &tr);
-        char timeBuff[64];
-        len = strftime(timeBuff, sizeof(buff), "%d/%m/%Y %T", &tr);
+        len = formatTime(hItem.endTime(), timeBuff, NELEMS(timeBuff));
+        if (len == 0)
+            return false;
         CHECK_PRINT(file, timeBuff, len);
         // Close the end time span and paragraph elements and start the modem/router recovery counters paragraph element
         CHECK_PRINT_STRL(file, "</span></p>\n<p ");
