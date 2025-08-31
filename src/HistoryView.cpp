@@ -73,7 +73,7 @@ typedef bool(*fillFile)(SdFile &file);
 /// @param buff The buffer to write the formatted string to.
 /// @param buffSize The size of the buffer.
 /// @return The length of the formatted string, or 0 on failure.
-int formatTime(time_t time, char *buff, size_t buffSize)
+static int formatTime(time_t time, char *buff, size_t buffSize)
 {
     tm tr;
     localtime_r(&time, &tr);
