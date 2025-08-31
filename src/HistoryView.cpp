@@ -78,8 +78,6 @@ static bool fillAlerts(SdFile &file)
     {
         // No history available
         CHECK_PRINT_STRL(file, "<div class=\"alert alert-success\">There is no history yet.</div>\n");
-        char s[] = "xxx";
-        CHECK_PRINT_STRL(file, s);
         return true;
     }
 
