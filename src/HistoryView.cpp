@@ -98,16 +98,16 @@ static bool fillAlerts(SdFile &file)
             // If there is end time for the recovery, then write the start time first.
             CHECK_PRINT_STRL(file, "Start ");
         }
-        {
-            // Write the recovery time.
-            tm tr;
-            time_t startTime = hItem.startTime();
-            localtime_r(&startTime, &tr);
-            char timeBuff[64];
-            strftime(timeBuff, sizeof(buff), "%d/%m/%Y %T", &tr);
-            len = snprintf(buff, NELEMS(buff), "Time:</span><br /><span class=\"indented\">%s</span></p>\n<p ", timeBuff);
-            CHECK_PRINT(file, buff, len);
-        }
+
+        // Write the recovery time.
+        tm tr;
+        time_t startTime = hItem.startTime();
+        localtime_r(&startTime, &tr);
+        char timeBuff[64];
+        strftime(timeBuff, sizeof(buff), "%d/%m/%Y %T", &tr);
+        len = snprintf(buff, NELEMS(buff), "Time:</span><br /><span class=\"indented\">%s</span></p>\n<p ", timeBuff);
+        CHECK_PRINT(file, buff, len);
+        
         if (hItem.endTime() == INT32_MAX)
         {
             // If there in no end time for the recovery then hide the end time element.
