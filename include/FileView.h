@@ -27,7 +27,8 @@
 class FileView : public View
 {
 public:
-    FileView(const String viewFilePath) : View(new FileViewReader(viewFilePath))
+    FileView(const String viewFilePath) : 
+        View(std::unique_ptr<ViewReader>(new FileViewReader(viewFilePath)))
     {
     }
 };

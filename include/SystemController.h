@@ -72,9 +72,8 @@ public:
     }
 
     /// @brief This controller is a singleton.
-    bool isSingleton() { return true; }
     /// @brief Returns a pointer to the global SystemController instance.
-    static HttpController *getInstance();
+    static std::shared_ptr<HttpController> getInstance();
 
 private:
     /// @brief While the firmware is being updated, the contrtoller notifies the client about the update progress.
@@ -130,9 +129,6 @@ private:
     /// @brief A map that holds the notification types and their corresponding string representations.
     static const std::map<SystemController::NotificationType, String> notificationTypesStrings;
 };
-
-/// @brief Global instance of the SystemController.
-extern SystemController systemController;
 
 #endif // SYSTEM_CONTROLLER_H
 

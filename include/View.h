@@ -33,14 +33,9 @@ public:
     /// @param viewReader A pointer to a ViewReader instance that will be used to read the view data.
     /// The ViewReader is responsible for reading the view data from a specific source, such as a file or a memory buffer.
     /// The View class takes ownership of the ViewReader and will delete it in its destructor.
-    View(ViewReader *viewReader) : 
-        viewReader(viewReader)
+    View(std::unique_ptr<ViewReader> viewReader) : 
+        viewReader(std::move(viewReader))
     {
-    }
-
-    virtual ~View()
-    {
-        delete viewReader;
     }
 
     /// @brief This method is called to handle a GET request.
@@ -81,7 +76,7 @@ protected:
     virtual bool redirect(EthClient &client, const String &id) { return false; }
 
 protected:
-    ViewReader *viewReader;
+    std::unique_ptr<ViewReader> viewReader;
 };
 
 #endif // View_h

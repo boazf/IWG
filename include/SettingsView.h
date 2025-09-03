@@ -70,14 +70,11 @@ public:
     /// @param context The context of the HTTP client that made the request.
     /// @param id An optional identifier for the resource being requested. 
     virtual bool Post(HttpClientContext &context, const String id);
-    /// @brief This controller is not a singleton.
-    /// @return False, as this controller can handle multiple instances.
-    bool isSingleton() { return false; }
     /// @brief Returns a pointer to a new instance of SettingsView.
     /// @note This method is static and can be used to create a new instance of SettingsView.
     /// @return A pointer to a new SettingsView instance.
-    static HttpController *getInstance() { return new SettingsView("/SETTINGS.HTM"); }
-    
+    static std::shared_ptr<HttpController> getInstance() { return std::make_shared<SettingsView>("/SETTINGS.HTM"); }
+
 protected:
     /// @brief Get the fillers for the view.
     /// @param fillers The fillers to populate.

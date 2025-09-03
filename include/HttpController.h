@@ -21,6 +21,7 @@
 
 #include <Arduino.h>
 #include <HttpClientContext.h>
+#include <memory>
 
 /// @brief This class defines the interface for HTTP controllers.
 /// Each controller should implement the methods to handle HTTP requests.
@@ -66,11 +67,10 @@ public:
     /// This is useful for controllers that manage global resources or state.
     /// If a controller is not a singleton, it can be instantiated multiple times, allowing for multiple instances to handle requests independently.
     /// This method should be implemented by derived classes to indicate whether the controller is a singleton or not.
-    virtual bool isSingleton() = 0;
 };
 
 /// @brief This type definition is a function pointer that returns an instance of HttpController.
 /// It is used to create instances of controllers dynamically.
-typedef HttpController *(*GetControllerInstance)();
+typedef std::shared_ptr<HttpController> (*GetControllerInstance)();
 
 #endif // HttpController_h

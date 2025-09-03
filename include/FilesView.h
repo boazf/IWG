@@ -27,8 +27,7 @@ class FilesView : public FileView
 public:
     FilesView(const char *_viewFile);
     virtual bool Post(HttpClientContext &context, const String id);
-    bool isSingleton() { return false; }
-    static HttpController *getInstance() { return new FilesView("/FILES.HTM"); }
+    static std::shared_ptr<HttpController> getInstance() { return std::make_shared<FilesView>("/FILES.HTM"); }
 };
 
 #endif // FilesView_h

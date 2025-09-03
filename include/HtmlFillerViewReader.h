@@ -21,6 +21,7 @@
 
 #include <Common.h>
 #include <ViewReader.h>
+#include <memory>
 
 typedef void (*ViewFiller)(String &fill);
 typedef int (*GetFillers)(const ViewFiller *&fillers);
@@ -43,15 +44,10 @@ public:
     /// When the HtmlFillerViewReader is deleted, it will also delete the viewReader.
     /// @param getFillers A function that retrieves the fillers from the provided GetFillers function.
     /// It should return the number of fillers available and fill the fillers array with the appropriate values
-    HtmlFillerViewReader(ViewReader *viewReader, GetFillers getFillers) :
-        viewReader(viewReader),
+    HtmlFillerViewReader(std::unique_ptr<ViewReader> viewReader, GetFillers getFillers) :
+        viewReader(std::move(viewReader)),
         getFillers(getFillers)
     {
-    }
-
-    virtual ~HtmlFillerViewReader()
-    {
-        delete viewReader;
     }
 
     virtual void close() { viewReader->close(); };
@@ -64,7 +60,7 @@ public:
 
 protected:
     GetFillers getFillers;
-    ViewReader *viewReader;
+    std::unique_ptr<ViewReader> viewReader;
 
 private:
     size_t viewHandler(size_t buffSize, bool last = false);

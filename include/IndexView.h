@@ -30,8 +30,7 @@ class IndexView : public HtmlFillerView
 public:
     IndexView();     
     bool redirect(EthClient &client, const String &_id);
-    bool isSingleton() { return false; }
-    static HttpController *getInstance() { return new IndexView(); }
+    static std::shared_ptr<HttpController> getInstance() { return std::make_shared<IndexView>(); }
 
 protected:
     static int getFillers(const ViewFiller *&fillers);

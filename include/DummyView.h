@@ -62,12 +62,11 @@ class DummyView : public View
 {
 public:
     DummyView(const char *viewFilePath) :
-        View(new DummyViewReader())
+        View(std::unique_ptr<ViewReader>(new DummyViewReader()))
     {
     }
 
-    bool isSingleton() { return false; }
-    static HttpController *getInstance() { return new DummyView(""); }
+    static std::shared_ptr<HttpController> getInstance() { return std::make_shared<DummyView>(""); }
 
 protected:
 };

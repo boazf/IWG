@@ -22,7 +22,7 @@ static const GetFillers mockGetFillers = [](const ViewFiller *&fillers) -> int {
 void htmlFillerViewReaderBasicTests()
 {
     ViewReader *mockViewReader = new MemViewReader(reinterpret_cast<const byte *>(mem.c_str()), mem.length(), CONTENT_TYPE::HTML);
-    HtmlFillerViewReader reader(mockViewReader, mockGetFillers);
+    HtmlFillerViewReader reader(std::unique_ptr<ViewReader>(mockViewReader), mockGetFillers);
 
     byte buff[256];
     TEST_ASSERT_MESSAGE(reader.open(buff, sizeof(buff)), "Failed to open HtmlFillerViewReader");
@@ -77,18 +77,18 @@ void HtmlFillerViewReaderTestLoop(const String &mem, const String &expectedConte
 void htmlFillerViewReaderWithVariousBuffLenTests()
 {
     ViewReader *mockViewReader = new MemViewReader(reinterpret_cast<const byte *>(mem.c_str()), mem.length(), CONTENT_TYPE::HTML);
-    HtmlFillerViewReader reader(mockViewReader, mockGetFillers);
+    HtmlFillerViewReader reader(std::unique_ptr<ViewReader>(mockViewReader), mockGetFillers);
 
     HtmlFillerViewReaderTestLoop(mem, expectedContent, reader);
 }
 
 void htmlFillerViewReaderWithNonExistingFillerTests()
 {
-    const String mem = "This is a test string with %2 filler.";
+        const String mem = "This is a test string with %2 filler.";
     ViewReader *mockViewReader = new MemViewReader(reinterpret_cast<const byte *>(mem.c_str()), mem.length(), CONTENT_TYPE::HTML);
-    HtmlFillerViewReader reader(mockViewReader, mockGetFillers);
+    HtmlFillerViewReader reader(std::unique_ptr<ViewReader>(mockViewReader), mockGetFillers);
 
-    HtmlFillerViewReaderTestLoop(mem, mem, reader);
+        HtmlFillerViewReaderTestLoop(mem, mem, reader);
 }
 
 void HtmlFillerViewReaderWithNotEnoughSpaceForFiller(const String &mem, const String &expectedContent)
@@ -98,7 +98,7 @@ void HtmlFillerViewReaderWithNotEnoughSpaceForFiller(const String &mem, const St
     // in .
     
     ViewReader *mockViewReader = new MemViewReader(reinterpret_cast<const byte *>(mem.c_str()), mem.length(), CONTENT_TYPE::HTML);
-    HtmlFillerViewReader reader(mockViewReader, mockGetFillers);
+    HtmlFillerViewReader reader(std::unique_ptr<ViewReader>(mockViewReader), mockGetFillers);
 
     HtmlFillerViewReaderTestLoop(mem, expectedContent, reader);
 }

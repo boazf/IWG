@@ -64,7 +64,7 @@ private:
     /// @param controller A reference to a pointer that will be set to the controller instance if found.
     /// @param id An optional identifier for the resource being requested.
     /// @return Returns true if a controller was found and set, false otherwise.
-    static bool GetController(HttpClientContext *context, HttpController *&controller, String &id);
+    static bool GetController(HttpClientContext *context, std::shared_ptr<HttpController> &controller, String &id);
     /// @brief Handles the HTTP request by routing it to the appropriate controller.
     /// This method checks the request type and calls the corresponding method on the controller.
     static void ServiceRequest(HttpClientContext *context);

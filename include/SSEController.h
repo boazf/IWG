@@ -134,12 +134,9 @@ public:
     /// so that when the index page is called with that ID it will be recognized as a valid ID.
     /// @param id The unique identifier for the client.
     void AddClient(const String &id);
-    /// @brief Checks if the controller is a singleton.
-    /// @return True if the controller is a singleton, false otherwise.
-    bool isSingleton() { return true; }
     /// @brief Gets the instance of the SSEController.
     /// @return A pointer to the SSEController instance.
-    static HttpController *getInstance();
+    static std::shared_ptr<HttpController> getInstance();
 
 private:
     /// @brief Handles recovery state changes.
@@ -198,7 +195,7 @@ private:
     SSEControllerState state;
 };
 
-/// @brief A global instance of the SSEController.
-extern SSEController sseController;
+/// Global instance of the SSEController.
+extern SSEController &sseController;
 
 #endif // SSEController_h

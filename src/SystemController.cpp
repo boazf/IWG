@@ -166,9 +166,9 @@ void SystemController::notify(EthClient &client, const String &json)
     client.println(String("data:") + json + "\n");
 }
 
-HttpController *SystemController::getInstance() { return &systemController; }
+static std::shared_ptr<HttpController> systemController = std::make_shared<SystemController>();
 
-SystemController systemController;
+std::shared_ptr<HttpController> SystemController::getInstance() { return systemController; }
 
 #define X(a) {SystemController::NotificationType::a, #a},
 const std::map<SystemController::NotificationType, String> SystemController::notificationTypesStrings =

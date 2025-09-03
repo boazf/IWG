@@ -31,8 +31,7 @@ public:
     {
     }
 
-    bool isSingleton() { return false; }
-    static HttpController *getInstance() { return new DefaultView(""); }
+    static std::shared_ptr<HttpController> getInstance() { return std::make_shared<DefaultView>(""); }
 
 protected:
     /// @brief Redirects the client to the index page.

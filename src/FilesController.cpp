@@ -354,10 +354,10 @@ bool FilesController::Delete(HttpClientContext &context, const String id)
     return true;
 }
 
+static std::shared_ptr<HttpController> filesController = std::make_shared<FilesController>();
+
 /// @brief Get the singleton instance of the FilesController.
 /// @return A pointer to the singleton instance of the FilesController.
 /// @note Since this controller has no member variables, it can be safely
 ///       used as a singleton and handle multiple requests concurrently.
-HttpController *FilesController::getInstance() { return &filesController; }
-
-FilesController filesController;
+std::shared_ptr<HttpController> FilesController::getInstance() { return filesController; }

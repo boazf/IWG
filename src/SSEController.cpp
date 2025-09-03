@@ -429,8 +429,11 @@ void SSEController::AddClient(const String &id)
     clients.Insert(ClientInfo(id));
 }
 
+/// @brief Pointer to the global SSEController instance.
+static std::shared_ptr<SSEController> pSSEController = std::make_shared<SSEController>();
+
 /// This method returns a pointer to the global SSEController instance.
-HttpController *SSEController::getInstance() { return &sseController; }
+std::shared_ptr<HttpController> SSEController::getInstance() { return pSSEController; }
 
 /// Global instance of the SSEController.
-SSEController sseController;
+SSEController &sseController = *pSSEController;

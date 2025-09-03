@@ -45,11 +45,10 @@ class HistoryView : public View
 {
 public:
     HistoryView(const char *viewFile) : 
-        View(new HistoryViewReader(viewFile))
+        View(std::unique_ptr<ViewReader>(new HistoryViewReader(viewFile)))
     {
     }
 
-    bool isSingleton() { return false; }
-    static HttpController *getInstance() { return new HistoryView("/HISTORY.HTM"); }
+    static std::shared_ptr<HttpController> getInstance() { return std::make_shared<HistoryView>("/HISTORY.HTM"); }
 };
 #endif // HistoryView_h

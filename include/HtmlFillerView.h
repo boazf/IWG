@@ -32,7 +32,7 @@ public:
     /// @param viewFilePath The path to the view file
     /// @param getFillers The function to get the fillers
     HtmlFillerView(const char *viewFilePath, GetFillers getFillers) :
-        View(new HtmlFillerViewReader(new FileViewReader(viewFilePath), getFillers))
+        View(std::unique_ptr<ViewReader>(new HtmlFillerViewReader(std::unique_ptr<ViewReader>(new FileViewReader(viewFilePath)), getFillers)))
     {
     }
 
@@ -42,7 +42,7 @@ public:
     /// @param contentType The content type of the view
     /// @param getFillers The function to get the fillers
     HtmlFillerView(const byte *mem, size_t size, CONTENT_TYPE contentType, GetFillers getFillers) :
-        View(new HtmlFillerViewReader(new MemViewReader(mem, size, contentType), getFillers))
+        View(std::unique_ptr<ViewReader>(new HtmlFillerViewReader(std::unique_ptr<ViewReader>(new MemViewReader(mem, size, contentType)), getFillers)))
     {
     }
 

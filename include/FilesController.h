@@ -34,8 +34,7 @@ public:
     bool Post(HttpClientContext &context, const String id);
     bool Put(HttpClientContext &context, const String id);
     bool Delete(HttpClientContext &context, const String id);
-    bool isSingleton() { return true; }
-    static HttpController *getInstance();
+    static std::shared_ptr<HttpController> getInstance();
 
 private:
     /// @brief Normalize the file path.
@@ -48,7 +47,5 @@ private:
     /// @param fileName The file name to extract from the header.
     static void parseUploadHeaders(const String &header, String &boundary, String &fileName);
 };
-
-extern FilesController filesController;
 
 #endif // FilesController_h

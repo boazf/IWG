@@ -34,7 +34,6 @@ public:
         FileView(mapper(viewFilePath))
     {
     }
-    bool isSingleton() { return false; }
 
 private:
     /// @brief Maps the file path to a specific format.

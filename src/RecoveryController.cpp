@@ -103,7 +103,7 @@ bool RecoveryController::Post(HttpClientContext &context, const String id)
     return true;
 }
 
-// This method returns a singleton instance of the RecoveryController.
-HttpController *RecoveryController::getInstance() { return &recoveryController; }
+static std::shared_ptr<HttpController> recoveryController = std::make_shared<RecoveryController>();
 
-RecoveryController recoveryController;
+// This method returns a singleton instance of the RecoveryController.
+std::shared_ptr<HttpController> RecoveryController::getInstance() { return recoveryController; }

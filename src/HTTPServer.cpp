@@ -52,13 +52,13 @@ bool HttpClientContext::parseRequestHeaderSection()
 
 HTTPServer::ControllersDataList HTTPServer::controllersData;
 
-void HTTPServer::AddController(const String path, GetControllerInstance getControllerInstance)
+void HTTPServer::AddController(const String path, GetControllerInstance instanceGetter)
 {
-    HttpControllerCreatorData creatorData(path, getControllerInstance);
+    HttpControllerCreatorData creatorData(path, instanceGetter);
     controllersData.Insert(creatorData);
 }
 
-bool HTTPServer::GetController(HttpClientContext *context, HttpController *&controller, String &id)
+bool HTTPServer::GetController(HttpClientContext *context, std::shared_ptr<HttpController> &controller, String &id)
 {
     // Get the resource pf the request from the context
     String resource = context->getResource();
@@ -69,7 +69,7 @@ bool HTTPServer::GetController(HttpClientContext *context, HttpController *&cont
     {
         String id;
         String resource;
-        HttpController *controller;
+        std::shared_ptr<HttpController> controller;
     } params = {"", resource, NULL };
 
     // Scan the list of controllers to find the best matching controller for the request
@@ -122,7 +122,7 @@ bool HTTPServer::GetController(HttpClientContext *context, HttpController *&cont
     if (controller == NULL)
         // If no controller was found, we return a controller that attemps to open the file specified in the resource
         // part of the URL. If this file exists, the content of the file will be return to the client.
-        controller = new DirectFileView(resource.c_str());
+        controller = std::make_shared<DirectFileView>(resource.c_str());
 
     return controller != NULL;
 }
@@ -141,7 +141,7 @@ void HTTPServer::PageNotFound(EthClient &client)
 
 void HTTPServer::ServiceRequest(HttpClientContext *context)
 {
-    HttpController *controller;
+    std::shared_ptr<HttpController> controller;
     String id;
 
     // Get the controller that will handle the request.
@@ -189,8 +189,6 @@ void HTTPServer::ServiceRequest(HttpClientContext *context)
         PageNotFound(context->getClient());
 
     // If the controller is not singleton, we delete it.
-    if (!controller->isSingleton())
-        delete controller;
 }
 
 #ifndef USE_WIFI
