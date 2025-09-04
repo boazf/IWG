@@ -271,7 +271,7 @@ void SSEController::Init()
         }
     },
     "SSE_DeleteUnusedClients",
-    2 * 1024,
+    4 * 1024,
     this,
     tskIDLE_PRIORITY,
     NULL);
