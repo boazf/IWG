@@ -1064,14 +1064,14 @@ RecoveryMessages RecoveryControl::OnPeriodicRestart()
 	return RecoveryMessages::None;
 }
 
-void RecoveryControl::StartRecoveryCycles(RecoveryTypes recoveryType)
+bool RecoveryControl::StartRecoveryCycles(RecoveryTypes recoveryType)
 {
 	Lock lock(csLock);
 
 	// If the requested recovery is not Done, it means that we are already in the process of recovering,
 	// so we should not start a new recovery cycle.
 	if (requestedRecovery != RecoveryMessages::Done)
-		return;
+		return false;
 
 	// Reset the attempted recovery cycles count.
 	cycles = 0;
@@ -1088,12 +1088,12 @@ void RecoveryControl::StartRecoveryCycles(RecoveryTypes recoveryType)
 			requestedRecovery = RecoveryMessages::CheckConnectivity;
 			break;
 		default:
-			break;
+			return false;
 	}
 
 	// Give the wait semaphore to wake up the recovery thread.
 	// In case it is in the wait state between connection tests.
-	xSemaphoreGive(waitSem);
+	return xSemaphoreGive(waitSem) == pdTRUE;
 }
 
 #ifdef DEBUG_STATE_MACHINE

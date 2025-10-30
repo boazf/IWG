@@ -247,9 +247,10 @@ public:
 	/// @brief Starts the recovery cycles for a specific recovery type.
 	/// @param recoveryType The type of recovery to start.
 	/// The recovery type can be one of the defined RecoveryTypes, such as Router, Modem, or ConnectivityCheck.
+	/// @return True if the recovery cycles were started successfully, false otherwise.
 	/// @note This method is typically called when a user initiates a recovery action through the web interface or physical buttons.
 	/// It will trigger the state machine to handle the recovery process accordingly.
-	void StartRecoveryCycles(RecoveryTypes recoveryType);
+	bool StartRecoveryCycles(RecoveryTypes recoveryType);
 
 private:
 	// @brief The state machine that manages the recovery process.

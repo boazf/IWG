@@ -81,7 +81,8 @@ bool RecoveryController::Post(HttpClientContext &context, const String id)
 
     // Parse the recovery type from the request body.
     RecoveryTypes recoveryType;
-    sscanf(content.c_str(), "{\"recoveryType\":%d}", reinterpret_cast<int*>(&recoveryType));
+    if (sscanf(content.c_str(), "{\"recoveryType\":%d}", reinterpret_cast<int*>(&recoveryType)) != 1)
+        return false;
 
 #ifdef DEBUG_HTTP_SERVER
     TRACE_BLOCK
@@ -93,7 +94,8 @@ bool RecoveryController::Post(HttpClientContext &context, const String id)
 
     // Start the recovery process based on the recovery type.
     // The recoveryControl instance is responsible for managing the recovery state machine and performing recovery actions.
-    recoveryControl.StartRecoveryCycles(recoveryType);
+    if (!recoveryControl.StartRecoveryCycles(recoveryType))
+        return false;
 
     // Send a 200 OK response to the client with appropriate headers.
     HttpHeaders::Header additionalHeaders[] = { {"Access-Control-Allow-Origin", "*" }, {"Cache-Control", "no-cache"} };
