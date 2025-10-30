@@ -28,6 +28,7 @@
 #include <FilesController.h>
 #include <RecoveryController.h>
 #include <SystemController.h>
+#include <DirectFileView.h>
 
 void InitHttpControllers()
 {
@@ -41,4 +42,8 @@ void InitHttpControllers()
     HTTPServer::AddController("/API/FILES", FilesController::getInstance);
     HTTPServer::AddController("/API/RECOVERY", RecoveryController::getInstance);
     HTTPServer::AddController("/API/SYSTEM", SystemController::getInstance);
+    HTTPServer::getDefaultController = [](const char *resource) -> std::shared_ptr<HttpController>
+    {
+        return std::make_shared<DirectFileView>(resource);
+    };
 }
