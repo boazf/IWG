@@ -20,7 +20,6 @@
 #define HttpClientContext_h
 
 #include <Arduino.h>
-#include <EthernetUtil.h>
 #include <HttpHeaders.h>
 #include <array>
 

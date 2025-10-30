@@ -19,8 +19,6 @@
 #ifndef HTTPServer_h
 #define HTTPServer_h
 
-#include <EthernetUtil.h>
-#include <FileView.h>
 #include <HttpController.h>
 #include <LinkedList.h>
 #ifdef DEBUG_HTTP_SERVER
@@ -56,6 +54,11 @@ public:
     /// This method is called when the requested resource is not found on the server.
     /// @param client The EthClient instance representing the client connection.
     static void PageNotFound(EthClient &client);
+    static std::shared_ptr<HttpController> (*getDefaultController)(const char *resource);
+    /// @brief Stops the HTTP server from accepting new connections.
+    static void stop() { stopServer = true; }
+    /// @brief Restarts the HTTP server to accept new connections.
+    static void restart() { stopServer = false; }
 
 private:
     /// @brief Gets the controller instance for the specified path.

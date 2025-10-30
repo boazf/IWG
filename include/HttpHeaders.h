@@ -23,6 +23,23 @@
 #include <EthernetUtil.h>
 #include <map>
 
+enum class CONTENT_TYPE
+{
+    UNKNOWN,
+    JAVASCRIPT,
+    ICON,
+    HTML,
+    CSS,
+    JPEG,
+    EOT,
+    SVG,
+    TTF,
+    WOFF,
+    WOFF2,
+    JSON,
+    STREAM
+};
+
 enum class HTTP_REQ_TYPE
 {
     HTTP_UNKNOWN,

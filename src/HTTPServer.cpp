@@ -19,11 +19,8 @@
 #include <Arduino.h>
 #include <Common.h>
 #include <HTTPServer.h>
-#include <LinkedList.h>
-#include <AutoPtr.h>
-#include <DirectFileView.h>
-#include <SSEController.h>
-#include <PwrCntl.h>
+
+std::shared_ptr<HttpController> (*HTTPServer::getDefaultController)(const char *resource) = NULL;
 
 HttpClientContext::HttpClientContext(EthClient &client) :
     keepAlive(false), // default to false
@@ -119,10 +116,10 @@ bool HTTPServer::GetController(HttpClientContext *context, std::shared_ptr<HttpC
     // Extract the results returned from the scan function
     id = params.id;
     controller = params.controller;
-    if (controller == NULL)
+    if (controller == NULL && getDefaultController != NULL)
         // If no controller was found, we return a controller that attemps to open the file specified in the resource
         // part of the URL. If this file exists, the content of the file will be return to the client.
-        controller = std::make_shared<DirectFileView>(resource.c_str());
+        controller = getDefaultController(resource.c_str());
 
     return controller != NULL;
 }
@@ -204,21 +201,6 @@ bool HTTPServer::stopServer = false;
 
 void HTTPServer::Init()
 {
-    hardResetEvent.addObserver([](const HardResetEventParam &param, const void *context)
-    {
-        switch (param.stage)
-        {
-            case HardResetStage::prepare:
-                // Stop accepting new connections when preparing for hard reset
-                stopServer = true;
-                break;
-            case HardResetStage::failure:
-                // Allow the server to continue accepting new connections after a hard reset failure
-                stopServer = false;
-                break;
-        }
-    }, NULL);
-
     server.begin();
 #ifdef DEBUG_HTTP_SERVER
     Traceln("HTTP Server has started");
