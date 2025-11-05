@@ -29,8 +29,6 @@ public:
     CriticalSection()
     {
         _binarySem = xSemaphoreCreateRecursiveMutex();
-        // The semaphore is created taken, so we need to give it once to initialize it.
-        xSemaphoreGiveRecursive(_binarySem);
     }
 
     ~CriticalSection()
