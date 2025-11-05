@@ -55,9 +55,7 @@ public:
     /// @param client The EthClient instance representing the client connection.
     static void PageNotFound(EthClient &client);
     static std::shared_ptr<HttpController> (*getDefaultController)(const char *resource);
-    /// @brief Stops the HTTP server from accepting new connections.
     static void stop() { stopServer = true; }
-    /// @brief Restarts the HTTP server to accept new connections.
     static void restart() { stopServer = false; }
 
 private:
