@@ -51,7 +51,7 @@ Indicator::Indicator(uint8_t _channel, uint8_t pin) :
         {
             while(true)
             {
-                blinkingIndicators.ScanNodes([](Indicator *const &indicator, const void *param)->bool
+                blinkingIndicators.ScanNodes([](Indicator *const &indicator, void *param)->bool
                 {
                     indicator->Blink();
                     return true;

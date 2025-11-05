@@ -99,7 +99,7 @@ static void setTime(bool ignoreFailure)
 /// @brief Application configuration changed event handler.
 /// @param param The event parameter.
 /// @param context Set to NULL here.
-static void appConfigChanged(const AppConfigChangedParam &param, const void *context)
+static void appConfigChanged(const AppConfigChangedParam &param, void *context)
 {
   // See if DST has changed
   // If it has, set the time again to adjust for the new DST setting

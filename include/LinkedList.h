@@ -203,7 +203,7 @@ public:
     /// @param param A parameter passed to the action function.
     /// The action function should return true to continue scanning or false to stop.
     /// @note The action function should not delete nodes or modify the list structure.
-    void ScanNodes(bool (*action)(const T &value, const void *param), const void *param)
+    void ScanNodes(bool (*action)(const T &value, void *param), void *param)
     {
         Lock lock(cs);
 

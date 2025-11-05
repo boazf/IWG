@@ -143,9 +143,9 @@ public:
 #define ON_STATE(fnName) static RecoveryMessages fnName(RecoveryControl *control) { return control->fnName(); }; RecoveryMessages fnName()
 #define ON_EXIT(fnName) static RecoveryMessages fnName(RecoveryMessages message, RecoveryControl *control) { return control->fnName(message); }; RecoveryMessages fnName(RecoveryMessages message)
 #define ON_EVENT(classT, eventDataT, fnName) \
-	static void fnName(const eventDataT &param, const void *context) \
+	static void fnName(const eventDataT &param, void *context) \
 	{ \
-		classT *control = const_cast<classT *>(static_cast<const classT *>(context)); \
+		classT *control = static_cast<classT *>(context); \
 		control->fnName(param); \
 	}; \
 	void fnName(const eventDataT &param)
@@ -181,7 +181,7 @@ public:
 	/// @param handler The handler function to be called when the recovery state changes.
 	/// @param context The context pointer that will be passed to the handler function.
 	/// @return An integer token that can be used to remove the observer later.
-	int addRecoveryStateChangedObserver(Observers<RecoveryStateChangedParams>::Handler handler, const void *context)
+	int addRecoveryStateChangedObserver(Observers<RecoveryStateChangedParams>::Handler handler, void *context)
 	{
 		return m_recoveryStateChanged.addObserver(handler, context);
 	}
@@ -190,7 +190,7 @@ public:
 	/// @param handler The handler function to be called when the modem power state changes.
 	/// @param context The context pointer that will be passed to the handler function.
 	/// @return An integer token that can be used to remove the observer later.
-	int addModemPowerStateChangedObserver(Observers<PowerStateChangedParams>::Handler handler, const void *context)
+	int addModemPowerStateChangedObserver(Observers<PowerStateChangedParams>::Handler handler, void *context)
 	{
 		return m_modemPowerStateChanged.addObserver(handler, context);
 	}
@@ -199,7 +199,7 @@ public:
 	/// @param handler The handler function to be called when the router power state changes.
 	/// @param context The context pointer that will be passed to the handler function.
 	/// @return An integer token that can be used to remove the observer later.
-	int addRouterPowerStateChangedObserver(Observers<PowerStateChangedParams>::Handler handler, const void *context)
+	int addRouterPowerStateChangedObserver(Observers<PowerStateChangedParams>::Handler handler, void *context)
 	{
 		return m_routerPowerStateChanged.addObserver(handler, context);
 	}
@@ -208,7 +208,7 @@ public:
 	/// @param handler The handler function to be called when the auto-recovery state changes.
 	/// @param context The context pointer that will be passed to the handler function.
 	/// @return An integer token that can be used to remove the observer later.
-	int addAutoRecoveryStateChangedObserver(Observers<AutoRecoveryStateChangedParams>::Handler handler, const void *context)
+	int addAutoRecoveryStateChangedObserver(Observers<AutoRecoveryStateChangedParams>::Handler handler, void *context)
 	{
 		return m_autoRecoveryStateChanged.addObserver(handler, context);
 	}
@@ -217,7 +217,7 @@ public:
 	/// @param handler The handler function to be called when the max history record changes.
 	/// @param context The context pointer that will be passed to the handler function.
 	/// @return An integer token that can be used to remove the observer later.
-	int addMaxHistoryRecordChangedObserver(Observers<MaxHistoryRecordChangedParams>::Handler handler, const void *context)
+	int addMaxHistoryRecordChangedObserver(Observers<MaxHistoryRecordChangedParams>::Handler handler, void *context)
 	{
 		return m_maxHistoryRecordsChanged.addObserver(handler, context);
 	}

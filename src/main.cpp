@@ -78,7 +78,7 @@ void setup() {
   InitControllers();
   InitHttpControllers();
   InitHTTPServer();
-  hardResetEvent.addObserver([](const HardResetEventParam &param, const void *context)
+  hardResetEvent.addObserver([](const HardResetEventParam &param, void *context)
   {
       switch (param.stage)
       {

@@ -40,10 +40,10 @@ public:
     /// Clears all observers from the list.
     ~Observers()
     {
-        m_observers.ScanNodes([](const ObserverData &observer, const void *data)->bool
+        m_observers.ScanNodes([](const ObserverData &observer, void *data)->bool
         {
             if (observer.m_freeParam && observer.m_context) {
-                observer.m_freeParam(const_cast<void *>(observer.m_context));
+                observer.m_freeParam(observer.m_context);
             }
             return true; // Continue scanning
         }, nullptr);
@@ -54,7 +54,7 @@ public:
     /// @param data The event data to pass to the observer.
     /// @param context Optional context pointer for additional data.
     /// This function type is used to define the signature of observer functions.
-	typedef void(*Handler)(const EventData &data, const void *context);
+	typedef void(*Handler)(const EventData &data, void *context);
 
 private:
     /// @brief Data structure to hold observer information.
@@ -70,7 +70,7 @@ private:
         /// @param handler Function pointer to the observer's handler.
         /// @param context Optional context pointer for additional data.
         /// @param freeParam Optional function pointer to free the context pointer.
-        ObserverData(int token, Handler handler, const void *context = NULL, FreeObserverParamFunc freeParam = NULL) :
+        ObserverData(int token, Handler handler, void *context = NULL, FreeObserverParamFunc freeParam = NULL) :
             m_token(token),
             m_handler(handler),
             m_context(context),
@@ -108,7 +108,7 @@ private:
 
         int m_token; ///< Unique identifier for the observer.
         Handler m_handler; ///< Function pointer to the observer's handler.
-        const void *m_context; ///< Optional context pointer for additional data.
+        void *m_context; ///< Optional context pointer for additional data.
         FreeObserverParamFunc m_freeParam; ///< Optional function pointer to free the context pointer.
     };
 
@@ -117,7 +117,7 @@ public:
 	/// @param h The handler function for the observer.
 	/// @param context Optional context pointer for additional data.
 	/// @return A unique token identifying the observer.
-	int addObserver(Handler h, const void *context = NULL, FreeObserverParamFunc freeParam = NULL)
+	int addObserver(Handler h, void *context = NULL, FreeObserverParamFunc freeParam = NULL)
 	{
         int token = ++m_token;
 		m_observers.Insert(ObserverData(token, h, context, freeParam));
@@ -148,11 +148,11 @@ public:
 	void callObservers(const EventData &data)
 	{
         // Scan observers and call their handlers with the event data and context.
-        m_observers.ScanNodes([](const ObserverData &observer, const void *data)->bool
+        m_observers.ScanNodes([](const ObserverData &observer, void *data)->bool
         {
-            observer.m_handler(*(static_cast<const EventData *>(data)), observer.m_context);
+            observer.m_handler(*const_cast<const EventData *>(static_cast<EventData *>(data)), observer.m_context);
             return true;
-        }, &data);
+        }, const_cast<EventData *>(&data));
 	}
 
 private:

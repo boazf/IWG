@@ -54,7 +54,7 @@ bool SSEController::Get(HttpClientContext &context, const String id)
     // So now it is time to delete this temporary clientInfo instance and replace it with a real clientInfo instance.
     // The temporary clientInfo instance is required so that the SSE controller will recognise the redirected call as a valid 
     // call with a valid ID.
-    clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
+    clients.ScanNodes([](const ClientInfo &clientInfo, void *param)->bool
     {
         const Params *params = static_cast<const Params *>(param);
         String id = params->id;
@@ -108,7 +108,7 @@ bool SSEController::Delete(HttpClientContext &context, const String id)
     } params = { this, id };
 
     // Scan the list of clients and delete the client with the given ID.
-    clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
+    clients.ScanNodes([](const ClientInfo &clientInfo, void *param)->bool
     {
         const Params *params = static_cast<const Params *>(param);
         String id = params->id;
@@ -174,7 +174,7 @@ void SSEController::NotifyState(const String &id)
     } params = { id, event };
 
     // Scan the list of clients and send the event data to the requires client(s).
-    clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
+    clients.ScanNodes([](const ClientInfo &clientInfo, void *param)->bool
     {
         const Params *params = static_cast<const Params *>(param);
         String id = params->id;
@@ -227,9 +227,9 @@ void SSEController::DeleteUnusedClients()
 
     // Scan the list of clients and add the unused clients to the clientsToDelete list.
     // It is not possible to delete clients while scanning the list, so we first collect the clients to delete in a separate list.
-    clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
+    clients.ScanNodes([](const ClientInfo &clientInfo, void *param)->bool
     {
-        ClientsList *clientsToDelete = const_cast<ClientsList *>(static_cast<const ClientsList *>(param));
+        ClientsList *clientsToDelete = static_cast<ClientsList *>(param);
         EthClient client = clientInfo.client;
         if (!client.connected())
             clientsToDelete->Insert(clientInfo);
@@ -237,9 +237,9 @@ void SSEController::DeleteUnusedClients()
     }, &clientsToDelete);
 
     // Now delete the clients that were collected in the clientsToDelete list.
-    clientsToDelete.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
+    clientsToDelete.ScanNodes([](const ClientInfo &clientInfo, void *param)->bool
     {
-        SSEController *controller = const_cast<SSEController *>(static_cast<const SSEController *>(param));
+        SSEController *controller = static_cast<SSEController *>(param);
         EthClient client = clientInfo.client;
         controller->DeleteClient(clientInfo, client);
         return true;
@@ -345,9 +345,9 @@ bool SSEController::DeleteClient(EthClient &client, bool stopClient)
         bool ret;
     } params = { this, client, stopClient, false };
 
-    clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
+    clients.ScanNodes([](const ClientInfo &clientInfo, void *param)->bool
     {
-        Params *params = const_cast<Params *>(static_cast<const Params *>(param));
+        Params *params = static_cast<Params *>(param);
         EthClient client = clientInfo.client;
         if (client == params->client)
         {
@@ -408,9 +408,9 @@ bool SSEController::IsValidId(const String &id)
     } params = { id, false };
 
     // Scan the list of clients and check if one of the clients has the given ID.
-    clients.ScanNodes([](const ClientInfo &clientInfo, const void *param)->bool
+    clients.ScanNodes([](const ClientInfo &clientInfo, void *param)->bool
     {
-        Params *params = const_cast<Params *>(static_cast<const Params *>(param));
+        Params *params = static_cast<Params *>(param);
         params->isValid = clientInfo.id.equals(params->id);
         // If the ID is found, stop scanning the list. Otherwise, continue scanning.
         return !params->isValid;

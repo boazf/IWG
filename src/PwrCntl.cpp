@@ -135,7 +135,7 @@ static void InitHardReset()
 /// @param now The current time (unused).
 /// @param param Unused parameter.
 /// @note This function is called by the timeChanged observer to initialize the hard reset task.
-static void InitHardReset(const TimeChangedParam &now, const void *param)
+static void InitHardReset(const TimeChangedParam &now, void *param)
 {
   InitHardReset();
 }

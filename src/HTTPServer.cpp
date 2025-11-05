@@ -70,9 +70,9 @@ bool HTTPServer::GetController(HttpClientContext *context, std::shared_ptr<HttpC
     } params = {"", resource, NULL };
 
     // Scan the list of controllers to find the best matching controller for the request
-    controllersData.ScanNodes([](HttpControllerCreatorData const &creatorData, const void *param)->bool
+    controllersData.ScanNodes([](HttpControllerCreatorData const &creatorData, void *param)->bool
     {
-        Params *params = const_cast<Params *>(static_cast<const Params *>(param));
+        Params *params = static_cast<Params *>(param);
         String path = creatorData.getPath();
         String resource = params->resource;
         resource.toUpperCase();

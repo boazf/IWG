@@ -200,7 +200,7 @@ static void FileLoggerTask(void *parameter)
 void InitFileTrace()
 {
     // Initialize the hard reset event observer to handle hard reset stages.
-    hardResetEvent.addObserver([](const HardResetEventParam &param, const void *context)
+    hardResetEvent.addObserver([](const HardResetEventParam &param, void *context)
     {
         switch (param.stage)
         {
