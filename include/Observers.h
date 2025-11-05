@@ -22,6 +22,7 @@
 #include <LinkedList.h>
 #include <atomic>
 
+typedef void (*FreeObserverParamFunc)(void *);
 /// @brief Observer pattern implementation
 /// @tparam EventData Type of the event data
 template <typename EventData>
@@ -30,7 +31,7 @@ class Observers
 public: 
     /// @brief Constructs a new Observers object.
     /// Initializes the token to 0.
-    Observers() :
+    Observers(String name = "") :
         m_token(0)
     {
     }
@@ -39,6 +40,13 @@ public:
     /// Clears all observers from the list.
     ~Observers()
     {
+        m_observers.ScanNodes([](const ObserverData &observer, const void *data)->bool
+        {
+            if (observer.m_freeParam && observer.m_context) {
+                observer.m_freeParam(const_cast<void *>(observer.m_context));
+            }
+            return true; // Continue scanning
+        }, nullptr);
         m_observers.ClearAll();
     }
 
@@ -55,24 +63,18 @@ private:
     {
     public:
         /// @brief Default constructor for ObserverData.
-        ObserverData() :
-            m_token(0),
-            m_handler((Handler)0),
-            m_context(NULL)
-        {
-        }
+        ObserverData() : ObserverData(0, NULL) {}
 
         /// @brief Parameterized constructor for ObserverData.
         /// @param token Unique identifier for the observer.
         /// @param handler Function pointer to the observer's handler.
         /// @param context Optional context pointer for additional data.
-        ObserverData(int token, Handler handler, const void *context = NULL) :
+        /// @param freeParam Optional function pointer to free the context pointer.
+        ObserverData(int token, Handler handler, const void *context = NULL, FreeObserverParamFunc freeParam = NULL) :
             m_token(token),
             m_handler(handler),
-            m_context(context)
-
-        {
-        }
+            m_context(context),
+            m_freeParam(freeParam) {}
 
         /// @brief Copy constructor for ObserverData.
         /// @param other The ObserverData object to copy from.
@@ -90,6 +92,7 @@ private:
             this->m_token = other.m_token;
             this->m_handler = other.m_handler;
             this->m_context = other.m_context;
+            this->m_freeParam = other.m_freeParam;
 
             return *this;
         }
@@ -106,6 +109,7 @@ private:
         int m_token; ///< Unique identifier for the observer.
         Handler m_handler; ///< Function pointer to the observer's handler.
         const void *m_context; ///< Optional context pointer for additional data.
+        FreeObserverParamFunc m_freeParam; ///< Optional function pointer to free the context pointer.
     };
 
 public:
@@ -113,10 +117,11 @@ public:
 	/// @param h The handler function for the observer.
 	/// @param context Optional context pointer for additional data.
 	/// @return A unique token identifying the observer.
-	int addObserver(Handler h, const void *context = NULL)
+	int addObserver(Handler h, const void *context = NULL, FreeObserverParamFunc freeParam = NULL)
 	{
-		m_observers.Insert(ObserverData(++m_token, h, context));
-        return m_token;
+        int token = ++m_token;
+		m_observers.Insert(ObserverData(token, h, context, freeParam));
+        return token;
 	}
 
 	/// @brief Removes an observer from the list.
@@ -124,7 +129,18 @@ public:
 	/// @return True if the observer was successfully removed, false otherwise.
 	bool removeObserver(int token)
 	{
-        return m_observers.Delete(ObserverData(token, NULL, NULL));
+        m_observers.ScanNodes([](const ObserverData &observer, const void *data)->bool
+        {
+            int token = *(static_cast<const int *>(data));
+            if (observer.m_token == token) {
+                if (observer.m_freeParam && observer.m_context) {
+                    observer.m_freeParam(const_cast<void *>(observer.m_context));
+                }
+                return false; // Stop scanning
+            }
+            return true; // Continue scanning
+        }, &token);
+        return m_observers.Delete(ObserverData(token, NULL));
 	}
 
     /// @brief Calls all observers with the given event data.
