@@ -129,9 +129,9 @@ public:
 	/// @return True if the observer was successfully removed, false otherwise.
 	bool removeObserver(int token)
 	{
-        m_observers.ScanNodes([](const ObserverData &observer, const void *data)->bool
+        m_observers.ScanNodes([](const ObserverData &observer, void *data)->bool
         {
-            int token = *(static_cast<const int *>(data));
+            int token = *(static_cast<int *>(data));
             if (observer.m_token == token) {
                 if (observer.m_freeParam && observer.m_context) {
                     observer.m_freeParam(const_cast<void *>(observer.m_context));
