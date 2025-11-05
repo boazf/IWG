@@ -12,7 +12,7 @@ void verifyLinkedList(const std::vector<int> &expected, LinkedList<int> &list)
         int index;
     } param = {expected.data(), static_cast<int>(expected.size()), 0};
     
-    list.ScanNodes([](const int &value, const void *vparam) -> bool {
+    list.ScanNodes([](const int &value, void *vparam) -> bool {
         Param *param = (Param *)vparam;
         TEST_ASSERT_LESS_THAN(param->size, param->index);
         TEST_ASSERT_EQUAL(param->expected[param->index++], value);
@@ -107,7 +107,7 @@ void linkedListScanNodesTests()
     list.Insert(2);
     list.Insert(3);
     LinkedList<int> list2;
-    list.ScanNodes([](const int &value, const void *param) -> bool 
+    list.ScanNodes([](const int &value, void *param) -> bool 
     {
         LinkedList<int> *list = (LinkedList<int> *)param;
         list->Insert(value);

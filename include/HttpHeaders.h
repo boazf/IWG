@@ -18,10 +18,12 @@
 
 #ifndef HTTP_HEADERS_H
 #define HTTP_HEADERS_H
+#ifndef TESTING
 #include <Arduino.h>
 #include <Common.h>
 #include <EthernetUtil.h>
 #include <map>
+#endif // TESTING
 
 enum class CONTENT_TYPE
 {
@@ -42,6 +44,7 @@ enum class CONTENT_TYPE
     STREAM
 };
 
+#ifndef TESTING
 enum class HTTP_REQ_TYPE
 {
     HTTP_UNKNOWN,
@@ -120,5 +123,5 @@ private:
     typedef std::map<String, HTTP_REQ_TYPE> HttpReqTypesMap; // The HTTP request types map
     static const HttpReqTypesMap httpReqTypesMap;
 };
-
+#endif // TESTING
 #endif // HTTP_HEADERS_H

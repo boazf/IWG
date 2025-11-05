@@ -22,7 +22,7 @@ void observersBasicTests()
         param->count++;
     };
 
-    int token1 = observers.addObserver([](const int &data, const void *context)
+    int token1 = observers.addObserver([](const int &data, void *context)
     {
         verifyObserverData(5, data, context);
     }, &param);
@@ -32,7 +32,7 @@ void observersBasicTests()
     TEST_ASSERT_EQUAL(1, param.count);
 
     Param param2 = {6, 0};
-    int token2 = observers.addObserver([](const int &data, const void *context)
+    int token2 = observers.addObserver([](const int &data, void *context)
     {
         verifyObserverData(6, data, context);
     }, &param2);
@@ -59,7 +59,7 @@ void observersBasicTests()
     TEST_ASSERT_EQUAL(2, param2.count);
 
     Param param3 = {-1, 0};
-    observers.addObserver([](const int &data, const void *context)
+    observers.addObserver([](const int &data, void *context)
     {
         verifyObserverData(-1, data, context);
     }, &param3);
