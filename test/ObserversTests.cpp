@@ -7,6 +7,8 @@
 void observersBasicTests()
 {
     Observers<int> observers;
+    observers.callObservers(0); // No observers yet, should do nothing
+    
     struct Param
     {
         int data;
