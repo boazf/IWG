@@ -29,6 +29,7 @@
 #include <map>
 #endif
 #else
+#include <WiFi.h>
 #include <Dns.h>
 #endif
 #ifdef DEBUG_ETHERNET
@@ -416,6 +417,8 @@ bool InitEthernet()
 #ifndef USE_WIFI
   Eth.init(CS_P);
   WizReset();
+  WiFi.disconnect(true, true);   // Disconnect and erase AP credentials (optional)
+  WiFi.mode(WIFI_OFF);     // Turn off Wi-Fi
 #else
   WiFi.mode(WIFI_MODE_STA);
 #endif
