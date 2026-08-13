@@ -21,6 +21,7 @@
 
 #include <EEPROM.h>
 #include <time.h>
+#include <TimeUtil.h>
 #include <Common.h>
 #include <RecoveryControl.h>
 #ifdef DEBUG_HISTORY
@@ -115,6 +116,11 @@ public:
         return *this;
     }
 
+    bool isValid() const
+    {
+        return data.startTime != INT32_MAX && isValidTime(data.startTime) && (data.endTime == INT32_MAX || isValidTime(data.endTime));
+    }
+
 private:
     /// @brief Put the history item data into EEPROM at the specified index.
     /// @param i The index in the EEPROM where the history item data should be stored.
@@ -194,7 +200,7 @@ public:
     /// @brief Get the recovery time of the history item.
     /// @return The time of the last recovery event. If the recovery was successful, it
     /// returns the end time of the recovery. If the recovery is ongoing or failed, it returns INT32_MAX.
-    time_t recoveryTime() 
+    time_t recoveryTime() const
     { 
         if (data.recoveryStatus == RecoveryStatus::RecoverySuccess)
             return data.endTime == INT32_MAX ? data.startTime : data.endTime;
@@ -241,7 +247,7 @@ public:
     /// @param item The history item to add to the storage.
     /// The history items are added in a circular buffer fashion.
     /// If the storage is full, the oldest item will be overwritten.
-    void addHistory(HistoryStorageItem &item);
+    void addHistory(const HistoryStorageItem &item);
     /// @brief Get the number of available history records.
     /// @return The number of available history records in the storage.
     int available();

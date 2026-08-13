@@ -247,15 +247,18 @@ namespace historycontrol
 
     void HistoryControl::AddToHistoryStorage(RecoveryStatus status, bool withEndTime)
     {
-        currStorageItem->recoveryStatus() = status;
-        if (withEndTime)
+        if (currStorageItem->isValid())
         {
-            currStorageItem->endTime() = t_now;
+            currStorageItem->recoveryStatus() = status;
+            if (withEndTime)
+            {
+                currStorageItem->endTime() = t_now;
+            }
+            storage.addHistory(*currStorageItem);
+            lastUpdate = t_now;
         }
-        storage.addHistory(*currStorageItem);
         delete currStorageItem;
         currStorageItem = NULL;
-        lastUpdate = t_now;
     }
 
     int HistoryControl::Available()

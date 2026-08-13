@@ -117,7 +117,7 @@ void HistoryStorage::init(int _maxRecords)
 #endif
 }
 
-void HistoryStorage::addHistory(HistoryStorageItem &item)
+void HistoryStorage::addHistory(const HistoryStorageItem &item)
 {
     // Store the item in the EEPROM at the current startIndex.
     item.put(startIndex);
