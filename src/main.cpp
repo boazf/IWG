@@ -111,7 +111,6 @@ void loop()
   {
     MaintainEthernet();
   }
-  PerformControllersCycles();
   delay(1);
 }
 

@@ -28,7 +28,3 @@ void InitControllers()
     recoveryControl.Init();
     sseController.Init();
 }
-
-void PerformControllersCycles()
-{
-}
