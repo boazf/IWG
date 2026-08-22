@@ -504,7 +504,7 @@ bool RecoveryControl::isPeriodicRestartEnabled()
 {
 	// Periodic restart is enabled if either the modem or router is set to periodically restart,
 	// and auto-recovery is enabled.
-	return (AppConfig::getPeriodicallyRestartModem() || AppConfig::getPeriodicallyRestartRouter()) && AppConfig::getAutoRecovery();
+	return (AppConfig::getPeriodicallyRestartModem() || AppConfig::getPeriodicallyRestartRouter()) && AppConfig::getAutoRecovery() && isValidTime(t_now);
 }
 
 #define SECONDS_IN_24HOURS (24 * 60 * 60)

@@ -436,7 +436,7 @@ bool InitEthernet()
   else
   {
     // Use DHCP
-    Eth.begin(Config::mac);
+    Eth.begin(Config::mac, 10000);
   }
 #else // USE_WIFI
   WiFi.setAutoReconnect(true);
@@ -532,9 +532,11 @@ bool WaitForDNS()
     while(!TryGetHostAddress(addrSrv, AppConfig::getServer1()) &&
           !TryGetHostAddress(addrSrv, AppConfig::getServer2()) &&
           millis() - t0 < tWait)
-      delay(1000);
+    {
+      MaintainEthernet();
+    }
     // Check if we timed out
-    if (millis() - t0 > tWait)
+    if (millis() - t0 >= tWait)
       break;
     // Expect several sequential successful queries
     int i = 1; // We had already one successful query
@@ -623,15 +625,16 @@ void MaintainEthernet()
   }
 #endif // DEBUG_ETHERNET
 #else // USE_WIFI
+#define RECONNECT_TIMEOUT 60000 // 60 seconds
 #define WIFI_RECONNECT() \
   WiFi.reconnect(); \
-  tReconnect = t_now; \
+  tReconnect = millis(); \
   delay(2000);
 
   static bool connected = true;
-  static time_t tReconnect;
+  static unsigned long tReconnect;
 #ifdef DEBUG_ETHERNET
-  static time_t tLastUpdate;
+  static unsigned long tLastUpdate;
 #endif
   // Check WiFi connection status
   wl_status_t status = (wl_status_t)WiFi.status();
@@ -649,15 +652,15 @@ void MaintainEthernet()
       connected = false;
     }
 #ifdef DEBUG_ETHERNET
-    if (tLastUpdate != t_now)
+    if (millis() - tLastUpdate >= 1000)
     {
       // Print the current WiFi status every second
-      tLastUpdate = t_now;
+      tLastUpdate = millis();
       Tracef("WiFi status: %s\n", statusNames[status].c_str());
     }
 #endif
     // Once in every 60 seconds we call reconnect again, as long as we are not connected
-    if (t_now - tReconnect > 60)
+    if (millis() - tReconnect > RECONNECT_TIMEOUT)
     {
 #ifdef DEBUG_ETHERNET
       Traceln("Reconnecting");

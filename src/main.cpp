@@ -97,9 +97,20 @@ void setup() {
 
 void loop() 
 {
-  MaintainEthernet();
   if (gwConnTest.IsConnected())
+  {
+    static unsigned long tLastMaintain = 0;
+    if (millis() - tLastMaintain >= 10000)
+    {
+      MaintainEthernet();
+      tLastMaintain = millis();
+    }
     DoHTTPService();
+  }
+  else
+  {
+    MaintainEthernet();
+  }
   PerformControllersCycles();
   delay(1);
 }

@@ -34,9 +34,26 @@ Observers<TimeChangedParam> timeChanged;
 
 #define MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC 30
 
+#ifndef USE_WIFI
+static void getTimeFromNtp(time_t &now)
+{
+  unsigned long t0 = millis();
+  EthUDP ntpUDP;
+  NTPClient ntpClient(ntpUDP, Config::timeServer, Config::timeZone * 60 + (DST ? (Config::DST * 60) : 0), Config::timeUpdatePeriodMin * 60 * 1000);
+  ntpClient.begin();
+  // Wait for the time to be set
+  do
+  {
+    ntpClient.update();
+    delay(100);
+  } while(millis() - t0 < MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC * 1000 && !isValidTime(now = ntpClient.getEpochTime()));
+  ntpClient.end();
+}
+#endif
+
 /// @brief Set the system time.
 /// @param ignoreFailure If true, ignore any failures to set the time.
-static void setTime(bool ignoreFailure)
+static void setTime()
 {
   time_t now = 0;
 
@@ -51,28 +68,26 @@ static void setTime(bool ignoreFailure)
   // This is to avoid blocking the application if the time server is not reachable
   if (!getLocalTime(&tr1, MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC * 1000))
 #else
-  // Use Ethernet to get the time
+  // Use NTP to get the time
   unsigned long t0 = millis();
-  EthUDP ntpUDP;
-  NTPClient ntpClient(ntpUDP, Config::timeServer, Config::timeZone * 60 + (DST ? (Config::DST * 60) : 0), Config::timeUpdatePeriodMin * 60 * 1000);
-  ntpClient.begin();
-  // Wait for the time to be set
   do
   {
-    ntpClient.update();
-    delay(100);
-  } while(millis() - t0 < MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC * 1000 && !isValidTime(now = ntpClient.getEpochTime()));
-  ntpClient.end();
+    getTimeFromNtp(now);
+    if (!isValidTime(now))
+      break;
+    delay(1000);
+    time_t now2;
+    getTimeFromNtp(now2);
+    if (now2 - now <= MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC + 1)
+      break;
+  } while (millis() - t0 < MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC * 1000);
   if (!isValidTime(now))
 #endif
   {
 #ifdef DEBUG_TIME
     Traceln("Failed to query current time from time server!");
 #endif
-    if (!ignoreFailure)
-    {
-      return;
-    }
+    return;
   }
 #ifndef USE_WIFI
   else
@@ -94,6 +109,7 @@ static void setTime(bool ignoreFailure)
 
   // Notify observers that the time has changed
   timeChanged.callObservers(TimeChangedParam(t_now));
+
 }
 
 /// @brief Application configuration changed event handler.
@@ -112,7 +128,7 @@ static void appConfigChanged(const AppConfigChangedParam &param, void *context)
 #endif
     // Set the time again to adjust for the new DST setting
     // This will also notify observers of the time change.
-    setTime(true);
+    setTime();
   }
 }
 
@@ -124,17 +140,14 @@ void timeUpdateTask(void *param)
 {
   while (true)
   {
-    tm tr;
-    time_t now = t_now;
-    localtime_r(&now, &tr);
     // If the year is less than 100, it means the time has not been set yet
     // Wait for TIME_INIT_UPDATE_PERIOD_SEC seconds before trying to set the time again
     // If time has been set, the task will wait the configured time update period and then will try to set the time again
-    TickType_t tWait = (tr.tm_year < 100 ? TIME_INIT_UPDATE_PERIOD_SEC : (Config::timeUpdatePeriodMin * 60)) * 1000 / portTICK_PERIOD_MS;
+    TickType_t tWait = (isValidTime(t_now) ? Config::timeUpdatePeriodMin * 60 : TIME_INIT_UPDATE_PERIOD_SEC ) * 1000 / portTICK_PERIOD_MS;
     // Wait for the configured time update period
     vTaskDelay(tWait);
     // Try to set the time again
-    setTime(false);
+    setTime();
 #ifdef DEBUG_TIME
     Tracef("Time task stack high watermark: %d\n", uxTaskGetStackHighWaterMark(NULL));    
 #endif    
@@ -142,6 +155,7 @@ void timeUpdateTask(void *param)
 }
 #endif
 
+#define MAX_WAIT_TIME_FOR_VALID_TIME_SEC 300
 void InitTime()
 {
 #ifdef DEBUG_TIME
@@ -154,12 +168,22 @@ void InitTime()
   DST = AppConfig::getDST();
   // Set the system time based on the configured time server and timezone
   // If the time server is not reachable, the time will not be set, but the application will continue to run.
-  setTime(true);
+  setTime();
   // Register an observer for application configuration changes related to time settings
   AppConfig::getAppConfigChanged().addObserver(appConfigChanged, NULL);
 #ifndef USE_WIFI
   // Create a task to periodically update the time
   xTaskCreate(timeUpdateTask, "TimeUpdate", 2*1024, NULL, tskIDLE_PRIORITY, NULL);
+  // Wait for the time to be set by TimeUpdate task, but only for a limited time.
+  // If the time is not set after MAX_WAIT_TIME_FOR_VALID_TIME_SEC seconds,
+  // the application will continue to run, but the time will not be correct.
+  unsigned long t0 = millis();
+  while (!isValidTime(t_now) && millis() - t0 < MAX_WAIT_TIME_FOR_VALID_TIME_SEC * 1000)
+    MaintainEthernet();
+#ifdef DEBUG_TIME
+  if (!isValidTime(t_now))
+    Tracef("Failed to set time after waiting for %d seconds!", MAX_WAIT_TIME_FOR_VALID_TIME_SEC);
+#endif
 #endif
 }
 

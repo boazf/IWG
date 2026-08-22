@@ -201,11 +201,11 @@ bool FilesController::Post(HttpClientContext &context, const String id)
         // Calculate the expected length of the next chunk.
         size_t expected = min<size_t>(buffSize, restOfContent - nBytes);
         size_t len = 0;
-        time_t t0 = t_now;
+        unsigned long t0 = millis();
         
         // Read the next chunk from the client.
         // This can be done in several reads, because the data may not be available if the connection is slow.
-        while(len < expected && t_now - t0 < 3)
+        while(len < expected && millis() - t0 < 3000)
         {
             size_t readRes = client.read(buff + len, buffSize - len);
             if (readRes != 0xffffffff)

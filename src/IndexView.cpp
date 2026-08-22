@@ -51,7 +51,7 @@ ViewFiller IndexView::fillers[] =
     /*  5 */ [](String &fill) { fill = ((t_now - historyControl.getLastRecovery()) / 3600) % 24;  },
     /*  6 */ [](String &fill) { fill = ((t_now - historyControl.getLastRecovery()) / 60) % 60;  },
     /*  7 */ [](String &fill) { fill = (t_now - historyControl.getLastRecovery()) % 60; },
-    /*  8 */ [](String &fill) { fill = historyControl.getLastRecovery() == 0 ? "false" : "true"; },
+    /*  8 */ [](String &fill) { fill = historyControl.getLastRecovery() == 0 || !isValidTime(t_now) ? "false" : "true"; },
     /*  9 */ [](String &fill) { fill = (int)recoveryControl.GetRecoveryState(); },
     /* 10 */ [](String &fill) { fill = appBase(); },
     /* 11 */ [](String &fill) { fill = Config::deviceName; },
