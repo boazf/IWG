@@ -121,6 +121,8 @@ ButtonState Button::state()
 
 bool Buttons::init(Button buttons[], size_t nButtons)
 {
+  if (nButtons == 0 || buttons == NULL || semButtonStateChanged != NULL)
+    return false;
   // Create a binary semaphore to signal when the state of any button has changed.
   semButtonStateChanged = xSemaphoreCreateBinary();
   if (semButtonStateChanged == NULL)
