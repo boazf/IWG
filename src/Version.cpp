@@ -28,7 +28,7 @@ const String Version::unknownVersion = "Unknown";
 // This version is reported as the currently install version 
 // and also used for OTA updates.
 // This version should be updated with each release.
-#define APP_VERSION "1.0.30"
+#define APP_VERSION "1.0.31"
 
 String Version::getCurrentVersion()
 {
