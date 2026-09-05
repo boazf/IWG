@@ -24,8 +24,6 @@
 #endif
 #include <HttpHeaders.h>
 #include <atomic>
-#include <AppConfig.h>
-#include <HistoryControl.h>
 
 bool SystemController::sendVersionInfo(HttpClientContext &context)
 {
@@ -166,17 +164,6 @@ void SystemController::notify(EthClient &client, NotificationType notificationTy
 void SystemController::notify(EthClient &client, const String &json)
 {
     client.println(String("data:") + json + "\n");
-}
-
-void SystemController::factoryReset()
-{
-    // Implementation of the factory reset logic goes here.
-    // This should reset the system to its default state, erasing all configurations and settings.
-    AppConfig::factoryReset();
-    historyControl.reset();
-#ifdef DEBUG_HTTP_SERVER
-    Serial.println("Factory reset performed.");
-#endif
 }
 
 static std::shared_ptr<HttpController> systemController = std::make_shared<SystemController>();

@@ -22,6 +22,7 @@
 #include <HttpController.h>
 #include <PwrCntl.h>
 #include <map>
+#include <SystemUtil.h>
 
 /// @brief SystemController handles system-level HTTP requests.
 /// It provides endpoints for system information, updates, and rebooting the system.
@@ -132,9 +133,6 @@ private:
     /// @param json The JSON message to send.
     /// @note This method sends a JSON message to the client, typically used for notifications during the firmware update process.
     static void notify(EthClient &client, const String &json);
-    /// @brief Performs a factory reset of the system.
-    /// @note This method resets the system to its default state, erasing all configurations and settings.
-    static void factoryReset();
     /// @brief A map that holds the notification types and their corresponding string representations.
     static const std::map<SystemController::NotificationType, String> notificationTypesStrings;
 };

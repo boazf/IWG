@@ -35,7 +35,8 @@ Indicator::IndicatorsList Indicator::blinkingIndicators;
 TaskHandle_t Indicator::blinkerTaskHandle = NULL;
 
 Indicator::Indicator(uint8_t _channel, uint8_t pin) : 
-    channel(_channel)
+    channel(_channel),
+    currState(ledState::LED_OFF)
 {
     // Initialize the LED control using PWM`
     ledcSetup(channel, LED_FREQ, LED_RESOLUTION);

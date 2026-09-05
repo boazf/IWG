@@ -32,40 +32,136 @@
 #include <GWConnTest.h>
 #include <PwrCntl.h>
 #include <Buttons.h>
+#include <SystemUtil.h>
 
 /// @brief Sets indicators to reflect initialization progress.
 /// @param last If true, indicates the last step of initialization.
-void initProgress(bool last = false)
+static void initProgress(bool last = false)
 {
   // Set the initial state of the indicators
   static int state = 0;
   // Array of indicator objects
-  static Indicator indicators[] = { opi, rri, uli, mri };
+  static Indicator *indicators[] = { &opi, &rri, &uli, &mri };
 
   if (state > 0)
     // Turn on the LED to indicate initialization stage done
-    indicators[state - 1].set(ledState::LED_ON);
+    indicators[state - 1]->set(ledState::LED_ON);
 
   if (!last && state < NELEMS(indicators))
   {
     // Blink the next LED to indicate current initialization stage in progress
-    indicators[state++].set(ledState::LED_BLINK);
+    indicators[state++]->set(ledState::LED_BLINK);
   }
 }
 
+#define CHECK_FACTORY_RESET_TIMEOUT 10000
+#define KEY_PRESS_VALIDATION_TIME 1000
+
+static void checkFactoryReset()
+{
+  if (cc.state() == ButtonState::UNPRESSED)
+    return;
+  unsigned long t0 = millis();
+  unsigned long tPressed;
+  enum state 
+  { 
+    firstButtonPressed, 
+    firstButtonUnpressed, 
+    secondButtonPressed, 
+    secondButtonUnpressed, 
+    thirdButtonPressed, 
+    thirdButtonUnpressed 
+  };
+  state currentState = firstButtonPressed;
+  ledState opiState = opi.get();
+  ledState rriState = rri.get();
+  ledState uliState = uli.get();
+  opi.set(ledState::LED_ON);
+  bool stop = false;
+  while (!stop && millis() - t0 <= CHECK_FACTORY_RESET_TIMEOUT) // Wait 10 seconds for factory reset confirmation.
+  {
+    switch (currentState)
+    {
+      case firstButtonPressed:
+        if (cc.state() == ButtonState::UNPRESSED)
+        {
+          tPressed = 0;
+          currentState = firstButtonUnpressed;
+        }
+        break;
+      case firstButtonUnpressed:
+        if (rr.state() == ButtonState::PRESSED)
+        {
+          if (tPressed == 0)
+          {
+            tPressed = millis();
+          }
+          if (millis() - tPressed >= KEY_PRESS_VALIDATION_TIME)
+          {
+            rri.set(ledState::LED_ON);
+            currentState = secondButtonPressed;
+          }
+        }
+        else
+        {
+          tPressed = 0;
+        }
+        break;
+      case secondButtonPressed:
+        if (rr.state() == ButtonState::UNPRESSED)
+        {
+          tPressed = 0;
+          currentState = secondButtonUnpressed;
+        }
+        break;
+      case secondButtonUnpressed:
+        if (ul.state() == ButtonState::PRESSED)
+        {
+          if (tPressed == 0)
+          {
+            tPressed = millis();
+          }
+          if (millis() - tPressed >= KEY_PRESS_VALIDATION_TIME)
+          {
+            uli.set(ledState::LED_ON);
+            currentState = thirdButtonPressed;
+          }
+        }
+        else
+        {
+          tPressed = 0;
+        }
+        break;
+      case thirdButtonPressed:
+        if (ul.state() == ButtonState::UNPRESSED)
+        {
+          factoryReset();
+          stop = true;
+        }
+        break;
+    }
+  }
+  opi.set(opiState);
+  rri.set(rriState);
+  uli.set(uliState);
+}
+
 void setup() {
+  InitSerialTrace();
   initProgress();
   esp_task_wdt_init(30, true);
-  InitSerialTrace();
   InitPowerControl();
   InitSD();
   InitConfig();
   InitAppConfig();
+  checkFactoryReset();
   InitRelays();
 #ifndef USE_WIFI
   // Wait for router initialization time.
   // Some routers dors not function properly soon after startup.
-  delay(Config::routerInitTimeSec * 1000);
+  long tWait = Config::routerInitTimeSec * 1000 - millis();
+  if (tWait > 0)
+    delay(tWait);
 #endif
   initProgress();
   InitEthernet();
