@@ -16,9 +16,9 @@
 
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef HttpContollersUtil_h
-#define HttpContollersUtil
+#ifndef HttpControllersUtil_h
+#define HttpControllersUtil_h
 
 void InitHttpControllers();
 
-#endif // HttpContollersUtil
+#endif // HttpControllersUtil_h
