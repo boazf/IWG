@@ -106,9 +106,9 @@ namespace manualcontrol
             CommonManualControlState::isConnected = isConnected;
 
             if (ul.state() == ButtonState::PRESSED && 
-                rr.state() == ButtonState::UNPRESSED && 
-                mr.state() == ButtonState::UNPRESSED && 
-                cc.state() == ButtonState::UNPRESSED)
+                rr.state() == ButtonState::RELEASED && 
+                mr.state() == ButtonState::RELEASED && 
+                cc.state() == ButtonState::RELEASED)
             {
                 // If only the unlock button is pressed, transition to the Unlock state
                 transit<Unlock>();
@@ -116,9 +116,9 @@ namespace manualcontrol
             }
 
             if (cc.state() == ButtonState::PRESSED && 
-                ul.state() == ButtonState::UNPRESSED && 
-                rr.state() == ButtonState::UNPRESSED && 
-                mr.state() == ButtonState::UNPRESSED)
+                ul.state() == ButtonState::RELEASED && 
+                rr.state() == ButtonState::RELEASED && 
+                mr.state() == ButtonState::RELEASED)
             {
                 // If only the connectivity check button is pressed, start the connectivity check
                 recoveryControl.StartRecoveryCycles(RecoveryTypes::ConnectivityCheck);
@@ -286,7 +286,7 @@ namespace manualcontrol
             if (!unlocked)
             {
                 // If the system is not unlocked, and not only the unlock button is pressed, return to the previous state.
-                if (ul.state() == ButtonState::UNPRESSED || 
+                if (ul.state() == ButtonState::RELEASED || 
                     mr.state() == ButtonState::PRESSED || 
                     rr.state() == ButtonState::PRESSED || 
                     cc.state() == ButtonState::PRESSED)
@@ -294,26 +294,26 @@ namespace manualcontrol
                 return;
             }
 
-            if (ul.state() == ButtonState::UNPRESSED && 
-                mr.state() == ButtonState::UNPRESSED && 
+            if (ul.state() == ButtonState::RELEASED && 
+                mr.state() == ButtonState::RELEASED && 
                 rr.state() == ButtonState::PRESSED && 
-                cc.state() == ButtonState::UNPRESSED)
+                cc.state() == ButtonState::RELEASED)
             {
                 // If only the router recovery button is pressed, start the router recovery cycles.
                 recoveryControl.StartRecoveryCycles(RecoveryTypes::Router);
             }
-            else if (ul.state() == ButtonState::UNPRESSED && 
+            else if (ul.state() == ButtonState::RELEASED && 
                      mr.state() == ButtonState::PRESSED && 
-                     rr.state() == ButtonState::UNPRESSED && 
-                     cc.state() == ButtonState::UNPRESSED)
+                     rr.state() == ButtonState::RELEASED && 
+                     cc.state() == ButtonState::RELEASED)
             {
                 // If only the modem recovery button is pressed, start the modem recovery cycles.
                 recoveryControl.StartRecoveryCycles(RecoveryTypes::Modem);        
             }
             else if (cc.state() == ButtonState::PRESSED && 
-                     ul.state() == ButtonState::UNPRESSED && 
-                     mr.state() == ButtonState::UNPRESSED && 
-                     rr.state() == ButtonState::UNPRESSED)
+                     ul.state() == ButtonState::RELEASED && 
+                     mr.state() == ButtonState::RELEASED && 
+                     rr.state() == ButtonState::RELEASED)
             {
                 // If only the connectivity check button is pressed, start hard reset.
                 esp_timer_stop(hTimer);

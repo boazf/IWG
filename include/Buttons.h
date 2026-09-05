@@ -24,10 +24,10 @@
 #include <Observers.h>
 
 /// @brief This enum defines the possible states of a button.
-/// It can be either UNPRESSED or PRESSED.
+/// It can be either RELEASED or PRESSED.
 enum class ButtonState
 {
-    UNPRESSED,
+    RELEASED,
     PRESSED
 };
 

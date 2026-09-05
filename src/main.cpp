@@ -59,18 +59,18 @@ static void initProgress(bool last = false)
 
 static void checkFactoryReset()
 {
-  if (cc.state() == ButtonState::UNPRESSED)
+  if (cc.state() == ButtonState::RELEASED)
     return;
   unsigned long t0 = millis();
   unsigned long tPressed;
   enum state 
   { 
     firstButtonPressed, 
-    firstButtonUnpressed, 
+    firstButtonReleased, 
     secondButtonPressed, 
-    secondButtonUnpressed, 
+    secondButtonReleased, 
     thirdButtonPressed, 
-    thirdButtonUnpressed 
+    thirdButtonReleased 
   };
   state currentState = firstButtonPressed;
   ledState opiState = opi.get();
@@ -83,13 +83,13 @@ static void checkFactoryReset()
     switch (currentState)
     {
       case firstButtonPressed:
-        if (cc.state() == ButtonState::UNPRESSED)
+        if (cc.state() == ButtonState::RELEASED)
         {
           tPressed = 0;
-          currentState = firstButtonUnpressed;
+          currentState = firstButtonReleased;
         }
         break;
-      case firstButtonUnpressed:
+      case firstButtonReleased:
         if (rr.state() == ButtonState::PRESSED)
         {
           if (tPressed == 0)
@@ -108,13 +108,13 @@ static void checkFactoryReset()
         }
         break;
       case secondButtonPressed:
-        if (rr.state() == ButtonState::UNPRESSED)
+        if (rr.state() == ButtonState::RELEASED)
         {
           tPressed = 0;
-          currentState = secondButtonUnpressed;
+          currentState = secondButtonReleased;
         }
         break;
-      case secondButtonUnpressed:
+      case secondButtonReleased:
         if (ul.state() == ButtonState::PRESSED)
         {
           if (tPressed == 0)
@@ -133,7 +133,7 @@ static void checkFactoryReset()
         }
         break;
       case thirdButtonPressed:
-        if (ul.state() == ButtonState::UNPRESSED)
+        if (ul.state() == ButtonState::RELEASED)
         {
           factoryReset();
           stop = true;

@@ -116,7 +116,7 @@ void IRAM_ATTR Button::isr(void *param)
 
 ButtonState Button::state()
 {
-    return digitalRead(pin) ? ButtonState::UNPRESSED : ButtonState::PRESSED;
+    return digitalRead(pin) ? ButtonState::RELEASED : ButtonState::PRESSED;
 }
 
 bool Buttons::init(Button buttons[], size_t nButtons)
