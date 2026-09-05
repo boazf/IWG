@@ -243,6 +243,9 @@ public:
     /// This location will be used later for adding new history items.
     /// @param maxRecords The maximum number of history records to store.
     void init(int maxRecords);
+    /// @brief Reset the history storage.
+    /// This function clears all the history records in the storage.
+    void reset();
     /// @brief Add a history item to the storage.
     /// @param item The history item to add to the storage.
     /// The history items are added in a circular buffer fashion.

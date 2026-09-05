@@ -46,6 +46,12 @@ namespace historycontrol
         tinyfsm::FsmList<HistoryControl>::start();
     }
 
+    void HistoryControl::reset()
+    {
+        storage.reset();
+        init();
+    }
+
     time_t HistoryControl::getLastRecovery()
     { 
         return storage.getLastRecovery(); 

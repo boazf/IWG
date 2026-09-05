@@ -172,6 +172,9 @@ public:
     /// @brief Sets the time of day when the periodic restart will occur
     /// @param value The periodic restart time to set as a time_t value
     static void setPeriodicRestartTime(time_t value);
+    /// @brief Performs a factory reset of the application configuration.
+    /// This method resets the application configuration to its default state, erasing all custom settings.
+    static void factoryReset();
     /// @brief Retrieves the observer obejct that notifies when the application configuration changes.
     /// This observer can be used to listen for changes in the application configuration.
     /// @return The observer object to enlist for application configuration changes

@@ -51,9 +51,7 @@ void HistoryStorage::ReportInitializationResult()
 void HistoryStorage::init(int _maxRecords)
 {
 #ifdef RESET_HISTORY
-    availableRecords = 0;
-    putAvailableRecords();
-    EEPROM.commit();
+    reset();
 #endif
     maxRecords = _maxRecords;
     getAvailableRecords(); // Retrieve the number of available records from EEPROM
@@ -115,6 +113,13 @@ void HistoryStorage::init(int _maxRecords)
 #ifdef DEBUG_HISTORY
         ReportInitializationResult();
 #endif
+}
+
+void HistoryStorage::reset()
+{
+    availableRecords = 0;
+    putAvailableRecords();
+    EEPROM.commit();
 }
 
 void HistoryStorage::addHistory(const HistoryStorageItem &item)

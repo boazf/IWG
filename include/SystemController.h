@@ -49,6 +49,12 @@ public:
         else if (id.equals("reboot"))
             // Reboot the system.
             HardReset(3000, 15000);
+        else if (id.equals("fr")) // Factory reset
+            // Perform a factory reset of the system.
+            factoryReset();
+
+        HttpHeaders headers(context.getClient());
+        headers.sendHeaderSection(200);
 
         return true;
     }
@@ -126,6 +132,9 @@ private:
     /// @param json The JSON message to send.
     /// @note This method sends a JSON message to the client, typically used for notifications during the firmware update process.
     static void notify(EthClient &client, const String &json);
+    /// @brief Performs a factory reset of the system.
+    /// @note This method resets the system to its default state, erasing all configurations and settings.
+    static void factoryReset();
     /// @brief A map that holds the notification types and their corresponding string representations.
     static const std::map<SystemController::NotificationType, String> notificationTypesStrings;
 };

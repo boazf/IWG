@@ -221,6 +221,16 @@
                                     <span id="waitForReboot" style="visibility: hidden">Waiting for the device to restart...</span>
                                 </td>
                             </tr>
+                            <tr>
+                                <td colspan="4">
+                                    <hr>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <button id="frBtn", type="button" class="btn-sm btn-block btn-danger" onclick="factoryReset();">Factory Reset</button>
+                                </td>
+                            </tr>
                         </table>
                     </div>
                 </div>
@@ -291,6 +301,7 @@
                     $("#updateBtn")[0].disabled = state;
                     $("#refreshBtn")[0].disabled = state;
                     $("#rebootBtn")[0].disabled = state;
+                    $("#frBtn")[0].disabled = state;
                 }
                 async function refreshVersion()
                 {
@@ -357,6 +368,16 @@
                     $("#waitForReboot")[0].style.visibility = "visible";
                     await WaitForServerToBeAccessible(180000);
                     location.href = appBase + "index";
+                }
+
+                async function factoryReset() {
+                    if (!confirm("Are you sure that you want to perform a factory reset?\r\n" + 
+                                 "All settings and history data will be lost.\r\n" + 
+                                 "This action cannot be undone."))
+                        return;
+                    setDisableUpdateButtons(true);
+                    await fetch(appBase + "api/system/fr", { method: "GET"} );
+                    setDisableUpdateButtons(false);
                 }
             </script>
         </div>

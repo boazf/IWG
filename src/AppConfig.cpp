@@ -493,7 +493,7 @@ bool AppConfig::isInitialized()
 
 void AppConfig::setInitialized(bool isInitialized)
 {
-    putField<bool>(offsetof(AppConfigStore, initialized), isInitialized);
+    putField<byte>(offsetof(AppConfigStore, initialized), isInitialized ? 1 : 255);
 }
 
 time_t AppConfig::internalGetConnectionTestPeriod()
@@ -571,6 +571,13 @@ time_t AppConfig::internalGetPeriodicRestartTime()
 void AppConfig::internalSetPeriodicRestartTime(time_t value)
 {
     putField<time_t>(offsetof(AppConfigStore, periodicRestartTime), value);
+}
+
+void AppConfig::factoryReset()
+{
+    setInitialized(false);
+    EEPROM.commit();
+    init();
 }
 
 void InitAppConfig()

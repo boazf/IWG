@@ -52,6 +52,9 @@ namespace historycontrol
         /// It also registers observers for recovery state changes and maximum history record changes.
         /// It should be called once at the start of the application.
         void init();
+        /// @brief Reset the history control.
+        /// This method clears all history records and resets the internal state.
+        void reset();
         /// @brief Used to get the number of available history items.
         /// @return The number of available history items.
         int Available();
