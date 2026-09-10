@@ -1,14 +1,26 @@
 Import("env")
 
-# Source text file
-text_file = "sd/wwwroot/index.htm"
+import os
 
-# Output object file
-output_obj = env["BUILD_DIR"] + "\\" + "index.o"
-
-# Generate an object file from the text
-env.Execute(
-    f"xtensa-esp32-elf-objcopy -I binary -O elf32-xtensa-le -B xtensa {text_file} {output_obj}"
+index_html = os.path.join(
+    env.subst("$PROJECT_DIR"),
+    "sd",
+    "wwwroot",
+    "index.htm"
 )
 
-env.Append(LINKFLAGS=output_obj)
+index_obj = os.path.join(
+    env.subst("$BUILD_DIR"),
+    "index.o"
+)
+
+index_node = env.Command(
+    target=index_obj,
+    source=index_html,
+    action="xtensa-esp32-elf-objcopy -I binary -O elf32-xtensa-le -B xtensa $SOURCE $TARGET"
+)
+
+# Add generated object as a real linker input
+env.Append(
+    PIOBUILDFILES=index_node
+)
