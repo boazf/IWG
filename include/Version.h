@@ -30,6 +30,9 @@ public:
     /// @brief Get the OTA version available for update.
     /// @return A String representing the OTA version available for update, or "Unknown" if not available.
     static String getOtaVersion();
+    /// @brief Get the build type of the firmware.
+    /// @return A String representing the build type of the firmware.
+    static String getBuild();
 
     typedef enum class _UpdateResult
     {

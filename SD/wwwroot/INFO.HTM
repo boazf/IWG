@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Control</title>
+
+    <script type="text/javascript">
+        var loadError=false;
+    </script>
+    <link onerror="loadError=true" rel="stylesheet" href="/lib/bstrap/css/bstrap.css" />
+    <link onerror="loadError=true" rel="stylesheet" href="/css/site.css" />
+    <style type="text/css">
+        body {
+            background: transparent;
+            margin: 0px;
+            padding: 0px;
+        }
+        table {
+            border-collapse: collapse; 
+            border-spacing: 0; 
+            margin: 0;
+        }
+        td.infoName {
+            padding: 0px 10px 0px 10px;
+        }
+    </style>
+</head>
+<body onload="checkLoadError()">
+    <table>
+        <tr>
+            <td class="infoName">Version</td>
+            <td>%0                        </td>
+        </tr>
+        <tr>
+            <td class="infoName">Build</td>
+            <td>%1                        </td>
+        </tr>
+        <tr>
+            <td class="infoName">IP</td>
+            <td>%2                   </td>
+        </tr>
+        <tr>
+            <td class="infoName">MAC</td>
+            <td>%3                   </td>
+        </tr>
+        <tr>
+            <td class="infoName">Time</td>
+            <td id="timeValue"></td>
+        </tr>
+    </table>
+    <script type="text/javascript">
+        var time=%4                                   ;
+        function checkLoadError() {
+            if (loadError)
+                location.replace(document.location.pathname);
+        }
+        function showTime() {
+            var timeElement = document.getElementById("timeValue");
+            if (timeElement) {
+                var date = new Date(time * 1000);
+                timeElement.textContent = date.toUTCString().replace(" GMT", "");
+            }
+            setTimeout(function() { time++; showTime(); }, 1000);
+        }
+        showTime();
+    </script>
+</body>
+</html>

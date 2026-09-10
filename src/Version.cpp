@@ -35,6 +35,24 @@ String Version::getCurrentVersion()
     return APP_VERSION;
 }
 
+String Version::getBuild()
+{
+    String build;
+    build = 
+#ifdef RELEASE
+        "Release/";
+#else
+        "Debug/";   
+#endif
+#ifdef USE_WIFI
+    build += "WiFi";
+#else
+    build += "Wired";
+#endif
+
+    return build;
+}
+
 String Version::getOtaVersion()
 {
     // Create an HTTP client to fetch the OTA version.

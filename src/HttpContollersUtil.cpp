@@ -29,6 +29,7 @@
 #include <RecoveryController.h>
 #include <SystemController.h>
 #include <DirectFileView.h>
+#include <InfoView.h>
 
 void InitHttpControllers()
 {
@@ -38,6 +39,7 @@ void InitHttpControllers()
     HTTPServer::AddController("/", DefaultView::getInstance);
     HTTPServer::AddController("/HISTORY", HistoryView::getInstance);
     HTTPServer::AddController("/FILES", FilesView::getInstance);
+    HTTPServer::AddController("/INFO", InfoView::getInstance);
     HTTPServer::AddController("/API/SSE", SSEController::getInstance);
     HTTPServer::AddController("/API/FILES", FilesController::getInstance);
     HTTPServer::AddController("/API/RECOVERY", RecoveryController::getInstance);
