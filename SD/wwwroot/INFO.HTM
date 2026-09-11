@@ -3,8 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Control</title>
-
+    <title>System Info</title>
     <script type="text/javascript">
         var loadError=false;
     </script>
@@ -21,34 +20,34 @@
             border-spacing: 0; 
             margin: 0;
         }
-        td.infoName {
-            padding: 0px 10px 0px 10px;
+        .dl-horizontal dt {
+            float: left;
+            width: 70px;
+            clear: left;
+            text-align: left;
+            margin-left: 10px;
+            margin-bottom: 3px;
+        }
+        .dl-horizontal dd {
+            margin-left: 10px;
         }
     </style>
 </head>
 <body onload="checkLoadError()">
-    <table>
-        <tr>
-            <td class="infoName">Version</td>
-            <td>%0                        </td>
-        </tr>
-        <tr>
-            <td class="infoName">Build</td>
-            <td>%1                        </td>
-        </tr>
-        <tr>
-            <td class="infoName">IP</td>
-            <td>%2                   </td>
-        </tr>
-        <tr>
-            <td class="infoName">MAC</td>
-            <td>%3                   </td>
-        </tr>
-        <tr>
-            <td class="infoName">Time</td>
-            <td id="timeValue"></td>
-        </tr>
-    </table>
+    <div class="panel-body">
+        <dl class="dl-horizontal">
+            <dt>Version</dt>
+            <dd>%0                        </dd>
+            <dt>Build</dt>
+            <dd>%1                        </dd>
+            <dt>IP</dt>
+            <dd>%2                   </dd>
+            <dt>MAC</dt>
+            <dd>%3                   </dd>
+            <dt>Time</dt>
+            <dd id="timeValue"></dd>
+        </dl>
+    </div>
     <script type="text/javascript">
         var time=%4                                   ;
         function checkLoadError() {
