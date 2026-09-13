@@ -1,5 +1,6 @@
 #include <unity.h>
 #include <HistoryControlTests.h>
+#include <TimeUtil.cpp>
 #include <HistoryControl.cpp>
 #include <AppConfig.cpp>
 using namespace historycontrol;
