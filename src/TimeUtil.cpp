@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+ #ifndef TESTING
 // SPDX-License-Identifier: Apache-2.0
 
 #include <Arduino.h>
@@ -186,6 +187,8 @@ void InitTime()
 #endif
 #endif
 }
+
+#endif // TESTING
 
 /// @brief Check if the given time is valid.
 /// @param t The time to check.
