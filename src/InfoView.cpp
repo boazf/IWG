@@ -3,7 +3,6 @@
 #include "Version.h"
 #include "EthernetUtil.h"
 #include "TimeUtil.h"
-#include "AppConfig.h"
 
 InfoView::InfoView(const char *_viewFile) :
     HtmlFillerView(_viewFile, getFillers)
