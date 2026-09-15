@@ -516,13 +516,13 @@ time_t RecoveryControl::calcNextPeriodicRestart()
 		return -1;
 
 	// Calculate the last midnight time in seconds since epoch.
-	time_t now = t_now;
+	time_t now = t_now_local;
 	tm tr;
-	localtime_r(&now, &tr);
+	gmtime_r(&now, &tr);
 	tr.tm_hour = 0;
 	tr.tm_min = 0;
 	tr.tm_sec = 0;
-	time_t lastMidnight = mktime(&tr);
+	time_t lastMidnight = mklocaltime(&tr);
 	// Calculate the next periodic restart time based on the last midnight time and the configured periodic restart time.
 	// The periodic restart time is retrieved from the application configuration.
 	// If the next periodic restart time is less than or equal to the current time, it means we need to schedule it for the next day.
@@ -533,7 +533,7 @@ time_t RecoveryControl::calcNextPeriodicRestart()
 
 #ifdef DEBUG_RECOVERY_CONTROL
 	char buff[128];
-	localtime_r(&nextPeriodicRestart, &tr);
+	gmtime_r(&nextPeriodicRestart, &tr);
 	strftime(buff, sizeof(buff), "Next periodic restart: %a %d/%m/%Y %T%n", &tr);
 	Trace(buff);
 #endif
@@ -741,7 +741,7 @@ RecoveryMessages RecoveryControl::OnWaitConnectionTestPeriod()
 	// If there is no requested recovery, we wait for the next periodic restart time
 	// or the connection test period whichever comes first.
 	time_t tWait = isPeriodicRestartEnabled() ? 
-					min<time_t>(AppConfig::getConnectionTestPeriod(), nextPeriodicRestart - t_now) :
+					min<time_t>(AppConfig::getConnectionTestPeriod(), nextPeriodicRestart - t_now_local) :
 							    AppConfig::getConnectionTestPeriod();
 
 #ifdef DEBUG_RECOVERY_CONTROL
@@ -777,7 +777,7 @@ RecoveryMessages RecoveryControl::OnWaitConnectionTestPeriod()
 	
 	if (requestedRecovery == RecoveryMessages::Done && 
 		isPeriodicRestartEnabled() && 
-		t_now >= nextPeriodicRestart)
+		t_now_local >= nextPeriodicRestart)
 	{
 		// It is time for a periodic restart.
 		nextPeriodicRestart = calcNextPeriodicRestart();

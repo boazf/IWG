@@ -35,6 +35,11 @@ bool isValidTime(time_t t);
 /// @brief Current time in seconds since epoch.
 /// This macro provides the current time in seconds since the Unix epoch (January 1, 1970).
 #define t_now time(NULL)
+#define t_now_local getLocalTime()
+
+time_t getLocalTime();
+time_t mklocaltime(struct tm *stm);
+
 /// @brief Parameter for time change events.
 class TimeChangedParam
 {

@@ -62,14 +62,14 @@ static void hardResetTask(void *param)
       // t1 holds the time of system startup plus number of hard reset period in seconds
       // t_now - mills() / 1000 gives the time of system startup in seconds.
       // Config::hardResetPeriodDays * 24 * 60 * 60 gives the period in seconds.
-      time_t t1 = t_now - millis() / 1000 + Config::hardResetPeriodDays * 24 * 60 * 60;
+      time_t t1 = t_now_local - millis() / 1000 + Config::hardResetPeriodDays * 24 * 60 * 60;
       struct tm stm;
-      localtime_r(&t1, &stm);
+      gmtime_r(&t1, &stm);
       // Set the time of midnight of the day of the hard reset
       stm.tm_sec = stm.tm_min = stm.tm_hour = 0;
       // Set the time of the hard reset to be at midnight of the day of the hard reset
-      time_t tHardReset = mktime(&stm) + Config::hardResetTime;
-      while (tHardReset < t_now)
+      time_t tHardReset = mklocaltime(&stm) + Config::hardResetTime;
+      while (tHardReset < t_now_local)
       {
         // If the hard reset time is in the past, add Config::hardResetPeriodDays to it until it is in the future.
         // This is only required if the hard reset disable switch is turned on and hard reset was attempted but failed.
@@ -77,14 +77,13 @@ static void hardResetTask(void *param)
       }
 
 #ifdef DEBUG_POWER
-      localtime_r(&tHardReset, &stm);
+      gmtime_r(&tHardReset, &stm);
     	char buff[128];
-      memset(buff, 0, sizeof(buff));
     	strftime(buff, sizeof(buff), "Scheduled hard reset at: %a %d/%m/%Y %T%n", &stm);
       Trace(buff);
 #endif
       // Calculate the time to wait until the hard reset
-      tWait = tHardReset - t_now;
+      tWait = tHardReset - t_now_local;
     }
   } while (xSemaphoreTake(waitSem, (tWait * 1000) / portTICK_PERIOD_MS) == pdTRUE);
   // If we are here, it means that the time to wait has come. We should perform a hard reset.

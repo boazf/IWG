@@ -33,6 +33,28 @@
 static bool DST;
 Observers<TimeChangedParam> timeChanged;
 
+static time_t timezoneOffsetSeconds;
+
+time_t getLocalTime(time_t utc)
+{
+  return utc + timezoneOffsetSeconds;
+}
+
+time_t getLocalTime()
+{ 
+  return getLocalTime(t_now); 
+}
+
+time_t mklocaltime(struct tm *stm)
+{
+  return getLocalTime(mktime(stm));
+}
+
+static time_t calcTimezoneOffsetMinutes()
+{
+  return Config::timeZone + (AppConfig::getDST() ? (Config::DST) : 0);
+}
+
 #define MAX_WAIT_TIME_FOR_NTP_SUCCESS_SEC 30
 
 #ifndef USE_WIFI
@@ -40,7 +62,7 @@ static void getTimeFromNtp(time_t &now)
 {
   unsigned long t0 = millis();
   EthUDP ntpUDP;
-  NTPClient ntpClient(ntpUDP, Config::timeServer, Config::timeZone * 60 + (DST ? (Config::DST * 60) : 0), Config::timeUpdatePeriodMin * 60 * 1000);
+  NTPClient ntpClient(ntpUDP, Config::timeServer, 0, Config::timeUpdatePeriodMin * 60 * 1000);
   ntpClient.begin();
   // Wait for the time to be set
   do
@@ -52,15 +74,32 @@ static void getTimeFromNtp(time_t &now)
 }
 #endif
 
+static String getTZ()
+{
+  char tz[80];
+  // snprintf(tz, sizeof(tz), "IST%s%d:%02dIDT%d:%02d", Config::timeZone < 0 ? "-" : "", abs(Config::timeZone) / 60, abs(Config::timeZone) % 60, abs(Config::timeZone + Config::DST) / 60, abs(Config::timeZone + Config::DST) % 60);
+  int ist = calcTimezoneOffsetMinutes();
+  snprintf(
+    tz, 
+    sizeof(tz), 
+    "IST%s%d:%02d", 
+    ist > 0 ? "-" : "", 
+    abs(ist) / 60, 
+    abs(ist) % 60);
+  return tz;
+}
+
 /// @brief Set the system time.
 /// @param ignoreFailure If true, ignore any failures to set the time.
 static void setTime()
 {
+  timezoneOffsetSeconds = calcTimezoneOffsetMinutes() * 60;
+
   time_t now = 0;
 
 #ifdef USE_WIFI
   // Use WiFi to get the time
-  configTime(Config::timeZone * 60 + (DST ? (Config::DST * 60) : 0), 0, Config::timeServer);
+  configTime(0, 0, Config::timeServer);
   tm tr1;
   delay(2000);
   tr1.tm_year = 0;
@@ -96,21 +135,27 @@ static void setTime()
     timeval tv = {now, 0};
     settimeofday(&tv, NULL);
   }
+#endif 
+
+  String tz = getTZ();
+#ifdef DEBUG_TIME
+  Tracef("Setting TZ to: %s\n", tz.c_str());
 #endif
+  setenv("TZ", tz.c_str(), 1);
+  tzset();
 
 #ifdef DEBUG_TIME
   char buff[128];
   tm tr;
-  now = t_now;
-
-  localtime_r(&now, &tr);
+  
+  now = t_now_local;
+  gmtime_r(&now, &tr);
   strftime(buff, sizeof(buff), "DateTime: %a %d/%m/%Y %T%n", &tr);
   Trace(buff);
 #endif
 
   // Notify observers that the time has changed
   timeChanged.callObservers(TimeChangedParam(t_now));
-
 }
 
 /// @brief Application configuration changed event handler.
@@ -187,7 +232,11 @@ void InitTime()
 #endif
 #endif
 }
-
+#else
+time_t mklocaltime(struct tm *stm)
+{
+  return _mkgmtime(stm);
+}
 #endif // TESTING
 
 /// @brief Check if the given time is valid.
