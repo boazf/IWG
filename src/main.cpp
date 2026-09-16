@@ -195,17 +195,8 @@ void loop()
 {
   if (gwConnTest.IsConnected())
   {
-    static unsigned long tLastMaintain = 0;
-    if (millis() - tLastMaintain >= 10000)
-    {
-      MaintainEthernet();
-      tLastMaintain = millis();
-    }
-    DoHTTPService();
-  }
-  else
-  {
     MaintainEthernet();
+    DoHTTPService();
   }
   delay(1);
 }

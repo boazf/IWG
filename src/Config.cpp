@@ -97,14 +97,14 @@ long Config::hardResetTime = 3 * 60 * 60; // 3AM
 const char *Config::otaServer = "otadrive.com";
 /// @brief The OTA API key to use for over-the-air updates.
 const char *Config::otaApiKey = "";
+/// @brief The host name of the device in the WiFi network. It registers the name in the mDNS service
+/// so that it can be accessed by the host name in the local network.
+const char *Config::hostName = NULL;
 #ifdef USE_WIFI
 /// @brief The SSID of the WiFi network to connect to.
 const char *Config::ssid /* = "Your SSID" */;
 /// @brief The password of the WiFi network to connect to.
 const char *Config::password /* = "Your password" */;
-/// @brief The host name of the device in the WiFi network. It registers the name in the mDNS service
-/// so that it can be accessed by the host name in the local network.
-const char *Config::hostName = "InternetRecoveryBox";
 #endif
 
 /// @brief Parses a string value from the configuration file.
@@ -295,10 +295,10 @@ void Config::Init()
     { String("HardResetPeriodDays"), ParseLong, &hardResetPeriodDays },
     { String("HardResetTime"), ParseTime, &hardResetTime },
     { String("OTAServer"), ParseString, &otaServer },
+    { String("HostName"), ParseString, &hostName },
   #ifdef USE_WIFI
     { String("SSID"), ParseString, &ssid },
     { String("Password"), ParseString, &password },
-    { String("HostName"), ParseString, &hostName },
     { String("OTAWiFiApiKey"), ParseString, &otaApiKey },
   #endif
   };

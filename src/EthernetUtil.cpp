@@ -31,6 +31,7 @@
 #else
 #include <WiFi.h>
 #include <Dns.h>
+#include <ArduinoMDNS.h>
 #endif
 #ifdef DEBUG_ETHERNET
 #include <Trace.h>
@@ -411,6 +412,11 @@ bool IsZeroIPAddress(const IPAddress &ip)
   return ip == IPAddress(0, 0, 0, 0);
 }
 
+#ifndef USE_WIFI
+EthernetUDPEx mdnsUPD;
+MDNS mdns(mdnsUPD);
+#endif // !USE_WIFI
+
 bool InitEthernet()
 {
   // start the Ethernet connection:
@@ -498,19 +504,35 @@ bool InitEthernet()
   }
 #endif
 
+  if (Config::hostName != NULL)
+  {
+    // Start mDNS
+#ifdef DEBUG_ETHERNET
+    bool mdnsSuccess = 
+#endif
 #ifdef USE_WIFI
-  // Start mDNS
-#ifdef DEBUG_ETHERNET
-  bool mdnsSuccess = 
-#endif
-  MDNS.begin(Config::hostName);
-#ifdef DEBUG_ETHERNET
-  if (mdnsSuccess)
-    Traceln("mDNS started");
-  else
-    Traceln("mDNS failed to start");
-#endif
+    MDNS.begin(Config::hostName);
+#else
+    mdns.begin(Eth.localIP(), Config::hostName);
 #endif // USE_WIFI
+#ifdef DEBUG_ETHERNET
+    TRACE_BLOCK
+    {
+      Tracef("%s.local - ", Config::hostName);
+      if (mdnsSuccess)
+        Traceln("mDNS started");
+      else
+        Traceln("mDNS failed to start");
+    }
+#endif // DEBUG_ETHERNET
+  }
+  else
+  {
+#ifdef DEBUG_ETHERNET
+    Traceln("No host name configured for mDNS.");
+#endif
+  }
+
   return true;
 }
 
@@ -578,6 +600,17 @@ static std::map<wl_status_t, std::string> statusNames =
 
 void MaintainEthernet()
 {
+#ifndef USE_WIFI
+  mdns.run();
+#endif
+
+  static unsigned long tLastMaintain = 0;
+
+  if (millis() - tLastMaintain < 10000)
+    return;
+
+  tLastMaintain = millis();
+
 #ifndef USE_WIFI
   // Call Ethernet maintain function. This will handle DHCP renewals and other tasks.
 #ifdef DEBUG_ETHERNET

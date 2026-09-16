@@ -93,6 +93,7 @@ public:
     /// If this value is not specified in the configuration file, the default value will be used.
     /// The default value is an empty string, which means that no authentication is required.
     static const char *otaApiKey;
+    static const char *hostName;
 #ifdef USE_WIFI
     /// @brief The SSID of the WiFi network to connect to.
     static const char *ssid;
@@ -100,7 +101,6 @@ public:
     static const char *password;
     /// @brief The host name of the device in the WiFi network. It registers the name in the mDNS service
     /// so that it can be accessed by the host name in the local network.
-    static const char *hostName;
 #endif
 
 
