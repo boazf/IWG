@@ -413,8 +413,9 @@ bool IsZeroIPAddress(const IPAddress &ip)
 }
 
 #ifndef USE_WIFI
-EthernetUDPEx mdnsUPD;
-MDNS mdns(mdnsUPD);
+static EthernetUDPEx mdnsUPD;
+static MDNS mdns(mdnsUPD);
+static bool mdnsInitialized = false;
 #endif // !USE_WIFI
 
 bool InitEthernet()
@@ -508,18 +509,27 @@ bool InitEthernet()
   {
     // Start mDNS
 #ifdef DEBUG_ETHERNET
-    bool mdnsSuccess = 
+#ifdef USE_WIFI
+    bool mdnsInitialized;
+#endif
+#endif
+#ifndef USE_WIFI
+    mdnsInitialized = 
+#else
+#ifdef DEBUG_ETHERNET
+    mdnsInitialized = 
+#endif
 #endif
 #ifdef USE_WIFI
-    MDNS.begin(Config::hostName);
+      MDNS.begin(Config::hostName);
 #else
-    mdns.begin(Eth.localIP(), Config::hostName);
+      mdns.begin(Eth.localIP(), Config::hostName) == 1;
 #endif // USE_WIFI
 #ifdef DEBUG_ETHERNET
     TRACE_BLOCK
     {
       Tracef("%s.local - ", Config::hostName);
-      if (mdnsSuccess)
+      if (mdnsInitialized)
         Traceln("mDNS started");
       else
         Traceln("mDNS failed to start");
@@ -601,7 +611,8 @@ static std::map<wl_status_t, std::string> statusNames =
 void MaintainEthernet()
 {
 #ifndef USE_WIFI
-  mdns.run();
+  if (mdnsInitialized)
+    mdns.run();
 #endif
 
   static unsigned long tLastMaintain = 0;
@@ -746,11 +757,9 @@ bool TryGetHostAddress(IPAddress &address, String server)
 #else
   // Try to resolve the server name using DNS
 	DNSClient dns;
+  CRITICAL_BLOCK(csSpi)
   {
-    Lock lock(csSpi);
-    
     dns.begin(Eth.gatewayIP());
-
     error = dns.getHostByName(server.c_str(), address);
   }
 #endif
