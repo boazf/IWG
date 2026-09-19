@@ -724,9 +724,9 @@ void RecoveryControl::RaiseRecoveryStateChanged(RecoveryTypes recoveryType, Reco
 RecoveryMessages RecoveryControl::OnWaitConnectionTestPeriod()
 {
 	RecoveryMessages requestedRecovery = RecoveryMessages::None;
+	CRITICAL_BLOCK(csLock)
 	{
 		// See if there is already a requested recovery from the user.
-		Lock lock(csLock);
 		xSemaphoreTake(waitSem, 0);
 		if (this->requestedRecovery != RecoveryMessages::Done)
 		{
@@ -756,8 +756,8 @@ RecoveryMessages RecoveryControl::OnWaitConnectionTestPeriod()
 
 	// Wait for the specified time or until a recovery is requested by the user.
 	bool isSemObtained = xSemaphoreTake(waitSem, (tWait * 1000) / portTICK_PERIOD_MS) == pdTRUE;
+	CRITICAL_BLOCK(csLock)
 	{
-		Lock lock(csLock);
 		requestedRecovery = this->requestedRecovery;
 		if (isSemObtained && requestedRecovery == RecoveryMessages::Done)
 		{
