@@ -72,7 +72,7 @@ public:
         _header(String name) : _header(name, "") {} // Constructor with name only
         _header(const char *name) : _header(String(name), "") {} // Constructor with C-style string
         _header(CONTENT_TYPE contentType) : _header("Content-Type", contentTypeValues.at(contentType)) {} // Constructor with content type
-        _header(String name, String value) : name(name), value(value) {} // Constructor with name and value
+        _header(const String &name, const String &value) : name(name), value(value) {} // Constructor with name and value
         String name; // Header name
         String value; // Header value
     } Header;
