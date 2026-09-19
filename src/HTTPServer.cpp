@@ -133,7 +133,10 @@ void HTTPServer::NotModified(EthClient &client)
 void HTTPServer::PageNotFound(EthClient &client)
 {
     HttpHeaders headers(client);
-    headers.sendHeaderSection(404);
+    HttpHeaders::Header additionalHeaders[] = {CONTENT_TYPE::HTML};
+    String content = "<html><body><h1>404 Not Found</h1><img style=\"width:100%; max-width:400px; height:auto;\" src=\"/images/sadcomp.jpg\"></body></html>";
+    headers.sendHeaderSection(404, true, additionalHeaders, NELEMS(additionalHeaders), content.length());
+    client.print(content);
 }
 
 void HTTPServer::ServiceRequest(HttpClientContext *context)
