@@ -1,17 +1,17 @@
 :loop
 for /f "tokens=3 delims=/" %%N in ('
-  curl -si http://192.168.50.240/index ^| findstr /bi "Location:"
+  curl -si http://internetrecoverydev.local/index ^| findstr /bi "Location:"
 ') do set "id=%%N"
-curl -i http://192.168.50.240/index/%id%
+curl -i http://internetrecoverydev.local/index/%id%
 timeout /t 1 /nobreak
-curl -i http://192.168.50.240/Settings
+curl -i http://internetrecoverydev.local/Settings
 timeout /t 1 /nobreak
-curl -X DELETE http://192.168.50.240/api/files/wwwroot/temp/history.htm
+curl -X DELETE http://internetrecoverydev.local/api/files/wwwroot/temp/history.htm
 timeout /t 1 /nobreak
-curl -i http://192.168.50.240/History
+curl -i http://internetrecoverydev.local/History
 timeout /t 1 /nobreak
-curl -i http://192.168.50.240/History
+curl -i http://internetrecoverydev.local/History
 timeout /t 1 /nobreak
-curl -i http://192.168.50.240/files
+curl -i http://internetrecoverydev.local/files
 timeout /t 1 /nobreak
 goto loop
