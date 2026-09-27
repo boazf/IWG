@@ -167,6 +167,7 @@ void setup() {
   InitEthernet();
   initProgress();
   WaitForDNS();
+  initMDNS();
   initProgress();
   InitTime();
   initProgress(true);
@@ -174,6 +175,7 @@ void setup() {
   InitControllers();
   InitHttpControllers();
   InitHTTPServer();
+  // Initialize hard reset observer
   hardResetEvent.addObserver([](const HardResetEventParam &param, void *context)
   {
       switch (param.stage)

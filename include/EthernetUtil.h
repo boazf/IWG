@@ -177,4 +177,10 @@ bool IsZeroIPAddress(const IPAddress &address);
 /// @return True if the host address was successfully resolved, false otherwise.
 bool TryGetHostAddress(IPAddress &address, String server);
 
+/// @brief Initialize mDNS.
+/// @return True if mDNS is initialized successfully, false otherwise.
+/// @note This function should be called after initializing Ethernet
+/// and after verifying that the network is available.
+bool initMDNS();
+
 #endif // EthernetUtil_h

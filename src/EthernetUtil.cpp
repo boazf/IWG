@@ -505,45 +505,41 @@ bool InitEthernet()
   }
 #endif
 
-  if (Config::hostName != NULL)
-  {
-    // Start mDNS
-#ifdef DEBUG_ETHERNET
-#ifdef USE_WIFI
-    bool mdnsInitialized;
-#endif
-#endif
-#ifndef USE_WIFI
-    mdnsInitialized = 
-#else
-#ifdef DEBUG_ETHERNET
-    mdnsInitialized = 
-#endif
-#endif
-#ifdef USE_WIFI
-      MDNS.begin(Config::hostName);
-#else
-      mdns.begin(Eth.localIP(), Config::hostName) == 1;
-#endif // USE_WIFI
-#ifdef DEBUG_ETHERNET
-    TRACE_BLOCK
-    {
-      Tracef("%s.local - ", Config::hostName);
-      if (mdnsInitialized)
-        Traceln("mDNS started");
-      else
-        Traceln("mDNS failed to start");
-    }
-#endif // DEBUG_ETHERNET
-  }
-  else
+  return true;
+}
+
+bool initMDNS()
+{
+  if (Config::hostName == NULL)
   {
 #ifdef DEBUG_ETHERNET
     Traceln("No host name configured for mDNS.");
 #endif
+    return true;
   }
 
-  return true;
+  // Start mDNS
+#ifdef USE_WIFI
+  bool mdnsInitialized;
+#endif
+  mdnsInitialized = 
+#ifdef USE_WIFI
+    MDNS.begin(Config::hostName);
+#else
+    mdns.begin(Eth.localIP(), Config::hostName) == 1;
+#endif // USE_WIFI
+#ifdef DEBUG_ETHERNET
+  TRACE_BLOCK
+  {
+    Tracef("%s.local - ", Config::hostName);
+    if (mdnsInitialized)
+      Traceln("mDNS started");
+    else
+      Traceln("mDNS failed to start");
+  }
+#endif // DEBUG_ETHERNET
+
+  return mdnsInitialized;
 }
 
 bool WaitForDNS()
