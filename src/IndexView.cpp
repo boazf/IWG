@@ -55,7 +55,12 @@ ViewFiller IndexView::fillers[] =
     /*  9 */ [](String &fill) { fill = (int)recoveryControl.GetRecoveryState(); },
     /* 10 */ [](String &fill) { fill = appBase(); },
     /* 11 */ [](String &fill) { fill = Config::deviceName; },
-    /* 12 */ [](String &fill) { fill = Config::singleDevice ? "none" : "visible"; }
+    /* 12 */ [](String &fill) { fill = Config::singleDevice ? "none" : "visible"; },
+#ifdef USE_WIFI
+    /* 13 */ [](String &fill) { fill = "0190"; }
+#else
+    /* 13 */ [](String &fill) { fill = "0165"; }
+#endif
 };
 
 int IndexView::getFillers(const ViewFiller *&_fillers)

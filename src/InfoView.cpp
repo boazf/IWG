@@ -26,7 +26,12 @@ ViewFiller InfoView::fillers[] =
         sprintf(macStr, "%02X:%02X:%02X:%02X:%02X:%02X", macAddress[0], macAddress[1], macAddress[2], macAddress[3], macAddress[4], macAddress[5]); 
         fill = macStr; 
     },
-    /*  4 */ [](String &fill){ fill = String(t_now_local); }
+    /*  4 */ [](String &fill){ fill = String(t_now_local); },
+#ifdef USE_WIFI
+    /*  5 */ [](String &fill){ fill = String("<dt>WiFi</dt><dd>SSID: ") + WiFi.SSID() + ", RSSI: " + WiFi.RSSI() + "db</dd>"; }
+#else
+    /*  5 */ [](String &fill){ fill = ""; }
+#endif
 };
 
 int InfoView::getFillers(const ViewFiller *&_fillers)
