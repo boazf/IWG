@@ -491,6 +491,9 @@ bool InitEthernet()
     }
   }
 
+  // Disable Wi-Fi power saving to improve mDNS reliability.
+  WiFi.setSleep(false);
+
 #ifdef DEBUG_ETHERNET
   Traceln("Connected!");
   Tracef("RSSI: %ddb, BSSID:%s\n", WiFi.RSSI(), WiFi.BSSIDstr().c_str());
