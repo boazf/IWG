@@ -49,10 +49,10 @@ void GWConnTest::gwConnTestTask(void *param)
 
 bool GWConnTest::ping(int attempts, int tInterval)
 {
-    bool success = true;
+    bool success = false;
 
     // Check of the Ethernet is connected. Once it is connected, return true
-    for (int i = 0; i < attempts && success; i++)
+    for (int i = 0; i < attempts && !success; i++)
     {
         delay(tInterval);
         success = ping();
