@@ -50,13 +50,17 @@ static void hardResetTask(void *param)
 
   waitSem = xSemaphoreCreateBinary();
   time_t tWait;
-
   do
   {
     if (!isValidTime(t_now))
+    {
       // If the time is not valid, make best effort calculation of the time to wait.
       // Hopefully, later the time will be valid and the task will be able to re-evaluate the time to wait more accurately.
       tWait = Config::hardResetPeriodDays * 24 * 60 * 60 - millis() / 1000;
+#ifdef DEBUG_POWER
+      Traceln("Waiting for hard reset with estimated time: " + String(tWait) + " seconds");
+#endif
+    }
     else
     {
       // t1 holds the time of system startup plus number of hard reset period in seconds
@@ -181,6 +185,7 @@ void InitPowerControl(bool addObserver)
     Tracef("Watchdog did not load within %d miliseconds!\n", WATCHDOG_LOAD_TIME_MS);
   }
 #endif  
+  InitHardReset();
 }
 
 void HardReset(int timeout, int returnTimeout)
