@@ -22,8 +22,8 @@
 #include <Config.h>
 #include <TimeUtil.h>
 #include <AppConfig.h>
-#ifdef USE_WIFI
 #include <GWConnTest.h>
+#ifdef USE_WIFI
 #include <ESPmDNS.h>
 #ifdef DEBUG_ETHERNET
 #include <map>
@@ -32,6 +32,7 @@
 #include <WiFi.h>
 #include <Dns.h>
 #include <ArduinoMDNS.h>
+#include <PwrCntl.h>
 #endif
 #ifdef DEBUG_ETHERNET
 #include <Trace.h>
@@ -445,6 +446,18 @@ bool InitEthernet()
     // Use DHCP
     Eth.begin(Config::mac, 10000);
   }
+
+  if (!GWConnTest::ping(20, 100))
+  {
+#ifdef DEBUG_ETHERNET
+    Traceln("Failed to ping gateway during initialization! Performing hard reset...");
+#endif
+    HardReset(3000, 15000);
+  }
+
+#ifdef DEBUG_ETHERNET
+  Traceln("Gateway ping successful.");
+#endif
 #else // USE_WIFI
   WiFi.setAutoReconnect(true);
   uint8_t *mac = IsZeroIPAddress(Config::mac) ? NULL : Config::mac;
@@ -497,7 +510,7 @@ bool InitEthernet()
 #ifdef DEBUG_ETHERNET
   Traceln("Connected!");
   Tracef("RSSI: %ddb, BSSID:%s\n", WiFi.RSSI(), WiFi.BSSIDstr().c_str());
-#endif      
+#endif 
 #endif // USE_WIFI
 
 #ifdef DEBUG_ETHERNET

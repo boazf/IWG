@@ -94,6 +94,7 @@ public:
     /// The default value is an empty string, which means that no authentication is required.
     static const char *otaApiKey;
     static const char *hostName;
+    static long gwReconnectTimeSec;
 #ifdef USE_WIFI
     /// @brief The SSID of the WiFi network to connect to.
     static const char *ssid;

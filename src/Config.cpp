@@ -100,6 +100,7 @@ const char *Config::otaApiKey = "";
 /// @brief The host name of the device in the WiFi network. It registers the name in the mDNS service
 /// so that it can be accessed by the host name in the local network.
 const char *Config::hostName = NULL;
+long Config::gwReconnectTimeSec = 60; // 1 minute
 #ifdef USE_WIFI
 /// @brief The SSID of the WiFi network to connect to.
 const char *Config::ssid /* = "Your SSID" */;
@@ -296,6 +297,7 @@ void Config::Init()
     { String("HardResetTime"), ParseTime, &hardResetTime },
     { String("OTAServer"), ParseString, &otaServer },
     { String("HostName"), ParseString, &hostName },
+    { String("GWReconnectTimeSec"), ParseLong, &gwReconnectTimeSec },
   #ifdef USE_WIFI
     { String("SSID"), ParseString, &ssid },
     { String("Password"), ParseString, &password },

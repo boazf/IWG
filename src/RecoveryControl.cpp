@@ -34,6 +34,7 @@
 #include <Trace.h>
 #endif
 #include <GWConnTest.h>
+#include <PwrCntl.h>
 
 using namespace historycontrol;
 
@@ -864,9 +865,22 @@ RecoveryMessages RecoveryControl::OnDisconnectRouter(bool shouldDelay)
 /// @return Same as the message parameter.
 RecoveryMessages RecoveryControl::OnWaitWhileRecovering(RecoveryMessages message)
 {
-	delay(5000);
-	while (!gwConnTest.IsConnected())
-		delay(100);
+	if (!gwConnTest.IsConnected())
+	{
+		unsigned long t0 = millis();
+		while (!gwConnTest.IsConnected())
+		{
+			if (millis() - t0 >= Config::gwReconnectTimeSec * 1000) // 1 minute timeout for waiting for gateway connection
+			{
+#ifdef DEBUG_RECOVERY_CONTROL
+				Traceln("Gateway reconnect timeout, performing hard reset");
+#endif
+				HardReset(3000, 15000);
+				break;
+			}
+			delay(100);
+		}
+	}
 	return message;
 }
 
