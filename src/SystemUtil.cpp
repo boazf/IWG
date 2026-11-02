@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "SystemUtil.h"
 #include "AppConfig.h"
 #include "HistoryControl.h"
@@ -8,6 +9,8 @@ void factoryReset()
     // This should reset the system to its default state, erasing all configurations and settings.
     AppConfig::factoryReset();
     historyControl.reset();
+#ifdef DEBUG_HTTP_SERVER
     Serial.println("Factory reset performed.");
+#endif
 }
 
