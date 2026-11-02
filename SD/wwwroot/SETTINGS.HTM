@@ -377,7 +377,7 @@
                         return;
                     setDisableUpdateButtons(true);
                     await fetch(appBase + "api/system/fr", { method: "GET"} );
-                    setDisableUpdateButtons(false);
+                    window.location.reload();
                 }
             </script>
         </div>
