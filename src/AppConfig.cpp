@@ -21,7 +21,7 @@
 
 AppConfigStore AppConfig::store;
 
-#define DEFAUL_AUTO_RECOVERY true
+#define DEFAULT_AUTO_RECOVERY true
 #define DEFAULT_CONNECTION_TEST_PERIOD 300
 #define DEFAULT_LAN_ADDRESS IPAddress(0,0,0,0)
 #define DEFAULT_LIMIT_CYCLES true
@@ -61,7 +61,7 @@ void AppConfig::init()
     }
     else
     {
-        setAutoRecovery(DEFAUL_AUTO_RECOVERY);
+        setAutoRecovery(DEFAULT_AUTO_RECOVERY);
         setConnectionTestPeriod(DEFAULT_CONNECTION_TEST_PERIOD);
         setLANAddr(DEFAULT_LAN_ADDRESS);
         setLimitCycles(DEFAULT_LIMIT_CYCLES);

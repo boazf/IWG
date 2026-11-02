@@ -67,6 +67,7 @@
         "ECHOREP",
         "ECHOREQ",
         "EEPROM",
+        "Efuse",
         "espressif",
         "fabiobatsilva",
         "Feldboim",
