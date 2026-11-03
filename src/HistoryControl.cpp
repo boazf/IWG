@@ -33,11 +33,13 @@ namespace historycontrol
     void HistoryControl::init()
     {
         // Add recovery state change observer
-        recoveryStateChangedObserverToken = recoveryControl.addRecoveryStateChangedObserver(onRecoveryStateChanged, this);
+        if (recoveryStateChangedObserverToken == -1)
+            recoveryStateChangedObserverToken = recoveryControl.addRecoveryStateChangedObserver(onRecoveryStateChanged, this);
         // Get the maximum history records from the application configuration
         maxHistory = AppConfig::getMaxHistory();
         // Add observer for maximum history record changes
-        maxHistoryRecordChangedObserverToken = recoveryControl.addMaxHistoryRecordChangedObserver(onMaxHistoryChanged, this);
+        if (maxHistoryRecordChangedObserverToken == -1)
+            maxHistoryRecordChangedObserverToken = recoveryControl.addMaxHistoryRecordChangedObserver(onMaxHistoryChanged, this);
         // Read the history records from storage (EEPROM)
         storage.init(maxHistory);
         // Set the last update time to the current time
@@ -48,8 +50,16 @@ namespace historycontrol
 
     void HistoryControl::reset()
     {
-        recoveryControl.removeRecoveryStateChangedObserver(recoveryStateChangedObserverToken);
-        recoveryControl.removeMaxHistoryRecordChangedObserver(maxHistoryRecordChangedObserverToken);
+        if (recoveryStateChangedObserverToken != -1)
+        {
+            recoveryControl.removeRecoveryStateChangedObserver(recoveryStateChangedObserverToken);
+            recoveryStateChangedObserverToken = -1;
+        }
+        if (maxHistoryRecordChangedObserverToken != -1)
+        {
+            recoveryControl.removeMaxHistoryRecordChangedObserver(maxHistoryRecordChangedObserverToken);
+            maxHistoryRecordChangedObserverToken = -1;
+        }
         storage.reset();
         init();
     }
