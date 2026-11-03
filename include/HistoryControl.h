@@ -119,6 +119,10 @@ namespace historycontrol
         /// @param params The parameters of the max history record change event.
         /// @param context The context pointer to the HistoryControl instance.
         ON_MAX_HISTORY_CHANGED(onMaxHistoryChanged);
+        /// @brief Observer token for the RecoveryStateChanged event.
+        int recoveryStateChangedObserverToken = -1;
+        /// @brief Observer token for the MaxHistoryRecordChanged event.
+        int maxHistoryRecordChangedObserverToken = -1;
     };
 }
 

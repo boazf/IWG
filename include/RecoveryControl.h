@@ -186,6 +186,14 @@ public:
 		return m_recoveryStateChanged.addObserver(handler, context);
 	}
 
+	/// @brief Removes an observer for recovery state changes.
+	/// @param token The observer token returned by addRecoveryStateChangedObserver.
+	/// @return An integer indicating the result of the removal operation.
+	int removeRecoveryStateChangedObserver(int token)
+	{
+		return m_recoveryStateChanged.removeObserver(token);
+	}
+
 	/// @brief Adds an observer for modem power state changes.
 	/// @param handler The handler function to be called when the modem power state changes.
 	/// @param context The context pointer that will be passed to the handler function.
@@ -193,6 +201,14 @@ public:
 	int addModemPowerStateChangedObserver(Observers<PowerStateChangedParams>::Handler handler, void *context)
 	{
 		return m_modemPowerStateChanged.addObserver(handler, context);
+	}
+
+	/// @brief Removes an observer for modem power state changes.
+	/// @param token The observer token returned by addModemPowerStateChangedObserver.
+	/// @return An integer indicating the result of the removal operation.
+	int removeModemPowerStateChangedObserver(int token)
+	{
+		return m_modemPowerStateChanged.removeObserver(token);
 	}
 
 	/// @brief Adds an observer for router power state changes.
@@ -203,6 +219,14 @@ public:
 	{
 		return m_routerPowerStateChanged.addObserver(handler, context);
 	}
+	
+	/// @brief Removes an observer for router power state changes.
+	/// @param token The observer token returned by addRouterPowerStateChangedObserver.
+	/// @return An integer indicating the result of the removal operation.
+	int removeRouterPowerStateChangedObserver(int token)
+	{
+		return m_routerPowerStateChanged.removeObserver(token);
+	}
 
 	/// @brief Adds an observer for auto-recovery state changes.
 	/// @param handler The handler function to be called when the auto-recovery state changes.
@@ -212,7 +236,14 @@ public:
 	{
 		return m_autoRecoveryStateChanged.addObserver(handler, context);
 	}
-
+	/// @brief Removes an observer for auto-recovery state changes.
+	/// @param token The observer token returned by addAutoRecoveryStateChangedObserver.
+	/// @return An integer indicating the result of the removal operation.
+	int removeAutoRecoveryStateChangedObserver(int token)
+	{
+		return m_autoRecoveryStateChanged.removeObserver(token);
+	}
+	
 	/// @brief Adds an observer for max history record changes.
 	/// @param handler The handler function to be called when the max history record changes.
 	/// @param context The context pointer that will be passed to the handler function.
@@ -220,6 +251,14 @@ public:
 	int addMaxHistoryRecordChangedObserver(Observers<MaxHistoryRecordChangedParams>::Handler handler, void *context)
 	{
 		return m_maxHistoryRecordsChanged.addObserver(handler, context);
+	}
+
+	/// @brief Removes an observer for max history record changes.
+	/// @param token The observer token returned by addMaxHistoryRecordChangedObserver.
+	/// @return An integer indicating the result of the removal operation.
+	int removeMaxHistoryRecordChangedObserver(int token)
+	{
+		return m_maxHistoryRecordsChanged.removeObserver(token);
 	}
 
 	/// @brief Gets the current recovery state.
