@@ -54,98 +54,6 @@ static void initProgress(bool last = false)
   }
 }
 
-#define CHECK_FACTORY_RESET_TIMEOUT 10000
-#define KEY_PRESS_VALIDATION_TIME 1000
-
-static void checkFactoryReset()
-{
-  if (cc.state() == ButtonState::RELEASED)
-    return;
-  unsigned long t0 = millis();
-  unsigned long tPressed;
-  enum state 
-  { 
-    firstButtonPressed, 
-    firstButtonReleased, 
-    secondButtonPressed, 
-    secondButtonReleased, 
-    thirdButtonPressed, 
-    thirdButtonReleased 
-  };
-  state currentState = firstButtonPressed;
-  ledState opiState = opi.get();
-  ledState rriState = rri.get();
-  ledState uliState = uli.get();
-  opi.set(ledState::LED_ON);
-  bool stop = false;
-  while (!stop && millis() - t0 <= CHECK_FACTORY_RESET_TIMEOUT) // Wait 10 seconds for factory reset confirmation.
-  {
-    switch (currentState)
-    {
-      case firstButtonPressed:
-        if (cc.state() == ButtonState::RELEASED)
-        {
-          tPressed = 0;
-          currentState = firstButtonReleased;
-        }
-        break;
-      case firstButtonReleased:
-        if (rr.state() == ButtonState::PRESSED)
-        {
-          if (tPressed == 0)
-          {
-            tPressed = millis();
-          }
-          if (millis() - tPressed >= KEY_PRESS_VALIDATION_TIME)
-          {
-            rri.set(ledState::LED_ON);
-            currentState = secondButtonPressed;
-          }
-        }
-        else
-        {
-          tPressed = 0;
-        }
-        break;
-      case secondButtonPressed:
-        if (rr.state() == ButtonState::RELEASED)
-        {
-          tPressed = 0;
-          currentState = secondButtonReleased;
-        }
-        break;
-      case secondButtonReleased:
-        if (ul.state() == ButtonState::PRESSED)
-        {
-          if (tPressed == 0)
-          {
-            tPressed = millis();
-          }
-          if (millis() - tPressed >= KEY_PRESS_VALIDATION_TIME)
-          {
-            uli.set(ledState::LED_ON);
-            currentState = thirdButtonPressed;
-          }
-        }
-        else
-        {
-          tPressed = 0;
-        }
-        break;
-      case thirdButtonPressed:
-        if (ul.state() == ButtonState::RELEASED)
-        {
-          factoryReset();
-          stop = true;
-        }
-        break;
-    }
-  }
-  opi.set(opiState);
-  rri.set(rriState);
-  uli.set(uliState);
-}
-
 void setup() {
   InitSerialTrace();
   initProgress();
@@ -154,7 +62,7 @@ void setup() {
   InitSD();
   InitConfig();
   InitAppConfig();
-  checkFactoryReset();
+  checkFactoryResetOnStartup();
   InitRelays();
 #ifndef USE_WIFI
   // Wait for router initialization time.
@@ -175,21 +83,6 @@ void setup() {
   InitControllers();
   InitHttpControllers();
   InitHTTPServer();
-  // Initialize hard reset observer
-  hardResetEvent.addObserver([](const HardResetEventParam &param, void *context)
-  {
-      switch (param.stage)
-      {
-          case HardResetStage::prepare:
-              // Stop accepting new connections when preparing for hard reset
-              HTTPServer::stop();
-              break;
-          case HardResetStage::failure:
-              // Allow the server to continue accepting new connections after a hard reset failure
-              HTTPServer::restart();
-              break;
-      }
-  }, NULL);
   initButtons();
 }
 

@@ -19,6 +19,7 @@
 #include <Arduino.h>
 #include <Common.h>
 #include <HTTPServer.h>
+#include "PwrCntl.h"
 
 std::shared_ptr<HttpController> (*HTTPServer::getDefaultController)(const char *resource) = NULL;
 
@@ -340,6 +341,21 @@ void HTTPServer::RequestTask(void *params)
 void InitHTTPServer()
 {
     HTTPServer::Init();
+    // Initialize hard reset observer
+    hardResetEvent.addObserver([](const HardResetEventParam &param, void *context)
+    {
+        switch (param.stage)
+        {
+            case HardResetStage::prepare:
+                // Stop accepting new connections when preparing for hard reset
+                HTTPServer::stop();
+                break;
+            case HardResetStage::failure:
+                // Allow the server to continue accepting new connections after a hard reset failure
+                HTTPServer::restart();
+                break;
+        }
+    }, NULL);
 }
 
 void DoHTTPService()
