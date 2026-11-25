@@ -24,7 +24,7 @@
 #endif
 
 FilesView::FilesView(const char *_viewFile) : 
-   FileView(_viewFile)
+   FileView(_viewFile, HttpMethod::GET | HttpMethod::POST)
 {
 }
 

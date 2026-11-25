@@ -31,15 +31,13 @@
 class SystemController : public HttpController
 {
 public:
-    SystemController()
-    {
-    }
+    SystemController() {}
 
     /// @brief Handles GET requests for system information.
     /// @param context The HTTP client context.
     /// @param id The identifier for the requested resource.
     /// @return True if the request was handled successfully, false otherwise.
-    bool Get(HttpClientContext &context, const String id)
+    bool Get(HttpClientContext &context, const String id) override
     {
         if (id.equals("info"))
             // Send system version information as a JSON response.
@@ -58,24 +56,6 @@ public:
         headers.sendHeaderSection(200);
 
         return true;
-    }
-
-    // POST request is unhandler by this controller.
-    bool Post(HttpClientContext &context, const String id)
-    {
-        return false;
-    }
-
-    // PUT requests are unhandled by this controller.
-    bool Put(HttpClientContext &context, const String id)
-    {
-        return false;
-    }
-
-    // DELETE request is unhandled by this controller.
-    bool Delete(HttpClientContext &context, const String id)
-    {
-        return false;
     }
 
     /// @brief This controller is a singleton.

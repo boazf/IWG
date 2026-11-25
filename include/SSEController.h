@@ -91,49 +91,43 @@ public:
 class SSEController : public HttpController
 {
 public:
-    SSEController()
-    {
-    }
+    SSEController() : HttpController(HttpMethod::GET | HttpMethod::DELETE) {}
 
     /// @brief Handles GET requests for SSE clients.
     /// @param context The HTTP client context.
     /// @param id The unique identifier for the client.
     /// @return True if the request was handled successfully, false otherwise.
-    bool Get(HttpClientContext &context, const String id);
-    /// @brief Handles POST requests for SSE clients.
-    /// @param context The HTTP client context.
-    /// @param id The unique identifier for the client.
-    /// @return True if the request was handled successfully, false otherwise.
-    bool Post(HttpClientContext &context, const String id);
-    /// @brief Handles PUT requests for SSE clients.
-    /// @param context The HTTP client context.
-    /// @param id The unique identifier for the client.
-    /// @return True if the request was handled successfully, false otherwise.
-    bool Put(HttpClientContext &context, const String id);
+    bool Get(HttpClientContext &context, const String id) override;
+
     /// @brief Handles DELETE requests for SSE clients.
     /// @param context The HTTP client context.
     /// @param id The unique identifier for the client.
     /// @return True if the request was handled successfully, false otherwise.
-    bool Delete(HttpClientContext &context, const String id);
+    bool Delete(HttpClientContext &context, const String id) override;
+
     /// @brief Initializes the SSEController.
     /// This method sets up the necessary observers for recovery state changes, auto-recovery state changes
     /// modem power state changes, and router power state changes.
     /// It also initializes the state of the controller.
     /// @note This method should be called once at the start of the program to set up the controller.
     void Init();
+
     /// @brief Deletes a client from the controller.
     /// @param client The EthClient object to delete.
     /// @param stopClient If true, the client will be stopped before deletion.
     /// @return True if the client was deleted successfully, false otherwise.
     bool DeleteClient(EthClient &client, bool stopClient);
+
     /// @brief Checks if the given ID is valid. That is if it exists in the list of clients.
     /// @param id The ID to check.
     /// @return True if the ID is valid, false otherwise.
     bool IsValidId(const String &id);
+
     /// @brief Adds a client to the controller. It adds a class with only the ID,
     /// so that when the index page is called with that ID it will be recognized as a valid ID.
     /// @param id The unique identifier for the client.
     void AddClient(const String &id);
+
     /// @brief Gets the instance of the SSEController.
     /// @return A pointer to the SSEController instance.
     static std::shared_ptr<HttpController> getInstance();
@@ -143,28 +137,35 @@ private:
     /// @param params The parameters for the recovery state change.
     /// @param context The context for the HTTP client.
     ON_RECOVERY_STATE_CHANGED(OnRecoveryStateChanged);
+
     /// @brief Handles auto-recovery state changes.
     /// @param params The parameters for the auto-recovery state change.
     /// @param context The context for the HTTP client.
     ON_AUTO_RECOVERY_STATE_CHANGED(OnAutoRecoveryStateChanged);
+
     /// @brief Handles modem power state changes.
     /// @param params The parameters for the modem power state change.
     /// @param context The context for the HTTP client.
     ON_MODEM_POWER_STATE_CHANGED(OnModemPowerStateChanged);
+
     /// @brief Handles router power state changes.
     /// @param params The parameters for the router power state change.
     /// @param context The context for the HTTP client.
     ON_ROUTER_POWER_STATE_CHANGED(OnRouterPowerStateChanged);
+
     /// @brief Notifies the state of a client.
     /// @param id The unique identifier for the client. If empty, the state will be notified to all clients.
     /// @note This method is used to send updates to the clients about the current state of the controller.
     void NotifyState(const String &id);
+
     /// @brief Updates the last recovery time in the state.
     void UpdateStateLastRecoveryTime();
+
     /// @brief Deletes a client from the controller.
     /// @param clientInfo The information of the client to delete.
     /// @param stopClient If true, the client will be stopped before deletion.
     void DeleteClient(const ClientInfo &clientInfo, bool stopClient);
+    
     /// @brief Deletes unused clients from the controller.
     /// This method scans the list of clients and deletes those that are no longer active or have been disconnected.
     /// @note This method is typically called periodically to clean up the list of clients. 

@@ -24,33 +24,6 @@
 #include <Trace.h>
 #endif
 
-// Get request is unimplemented.
-bool RecoveryController::Get(HttpClientContext &context, const String id)
-{
-#ifdef DEBUG_HTTP_SERVER
-    Traceln("RecoveryController Get");
-#endif
-    return false;
-}
-
-// Put request is unimplemented.
-bool RecoveryController::Put(HttpClientContext &context, const String id)
-{
-#ifdef DEBUG_HTTP_SERVER
-    Traceln("RecoveryController Put");
-#endif
-    return false;
-}
-
-// Delete request is unimplemented.
-bool RecoveryController::Delete(HttpClientContext &context, const String id)
-{
-#ifdef DEBUG_HTTP_SERVER
-    Traceln("RecoveryController Delete");
-#endif
-    return false;
-}
-
 // Post request handles recovery operations based on the recovery type specified in the request body.
 // It reads the request body, extracts the recovery type, and starts the recovery process.
 bool RecoveryController::Post(HttpClientContext &context, const String id)
