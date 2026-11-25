@@ -85,17 +85,6 @@ bool SSEController::Get(HttpClientContext &context, const String id)
     return true;
 }
 
-// SSE controller doesn't implement Post or Put methods, so they return false.
-bool SSEController::Post(HttpClientContext &context, const String id)
-{
-    return false;
-}
-
-bool SSEController::Put(HttpClientContext &context, const String id)
-{
-    return false;
-}
-
 // This method is called when the index page is exited, so it deletes the client with the given ID. 
 // This call is triggered by the beforeunload event in the browser.
 // Not all browsers call the beforeunload event. So there is also a background task that periodically deletes unused clients.

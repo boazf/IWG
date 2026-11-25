@@ -69,7 +69,7 @@ public:
     /// @brief This method is called to handle a GET request.
     /// @param context The context of the HTTP client that made the request.
     /// @param id An optional identifier for the resource being requested. 
-    virtual bool Post(HttpClientContext &context, const String id);
+    virtual bool Post(HttpClientContext &context, const String id) override;
     /// @brief Returns a pointer to a new instance of SettingsView.
     /// @note This method is static and can be used to create a new instance of SettingsView.
     /// @return A pointer to a new SettingsView instance.

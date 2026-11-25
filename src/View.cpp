@@ -123,19 +123,3 @@ bool View::Get(HttpClientContext &context, const String id)
 
     return true;
 }
-
-// The Post, Put, and Delete methods are not implemented in the View class.
-// They are left as stubs to indicate that these methods are not supported for views.
-// If you need to implement these methods, you can override them in a derived class.
-bool View::Post(HttpClientContext &context, const String id)
-{
-    return false;
-}
-bool View::Put(HttpClientContext &context, const String id)
-{
-    return false;
-}
-bool View::Delete(HttpClientContext &context, const String id)
-{
-    return false;
-}

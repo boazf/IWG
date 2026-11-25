@@ -26,14 +26,12 @@
 class FilesController : public HttpController
 {
 public:
-    FilesController()
-    {
-    }
+    FilesController() : HttpController(HttpMethod::ALL) {}
 
-    bool Get(HttpClientContext &context, const String id);
-    bool Post(HttpClientContext &context, const String id);
-    bool Put(HttpClientContext &context, const String id);
-    bool Delete(HttpClientContext &context, const String id);
+    bool Get(HttpClientContext &context, const String id) override;
+    bool Post(HttpClientContext &context, const String id) override;
+    bool Put(HttpClientContext &context, const String id) override;
+    bool Delete(HttpClientContext &context, const String id) override;
     static std::shared_ptr<HttpController> getInstance();
 
 private:

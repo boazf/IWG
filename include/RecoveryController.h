@@ -26,14 +26,10 @@
 class RecoveryController : public HttpController
 {
 public:
-    RecoveryController()
-    {
-    }
+    RecoveryController() : HttpController(HttpMethod::POST) {}
 
-    bool Get(HttpClientContext &context, const String id);
-    bool Post(HttpClientContext &context, const String id);
-    bool Put(HttpClientContext &context, const String id);
-    bool Delete(HttpClientContext &context, const String id);
+    bool Post(HttpClientContext &context, const String id) override;
+    
     static std::shared_ptr<HttpController> getInstance();
 };
 

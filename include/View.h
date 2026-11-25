@@ -33,7 +33,8 @@ public:
     /// @param viewReader A pointer to a ViewReader instance that will be used to read the view data.
     /// The ViewReader is responsible for reading the view data from a specific source, such as a file or a memory buffer.
     /// The View class takes ownership of the ViewReader and will delete it in its destructor.
-    View(std::unique_ptr<ViewReader> viewReader) : 
+    View(std::unique_ptr<ViewReader> viewReader, HttpMethod methods = HttpMethod::GET) : 
+        HttpController(methods),
         viewReader(std::move(viewReader))
     {
     }
@@ -44,28 +45,7 @@ public:
     /// @return True if the request was handled successfully, false otherwise.
     /// @note The id parameter is optional and can be used to specify a resource identifier if applicable.
     /// If the id is not provided, the controller should handle the request for the root resource.
-    virtual bool Get(HttpClientContext &context, const String id);
-    /// @brief This method is called to handle a POST request.
-    /// @param context The context of the HTTP client that made the request.
-    /// @param id An optional identifier for the resource being created or modified.
-    /// @return True if the request was handled successfully, false otherwise.
-    /// @note The id parameter is optional and can be used to specify a resource identifier if applicable.
-    /// If the id is not provided, the controller should handle the request for the root resource.
-    virtual bool Post(HttpClientContext &context, const String id);
-    /// @brief This method is called to handle a PUT request.
-    /// @param context The context of the HTTP client that made the request.
-    /// @param id An optional identifier for the resource being updated.
-    /// @return True if the request was handled successfully, false otherwise.
-    /// @note The id parameter is optional and can be used to specify a resource identifier if applicable.
-    /// If the id is not provided, the controller should handle the request for the root resource.
-    virtual bool Put(HttpClientContext &context, const String id);
-    /// @brief This method is called to handle a DELETE request.
-    /// @param context The context of the HTTP client that made the request.
-    /// @param id An optional identifier for the resource being deleted.
-    /// @return True if the request was handled successfully, false otherwise.
-    /// @note The id parameter is optional and can be used to specify a resource identifier if applicable.
-    /// If the id is not provided, the controller should handle the request for the root resource.
-    virtual bool Delete(HttpClientContext &context, const String id);
+    virtual bool Get(HttpClientContext &context, const String id) override;
 
 protected:
     /// @brief This method is called to redirect the client to a different resource, if necessary.

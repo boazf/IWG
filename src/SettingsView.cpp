@@ -28,7 +28,7 @@
 #endif
 
 SettingsView::SettingsView(const char *_viewFile) : 
-    HtmlFillerView(_viewFile, getFillers)
+    HtmlFillerView(_viewFile, getFillers, HttpMethod::GET | HttpMethod::POST)
 {
 }
 

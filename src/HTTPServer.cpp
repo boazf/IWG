@@ -159,28 +159,36 @@ void HTTPServer::ServiceRequest(HttpClientContext *context)
 
     bool ret = false;
 
-    // Call the appropriate method on the controller based on the request type
-    // The controller will handle the request and return a response to the client.
-    switch(requestType)
+    try
     {
-    case HTTP_REQ_TYPE::HTTP_GET:
-        ret = controller->Get(*context, id);
-        break;
+        // Call the appropriate method on the controller based on the request type
+        // The controller will handle the request and return a response to the client.
+        switch(requestType)
+        {
+        case HTTP_REQ_TYPE::HTTP_GET:
+            ret = controller->Get(*context, id);
+            break;
 
-    case HTTP_REQ_TYPE::HTTP_POST:
-        ret = controller->Post(*context, id);
-        break;
+        case HTTP_REQ_TYPE::HTTP_POST:
+            ret = controller->Post(*context, id);
+            break;
 
-    case HTTP_REQ_TYPE::HTTP_PUT:
-        ret = controller->Put(*context, id);
-        break;
+        case HTTP_REQ_TYPE::HTTP_PUT:
+            ret = controller->Put(*context, id);
+            break;
 
-    case HTTP_REQ_TYPE::HTTP_DELETE:
-        ret = controller->Delete(*context, id);
-        break;
+        case HTTP_REQ_TYPE::HTTP_DELETE:
+            ret = controller->Delete(*context, id);
+            break;
 
-    default:
-        break;
+        default:
+            Tracef("Unsupported HTTP request type: %d\n", static_cast<int>(requestType));
+            break;
+        }
+    }
+    catch (const std::logic_error &e)
+    {
+        Tracef("Logic error: %s\n", e.what());
     }
 
     // If the request was not handled successfully, we return a 404 Not Found response.
